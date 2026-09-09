@@ -92,11 +92,11 @@ class LocalGameController {
     const holdBtn = document.getElementById("hold-reveal-btn");
     if (holdBtn) {
       const startHold = (e) => {
-        e.preventDefault();
+        if (e.cancelable) e.preventDefault();
         this.onHoldStart();
       };
-      const endHold = (e) => {
-        e.preventDefault();
+      const endHold = () => {
+        if (!this.isHolding) return;
         this.onHoldEnd();
       };
 
@@ -106,8 +106,8 @@ class LocalGameController {
       window.addEventListener("pointercancel", endHold);
 
       holdBtn.addEventListener("touchstart", startHold, { passive: false });
-      window.addEventListener("touchend", endHold, { passive: false });
-      window.addEventListener("touchcancel", endHold, { passive: false });
+      window.addEventListener("touchend", endHold);
+      window.addEventListener("touchcancel", endHold);
 
       holdBtn.addEventListener("mousedown", startHold);
       window.addEventListener("mouseup", endHold);

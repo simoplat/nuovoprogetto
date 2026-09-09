@@ -147,11 +147,11 @@ class P2PGameController {
     const holdBtn = document.getElementById("p2p-hold-reveal-btn");
     if (holdBtn) {
       const startHold = (e) => {
-        e.preventDefault();
+        if (e.cancelable) e.preventDefault();
         this.onHoldStart();
       };
-      const endHold = (e) => {
-        e.preventDefault();
+      const endHold = () => {
+        if (!this.isHolding) return;
         this.onHoldEnd();
       };
 
@@ -160,8 +160,8 @@ class P2PGameController {
       window.addEventListener("pointercancel", endHold);
 
       holdBtn.addEventListener("touchstart", startHold, { passive: false });
-      window.addEventListener("touchend", endHold, { passive: false });
-      window.addEventListener("touchcancel", endHold, { passive: false });
+      window.addEventListener("touchend", endHold);
+      window.addEventListener("touchcancel", endHold);
 
       holdBtn.addEventListener("mousedown", startHold);
       window.addEventListener("mouseup", endHold);
@@ -289,15 +289,40 @@ class P2PGameController {
     });
   }
 
-  renderHostRoomInfo() {
+  async getEffectiveRoomUrl() {
+    let origin = window.location.origin;
+    if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
+      try {
+        const res = await fetch("/api/info");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.lan_ip && !data.lan_ip.startsWith("127.")) {
+            origin = `http://${data.lan_ip}:${data.port || window.location.port || 8000}`;
+          }
+        }
+      } catch (e) {}
+    }
+    return `${origin}${window.location.pathname}?room=${this.roomCode}`;
+  }
+
+  async renderHostRoomInfo() {
     const codeBadge = document.getElementById("p2p-lobby-code-display");
     if (codeBadge) codeBadge.textContent = this.roomCode;
 
-    // Genera QR Code
+    const roomUrl = await this.getEffectiveRoomUrl();
+
+    // Mostra URL testuale se presente il container
+    const urlBox = document.getElementById("p2p-url-display-box");
+    const urlText = document.getElementById("p2p-room-url-text");
+    if (urlBox && urlText) {
+      urlText.textContent = roomUrl;
+      urlBox.style.display = "flex";
+    }
+
+    // Genera QR Code con l'URL effettivo (NON localhost)
     const qrContainer = document.getElementById("p2p-qrcode-container");
     if (qrContainer && window.QRCode) {
       qrContainer.innerHTML = "";
-      const roomUrl = `${window.location.origin}${window.location.pathname}?room=${this.roomCode}`;
       try {
         new window.QRCode(qrContainer, {
           text: roomUrl,
@@ -315,9 +340,9 @@ class P2PGameController {
     if (clientWaiting) clientWaiting.style.display = "none";
   }
 
-  copyRoomLink() {
+  async copyRoomLink() {
     Sound.playClick();
-    const roomUrl = `${window.location.origin}${window.location.pathname}?room=${this.roomCode}`;
+    const roomUrl = await this.getEffectiveRoomUrl();
     navigator.clipboard.writeText(roomUrl).then(() => {
       const btn = document.getElementById("p2p-copy-link-btn");
       if (btn) {

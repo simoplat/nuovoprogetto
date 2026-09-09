@@ -49,8 +49,14 @@
 }
 
 input, textarea, select {
-  user-select: auto;
-  -webkit-user-select: auto;
+  user-select: text;
+  -webkit-user-select: text;
+  touch-action: manipulation;
+}
+
+input[type="text"], input[type="search"], textarea {
+  cursor: text;
+  font-size: 16px; /* Previene lo zoom automatico su iOS Safari */
 }
 
 body {
@@ -499,6 +505,12 @@ h1, h2, h3, h4 {
   outline: none;
   cursor: pointer;
   transition: var(--transition-fast);
+}
+
+input.custom-select,
+.custom-input {
+  cursor: text;
+  font-size: 16px;
 }
 
 .custom-select:focus {
@@ -1020,7 +1032,33 @@ h1, h2, h3, h4 {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  margin-bottom: 20px;
+  margin-bottom: 0;
+}
+
+.net-invite-box {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  margin-top: 16px;
+  transition: var(--transition-fast);
+}
+
+.net-invite-box:hover {
+  border-color: var(--border-glow);
+}
+
+.net-invite-toggle-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+.net-invite-content {
+  transition: all var(--transition-fast);
 }
 
 .lobby-players-grid {

@@ -54,6 +54,18 @@ class NetworkGameController {
       copyUrlBtn.addEventListener("click", () => this.copyLanUrl());
     }
 
+    // Toggle Box Invito / QR Code
+    const inviteToggleBtn = document.getElementById("net-invite-toggle-btn");
+    const inviteContent = document.getElementById("net-invite-content");
+    const inviteIcon = document.getElementById("net-invite-toggle-icon");
+    if (inviteToggleBtn && inviteContent) {
+      inviteToggleBtn.addEventListener("click", () => {
+        const isClosed = inviteContent.style.display === "none";
+        inviteContent.style.display = isClosed ? "block" : "none";
+        if (inviteIcon) inviteIcon.textContent = isClosed ? "▲" : "▼";
+      });
+    }
+
     // Host: Stepper impostori
     const minusBtn = document.getElementById("net-imp-minus");
     const plusBtn = document.getElementById("net-imp-plus");
@@ -96,11 +108,11 @@ class NetworkGameController {
     const holdBtn = document.getElementById("net-hold-reveal-btn");
     if (holdBtn) {
       const startHold = (e) => {
-        e.preventDefault();
+        if (e.cancelable) e.preventDefault();
         this.onHoldStart();
       };
-      const endHold = (e) => {
-        e.preventDefault();
+      const endHold = () => {
+        if (!this.isHolding) return;
         this.onHoldEnd();
       };
 
@@ -109,8 +121,8 @@ class NetworkGameController {
       window.addEventListener("pointercancel", endHold);
 
       holdBtn.addEventListener("touchstart", startHold, { passive: false });
-      window.addEventListener("touchend", endHold, { passive: false });
-      window.addEventListener("touchcancel", endHold, { passive: false });
+      window.addEventListener("touchend", endHold);
+      window.addEventListener("touchcancel", endHold);
 
       holdBtn.addEventListener("mousedown", startHold);
       window.addEventListener("mouseup", endHold);
@@ -139,7 +151,29 @@ class NetworkGameController {
       nameInput.value = this.playerName;
     }
 
+    // Su smartphone o se si accede tramite QR Code (?join=1), collassa il box QR per mostrare subito il nome
+    const inviteContent = document.getElementById("net-invite-content");
+    const inviteIcon = document.getElementById("net-invite-toggle-icon");
+    const isJoinUrl = window.location.search.includes("join=1");
+    const isMobileScreen = window.innerWidth <= 600;
+    if (inviteContent) {
+      if (isJoinUrl || isMobileScreen) {
+        inviteContent.style.display = "none";
+        if (inviteIcon) inviteIcon.textContent = "▼";
+      } else {
+        inviteContent.style.display = "block";
+        if (inviteIcon) inviteIcon.textContent = "▲";
+      }
+    }
+
     window.App.switchView("view-network-join");
+
+    // Focus automatico per velocizzare l'inserimento
+    setTimeout(() => {
+      if (nameInput && !nameInput.value) {
+        nameInput.focus();
+      }
+    }, 150);
   }
 
   renderLanInfo() {
