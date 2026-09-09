@@ -264,10 +264,17 @@ class LocalGameController {
 
   fillQuickNames() {
     Sound.playClick();
-    const italianNames = ["Marco", "Sofia", "Luca", "Giulia", "Andrea", "Chiara", "Matteo", "Elena", "Davide", "Valentina", "Lorenzo", "Federica"];
+    const italianNames = [
+      "Marco", "Sofia", "Luca", "Giulia", "Andrea", "Chiara",
+      "Matteo", "Elena", "Davide", "Valentina", "Lorenzo", "Federica",
+      "Alessandro", "Francesca", "Gabriele", "Sara", "Simone", "Martina", "Tommaso", "Alice"
+    ];
     const shuffled = [...italianNames].sort(() => 0.5 - Math.random());
-    const count = Math.max(4, this.players.length);
-    this.players = shuffled.slice(0, count);
+    const count = Math.max(3, this.players.length);
+    this.players = [];
+    for (let i = 0; i < count; i++) {
+      this.players.push(shuffled[i % shuffled.length]);
+    }
     this.savePlayers();
     this.renderPlayerInputs();
     this.updateImpostorLimits();
