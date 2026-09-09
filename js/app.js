@@ -84,41 +84,31 @@ class ImpostorApp {
       });
     }
 
-    const attachTouchSafeClick = (elem, fn) => {
-      if (!elem) return;
-      let lastCall = 0;
-      const handler = (e) => {
-        const now = Date.now();
-        if (now - lastCall < 350) return;
-        lastCall = now;
-        fn(e);
-      };
-      elem.addEventListener("click", handler);
-      elem.addEventListener("touchend", (e) => {
-        e.preventDefault();
-        handler(e);
-      }, { passive: false });
-    };
-
     // Selezione Modalità 1: Passa il Telefono
     const selectLocalBtn = document.getElementById("select-mode-local");
-    attachTouchSafeClick(selectLocalBtn, () => {
-      Sound.playClick();
-      this.switchView("view-local-setup");
-      this.localGame.renderSetupView();
-    });
+    if (selectLocalBtn) {
+      selectLocalBtn.addEventListener("click", () => {
+        Sound.playClick();
+        this.switchView("view-local-setup");
+        this.localGame.renderSetupView();
+      });
+    }
 
     // Selezione Modalità 2: Stanza Online P2P (Senza PC / GitHub Pages)
     const selectP2PBtn = document.getElementById("select-mode-p2p");
-    attachTouchSafeClick(selectP2PBtn, () => {
-      this.p2pGame.initView();
-    });
+    if (selectP2PBtn) {
+      selectP2PBtn.addEventListener("click", () => {
+        this.p2pGame.initView();
+      });
+    }
 
     // Selezione Modalità 3: Rete Locale Wi-Fi
     const selectNetBtn = document.getElementById("select-mode-network");
-    attachTouchSafeClick(selectNetBtn, () => {
-      this.netGame.initNetworkMode();
-    });
+    if (selectNetBtn) {
+      selectNetBtn.addEventListener("click", () => {
+        this.netGame.initNetworkMode();
+      });
+    }
 
     // Tasti "Torna al menu" generici
     document.querySelectorAll(".btn-back-to-menu").forEach(btn => {
