@@ -34,6 +34,13 @@ class P2PGameController {
       this.enableClue = localStorage.getItem("impostore_p2p_enable_clue") === "true";
     } catch (e) {}
     this.secretClue = "";
+    this.discussionMinutes = 3;
+    try {
+      const savedMin = parseInt(localStorage.getItem("impostore_p2p_discussion_minutes"), 10);
+      if (savedMin >= 1 && savedMin <= 10) this.discussionMinutes = savedMin;
+    } catch (e) {}
+    this.timerSeconds = this.discussionMinutes * 60;
+    this.timerInterval = null;
 
     // Dati per il Client partecipante
     this.hostConn = null;
@@ -172,6 +179,14 @@ class P2PGameController {
     if (minusBtn && plusBtn) {
       minusBtn.addEventListener("click", () => this.adjustImpostorCount(-1));
       plusBtn.addEventListener("click", () => this.adjustImpostorCount(1));
+    }
+
+    // Host: Stepper Durata Discussione
+    const p2pTimeMinus = document.getElementById("p2p-time-minus");
+    const p2pTimePlus = document.getElementById("p2p-time-plus");
+    if (p2pTimeMinus && p2pTimePlus) {
+      p2pTimeMinus.addEventListener("click", () => this.adjustDiscussionTime(-1));
+      p2pTimePlus.addEventListener("click", () => this.adjustDiscussionTime(1));
     }
 
     // Host: Categoria parole
@@ -899,19 +914,20 @@ class P2PGameController {
       this.updateSeenStatusUI(data.seenCount, data.totalCount, data.missingPlayers);
     } else if (data.type === "START_DISCUSSION") {
       this.status = "discussion";
-      Sound.playFanfare();
-      const starterEl = document.getElementById("p2p-starter-player-name");
-      if (starterEl) starterEl.textContent = this.starterName;
-      window.App.switchView("view-p2p-discussion");
+      if (data.starterName) this.starterName = data.starterName;
+      this.startDiscussionTimer(data.duration || (this.discussionMinutes * 60));
     } else if (data.type === "START_VOTING") {
+      clearInterval(this.timerInterval);
       this.status = "voting";
       window.App.switchView("view-p2p-voting");
       this.renderP2PVotingCards();
     } else if (data.type === "GAME_OVER") {
+      clearInterval(this.timerInterval);
       this.status = "game_over";
       window.App.switchView("view-p2p-game-over");
       this.renderP2PGameOver(data);
     } else if (data.type === "RESET_LOBBY") {
+      clearInterval(this.timerInterval);
       this.status = "lobby";
       this.mySecret = null;
       this.hasReportedSeen = false;
@@ -962,7 +978,25 @@ class P2PGameController {
         }
       }
       this.updateHostImpostorLimits();
+      this.updateHostDiscussionTimeLimits();
     }
+  }
+
+  adjustDiscussionTime(delta) {
+    Sound.playClick();
+    this.discussionMinutes = Math.max(1, Math.min(10, this.discussionMinutes + delta));
+    try { localStorage.setItem("impostore_p2p_discussion_minutes", this.discussionMinutes); } catch (e) {}
+    this.updateHostDiscussionTimeLimits();
+  }
+
+  updateHostDiscussionTimeLimits() {
+    const valEl = document.getElementById("p2p-time-value");
+    if (valEl) valEl.textContent = `${this.discussionMinutes} min`;
+
+    const minusBtn = document.getElementById("p2p-time-minus");
+    const plusBtn = document.getElementById("p2p-time-plus");
+    if (minusBtn) minusBtn.disabled = this.discussionMinutes <= 1;
+    if (plusBtn) plusBtn.disabled = this.discussionMinutes >= 10;
   }
 
   adjustImpostorCount(delta) {
@@ -1334,21 +1368,80 @@ class P2PGameController {
     Sound.playClick();
     this.status = "discussion";
 
-    this.broadcast({ type: "START_DISCUSSION" });
+    const duration = this.discussionMinutes * 60;
+    this.broadcast({
+      type: "START_DISCUSSION",
+      starterName: this.starterName,
+      duration: duration
+    });
 
+    this.startDiscussionTimer(duration);
+  }
+
+  startDiscussionTimer(duration) {
     Sound.playFanfare();
     const starterEl = document.getElementById("p2p-starter-player-name");
     if (starterEl) starterEl.textContent = this.starterName;
 
     const hostVoteBtn = document.getElementById("p2p-host-start-vote-btn");
-    if (hostVoteBtn) hostVoteBtn.style.display = "inline-flex";
+    const clientWaiting = document.getElementById("p2p-client-vote-waiting");
+    if (hostVoteBtn) hostVoteBtn.style.display = this.isHost ? "inline-flex" : "none";
+    if (clientWaiting) clientWaiting.style.display = this.isHost ? "none" : "block";
+
+    this.timerSeconds = duration;
+    this.updateP2PTimerDisplay();
+
+    clearInterval(this.timerInterval);
+    this.timerInterval = setInterval(() => {
+      if (this.status !== "discussion") {
+        clearInterval(this.timerInterval);
+        return;
+      }
+
+      if (this.timerSeconds > 0) {
+        this.timerSeconds--;
+        this.updateP2PTimerDisplay();
+
+        if (this.timerSeconds <= 10 && this.timerSeconds > 0) {
+          Sound.playTimerTick(true);
+        } else if (this.timerSeconds % 30 === 0 && this.timerSeconds > 0) {
+          Sound.playTimerTick(false);
+        }
+
+        if (this.timerSeconds === 0) {
+          clearInterval(this.timerInterval);
+          Sound.playTimerEnd();
+          if (this.isHost) {
+            setTimeout(() => {
+              if (this.status === "discussion") {
+                this.hostStartVoting();
+              }
+            }, 1200);
+          }
+        }
+      }
+    }, 1000);
 
     window.App.switchView("view-p2p-discussion");
+  }
+
+  updateP2PTimerDisplay() {
+    const el = document.getElementById("p2p-timer-display");
+    if (!el) return;
+    const mins = Math.floor(this.timerSeconds / 60);
+    const secs = this.timerSeconds % 60;
+    el.textContent = `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+    if (this.timerSeconds <= 10 && this.timerSeconds > 0) {
+      el.classList.add("urgent");
+    } else {
+      el.classList.remove("urgent");
+    }
   }
 
   hostStartVoting() {
     if (!this.isHost) return;
     Sound.playClick();
+    clearInterval(this.timerInterval);
     this.status = "voting";
 
     this.broadcast({ type: "START_VOTING" });
@@ -1475,6 +1568,7 @@ class P2PGameController {
   hostResetLobby() {
     if (!this.isHost) return;
     Sound.playClick();
+    clearInterval(this.timerInterval);
     this.status = "lobby";
     this.mySecret = null;
     this.assignments.clear();

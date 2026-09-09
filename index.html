@@ -98,6 +98,19 @@
           <select id="local-category-select" class="custom-select"></select>
         </div>
 
+        <!-- Durata Discussione (Passa il Telefono) -->
+        <div class="form-group">
+          <div class="form-label">
+            <span>⏱️ Durata Discussione:</span>
+            <span class="label-hint">(può solo concludersi prima)</span>
+          </div>
+          <div class="stepper-control">
+            <button type="button" class="stepper-btn" id="local-time-minus" aria-label="Riduci tempo">-</button>
+            <span class="stepper-val" id="local-time-value">3 min</span>
+            <button type="button" class="stepper-btn" id="local-time-plus" aria-label="Aumenta tempo">+</button>
+          </div>
+        </div>
+
         <!-- Opzione Indizio per Impostore (Passa il Telefono) -->
         <div class="form-group">
           <div class="flex-between">
@@ -178,17 +191,16 @@
           <div class="starter-name" id="starter-player-name">Sofia</div>
         </div>
 
-        <!-- Timer Conto alla Rovescia -->
+        <!-- Timer Conto alla Rovescia (Può solo concludersi in anticipo) -->
         <div class="timer-box">
           <div class="timer-display" id="timer-display">03:00</div>
           <div class="timer-controls">
             <button type="button" class="btn btn-secondary" id="timer-toggle-btn">⏸️ Pausa</button>
-            <button type="button" class="btn btn-secondary" id="timer-add-min-btn">➕ 1 Minuto</button>
           </div>
         </div>
 
         <button type="button" class="btn btn-primary btn-block mt-4" id="go-to-vote-btn">
-          🗳️ Termina Discussione & Vai al Voto
+          🗳️ Concludi in Anticipo & Vai al Voto
         </button>
 
         <!-- Mini Regole Rapide -->
@@ -353,6 +365,19 @@
             <select id="p2p-category-select" class="custom-select"></select>
           </div>
 
+          <!-- Durata Discussione (P2P Host) -->
+          <div class="form-group">
+            <div class="form-label">
+              <span>⏱️ Durata Discussione:</span>
+              <span class="label-hint">(può solo concludersi prima)</span>
+            </div>
+            <div class="stepper-control">
+              <button type="button" class="stepper-btn" id="p2p-time-minus" aria-label="Riduci tempo">-</button>
+              <span class="stepper-val" id="p2p-time-value">3 min</span>
+              <button type="button" class="stepper-btn" id="p2p-time-plus" aria-label="Aumenta tempo">+</button>
+            </div>
+          </div>
+
           <div class="form-group" id="p2p-custom-word-container" style="display: none;">
             <div style="background: rgba(168, 85, 247, 0.12); border: 1px solid var(--accent-purple); border-radius: var(--radius-md); padding: 12px 14px; font-size: 0.88rem; color: #d8b4fe; line-height: 1.5;">
               🎲 <strong>Parola a Scelta Segreta:</strong> All'avvio della partita, uno dei giocatori verrà estratto a sorte dal sistema per digitare la parola dal proprio smartphone. <strong>Nessuno degli altri saprà chi l'ha inserita o chi è l'impostore!</strong><br>
@@ -478,14 +503,22 @@
           <div class="starter-name" id="p2p-starter-player-name">Marco</div>
         </div>
 
+        <!-- Timer Conto alla Rovescia P2P Sincronizzato -->
+        <div class="timer-box">
+          <div class="timer-display" id="p2p-timer-display">03:00</div>
+        </div>
+
         <div class="quick-rules-box">
           <h4>🗣️ Fase di Discussione in corso!</h4>
-          <p>Ognuno dice una parola a turno. L'impostore deve mimetizzarsi. Quando siete pronti, l'Host aprirà la votazione.</p>
+          <p>Ognuno dice una parola a turno. L'impostore deve mimetizzarsi. Al termine del tempo (o prima, se l'Host decide di concludere) si aprirà la votazione.</p>
         </div>
 
         <button type="button" class="btn btn-primary btn-block mt-4" id="p2p-host-start-vote-btn" style="display: none;">
-          🗳️ Apri Votazione del Gruppo
+          🗳️ Concludi in Anticipo & Apri Votazione
         </button>
+        <div id="p2p-client-vote-waiting" class="text-center mt-3" style="display: none; font-size: 0.88rem; color: var(--text-muted);">
+          ⏳ Discussione in corso... In attesa della votazione
+        </div>
       </div>
     </section>
 

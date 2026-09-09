@@ -17,8 +17,13 @@ class LocalGameController {
     this.turnIndex = 0;
     this.assignments = []; // { name, isImpostor, word, category }
     this.starterPlayer = "";
-    this.timerSeconds = 180; // 3 minuti standard
-    this.initialTimerSeconds = 180;
+    this.discussionMinutes = 3;
+    try {
+      const savedMin = parseInt(localStorage.getItem("impostore_discussion_minutes"), 10);
+      if (savedMin >= 1 && savedMin <= 10) this.discussionMinutes = savedMin;
+    } catch (e) {}
+    this.timerSeconds = this.discussionMinutes * 60;
+    this.initialTimerSeconds = this.timerSeconds;
     this.timerInterval = null;
     this.isTimerRunning = false;
     this.remainingImpostors = 0;
@@ -134,14 +139,17 @@ class LocalGameController {
       timerToggleBtn.addEventListener("click", () => this.toggleTimer());
     }
 
-    const timerAddMinBtn = document.getElementById("timer-add-min-btn");
-    if (timerAddMinBtn) {
-      timerAddMinBtn.addEventListener("click", () => this.addTimerMinute());
-    }
-
     const goToVoteBtn = document.getElementById("go-to-vote-btn");
     if (goToVoteBtn) {
       goToVoteBtn.addEventListener("click", () => this.openVotingPhase());
+    }
+
+    // Stepper Durata Discussione (Setup)
+    const timeMinusBtn = document.getElementById("local-time-minus");
+    const timePlusBtn = document.getElementById("local-time-plus");
+    if (timeMinusBtn && timePlusBtn) {
+      timeMinusBtn.addEventListener("click", () => this.adjustDiscussionTime(-1));
+      timePlusBtn.addEventListener("click", () => this.adjustDiscussionTime(1));
     }
 
     // Tasto Conferma Voto
@@ -166,6 +174,7 @@ class LocalGameController {
     this.renderCategoryOptions();
     this.renderPlayerInputs();
     this.updateImpostorLimits();
+    this.updateDiscussionTimeLimits();
     const clueToggle = document.getElementById("local-clue-toggle");
     if (clueToggle) clueToggle.checked = this.enableClue;
   }
@@ -262,6 +271,24 @@ class LocalGameController {
     this.savePlayers();
     this.renderPlayerInputs();
     this.updateImpostorLimits();
+  }
+
+  adjustDiscussionTime(delta) {
+    Sound.playClick();
+    this.discussionMinutes = Math.max(1, Math.min(10, this.discussionMinutes + delta));
+    this.initialTimerSeconds = this.discussionMinutes * 60;
+    try { localStorage.setItem("impostore_discussion_minutes", this.discussionMinutes); } catch (e) {}
+    this.updateDiscussionTimeLimits();
+  }
+
+  updateDiscussionTimeLimits() {
+    const valEl = document.getElementById("local-time-value");
+    if (valEl) valEl.textContent = `${this.discussionMinutes} min`;
+
+    const minusBtn = document.getElementById("local-time-minus");
+    const plusBtn = document.getElementById("local-time-plus");
+    if (minusBtn) minusBtn.disabled = this.discussionMinutes <= 1;
+    if (plusBtn) plusBtn.disabled = this.discussionMinutes >= 10;
   }
 
   adjustImpostorCount(delta) {
@@ -467,9 +494,11 @@ class LocalGameController {
     const starterEl = document.getElementById("starter-player-name");
     if (starterEl) starterEl.textContent = this.starterPlayer;
 
-    this.timerSeconds = this.initialTimerSeconds;
+    this.timerSeconds = this.discussionMinutes * 60;
+    this.initialTimerSeconds = this.timerSeconds;
     this.isTimerRunning = true;
     this.updateTimerDisplay();
+    this.updateTimerControls();
     this.startTimerInterval();
   }
 
@@ -493,6 +522,12 @@ class LocalGameController {
           Sound.playTimerEnd();
           this.isTimerRunning = false;
           this.updateTimerControls();
+
+          setTimeout(() => {
+            if (this.gameActive && window.App.currentView === "view-discussion") {
+              this.openVotingPhase();
+            }
+          }, 1500);
         }
       }
     }, 1000);
@@ -502,12 +537,6 @@ class LocalGameController {
     Sound.playClick();
     this.isTimerRunning = !this.isTimerRunning;
     this.updateTimerControls();
-  }
-
-  addTimerMinute() {
-    Sound.playClick();
-    this.timerSeconds += 60;
-    this.updateTimerDisplay();
   }
 
   updateTimerDisplay() {
