@@ -2,11 +2,11 @@
 
 Un'applicazione web elegante, reattiva e divertente per giocare al **Gioco dell'Impostore** (Undercover / Spyfall) sia su **smartphone** che su **desktop**.
 
-L'applicazione supporta **3 diverse modalità di gioco**, ideali sia per giocare offline con un solo telefono, sia per giocare online tra smartphone senza alcun computer, sia con server locale:
+L'applicazione supporta **2 modalità di gioco 100% serverless**, perfette per giocare ovunque (al parco, al pub, a casa o in viaggio) senza bisogno di alcun computer o installazione:
 
 ---
 
-## 🎮 Le 3 Modalità di Gioco
+## 🎮 Le Modalità di Gioco
 
 ### 1. 📱 Modalità "Passa il Telefono" (1 Solo Smartphone / 100% Offline)
 - **Zero PC, zero internet, zero installazioni**: serve solo un unico smartphone in tutto il gruppo!
@@ -17,17 +17,13 @@ L'applicazione supporta **3 diverse modalità di gioco**, ideali sia per giocare
 - Rilasciando il dito la carta si nasconde all'istante per sicurezza.
 - Timer di discussione e votazione finale con verdetto drammatico.
 
-### 2. ⚡ Modalità "Stanza Online P2P" (Senza PC / Ideale per GitHub Pages & Smartphone)
-- **Nessun PC necessario! Funziona al 100% nel browser via WebRTC (PeerJS)**.
-- Uno smartphone fa da **Host** cliccando *"Crea Nuova Stanza"* e ottiene un codice PIN a 4 lettere (es. `AB7K`) e un **QR Code**.
-- Tutti gli amici inquadrano il QR Code (o digitano il codice) dal proprio telefono (connessi via Wi-Fi o rete cellulare 4G/5G).
+### 2. ⚡ Modalità "Stanza Online P2P" (Multi-Smartphone / 4G, 5G o Wi-Fi)
+- **Zero server! Funziona al 100% nel browser via WebRTC (PeerJS)**.
+- Uno smartphone fa da **Host** cliccando *"Crea Nuova Stanza"* e ottiene un codice PIN a 4 lettere (es. `AB7K`) e un **QR Code / Link diretto**.
+- Tutti gli amici aprono il link o inquadrano il QR Code dal proprio telefono (connessi con **5G, 4G o Wi-Fi**).
+- **Accesso diretto**: chi riceve il link bypassa ogni selezione e trova subito il campo per digitare il proprio nome ed entrare in partita!
 - L'Host sceglie la categoria e il numero di impostori, poi preme *"Avvia Partita per Tutti"*.
 - Ciascun giocatore riceve in tempo reale sul proprio display il proprio ruolo personale!
-
-### 3. 💻 Modalità "Server Locale Wi-Fi" (LAN con PC Host)
-- Per chi gioca a casa e preferisce usare il PC come server locale.
-- Avviabile con un doppio clic su `avvia_gioco.bat` (oppure `python server.py`).
-- Rileva l'IP locale (es. `http://192.168.1.XX:8000`) e genera il QR Code locale.
 
 ---
 
@@ -57,3 +53,46 @@ Poiché il gioco è sviluppato interamente in HTML, CSS e JavaScript client-side
 - **Design Cyberpunk Neon & Glassmorphism**: Ottimizzato con `touch-action: manipulation`, feedback visivo e supporto sicuro per iOS/Android.
 - **Web Audio API**: Effetti sonori procedurali (suspense, allarme, vittoria, timer) sintetizzati via codice senza scaricare file audio pesanti.
 - **WebRTC DataChannels**: Comunicazione crittografata e a bassissima latenza diretta tra smartphone.
+
+---
+
+## 📝 Come Personalizzare Parole e Indizi (`words.json`)
+
+Tutte le parole, gli indizi per l'impostore e le categorie sono memorizzati nel file **[`words.json`](words.json)** nella cartella principale:
+
+> 💡 **Regola Indizi**: Ogni indizio deve essere **una sola parola generica riferita al contesto** (es. *"Forno"*, *"Pesce"*, *"Savana"*). Se non ci sono indizi associati, l'indizio sarà vuoto e l'impostore giocherà senza suggerimento.
+
+### 1. Aggiungere una parola con indizio a una categoria esistente:
+```json
+{
+  "cibo": {
+    "name": "Cibo & Bevande 🍕",
+    "words": [
+      { "word": "Cannolo Siciliano", "clue": "Pasticceria" }
+    ]
+  }
+}
+```
+
+### 2. Aggiungere una parola senza indizio (l'indizio sarà vuoto):
+```json
+"words": [
+  "Tiramisù",
+  "Lasagne"
+]
+```
+
+### 3. Creare una nuova categoria personalizzata:
+Basta aggiungere un nuovo blocco in `words.json`:
+```json
+"anime": {
+  "name": "Anime & Manga ⛩️",
+  "words": [
+    { "word": "Goku", "clue": "Combattimento" },
+    { "word": "Naruto", "clue": "Ninja" },
+    "One Piece"
+  ]
+}
+```
+Salva il file `words.json` e ricarica la pagina: la nuova categoria e le nuove parole saranno **subito disponibili nel gioco senza toccare una sola riga di codice JavaScript!**
+

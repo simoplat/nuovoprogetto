@@ -27,8 +27,13 @@
       <div class="header-controls">
         <button type="button" class="icon-btn" id="btn-rules" title="Regole del Gioco">❓</button>
         <button type="button" class="icon-btn" id="btn-audio-toggle" title="Attiva/Disattiva Audio">🔊</button>
-      </div>
     </header>
+
+    <!-- Banner Notifica Riconnessione Dinamica P2P -->
+    <div id="p2p-reconnect-banner" class="reconnect-banner" style="display: none;">
+      <span class="reconnect-icon" id="p2p-reconnect-icon">🔄</span>
+      <span id="p2p-reconnect-text">Connessione persa. Riconnessione in corso...</span>
+    </div>
 
     <!-- =========================================================================
          VISTA 1: SELEZIONE MODALITÀ (Passa il Telefono vs Rete Wi-Fi)
@@ -61,15 +66,6 @@
             </div>
           </button>
 
-          <!-- Modalità 3: Rete Locale Wi-Fi (Host PC) -->
-          <button type="button" class="mode-card" id="select-mode-network">
-            <span class="mode-badge" style="background: rgba(255, 255, 255, 0.12); color: #cbd5e1;">Server PC</span>
-            <div class="mode-icon">💻</div>
-            <div class="mode-title">Server Locale Wi-Fi</div>
-            <div class="mode-desc">
-              Per chi preferisce usare il PC di casa come server locale tramite avvia_gioco.bat.
-            </div>
-          </button>
         </div>
       </div>
     </section>
@@ -101,10 +97,18 @@
           <select id="local-category-select" class="custom-select"></select>
         </div>
 
-        <!-- Parola Personalizzata (Visibile solo se 'custom' è selezionato) -->
-        <div class="form-group" id="local-custom-word-container" style="display: none;">
-          <label class="form-label" for="local-custom-word-input">Inserisci la Parola Segreta:</label>
-          <input type="text" id="local-custom-word-input" class="custom-select" placeholder="Es. Tiramisù, Colosseo...">
+        <!-- Opzione Indizio per Impostore (Passa il Telefono) -->
+        <div class="form-group">
+          <div class="flex-between">
+            <div>
+              <label class="form-label" style="margin-bottom: 2px;" for="local-clue-toggle">💡 Indizio per l'Impostore:</label>
+              <div style="font-size: 0.8rem; color: var(--text-muted);">Fornisce all'impostore un suggerimento sul contesto per aiutarlo a bluffare</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="local-clue-toggle">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
         </div>
 
         <!-- Elenco Nomi Giocatori -->
@@ -244,193 +248,16 @@
       </div>
     </section>
 
-    <!-- =========================================================================
-         VISTE RETE LOCALE WI-FI (Multi-Dispositivo)
-         ========================================================================= -->
-    <!-- Accesso / Entra nella Stanza Wi-Fi -->
-    <section id="view-network-join" class="app-view" style="display: none;">
-      <div class="glass-card">
-        <h2 class="card-title">🌐 Connessione Stanza Wi-Fi</h2>
-        <p class="card-subtitle">
-          Tutti i telefoni connessi alla stessa rete Wi-Fi possono giocare insieme!
-        </p>
-
-        <!-- Modulo inserimento nome in primo piano -->
-        <div class="form-group mt-3">
-          <label class="form-label" for="net-player-name-input">Il tuo Nome:</label>
-          <input type="text" id="net-player-name-input" class="custom-select custom-input" placeholder="Es. Marco, Sofia, Luca..." maxlength="20" autocomplete="nickname" autocapitalize="words" autocorrect="off" spellcheck="false" enterkeyhint="go">
-        </div>
-
-        <button type="button" class="btn btn-primary btn-block mt-3" id="net-join-btn">
-          🚀 Entra in Partita
-        </button>
-
-        <!-- Sezione Invito / QR Code per Host e Altri Telefoni -->
-        <div class="net-invite-box">
-          <div class="net-invite-toggle-header" id="net-invite-toggle-btn" role="button" tabindex="0" title="Tocca per mostrare o nascondere il QR Code">
-            <span style="font-weight: 700; font-size: 0.92rem; color: var(--accent-cyan);">📲 Invita altri amici (QR Code & Link)</span>
-            <span id="net-invite-toggle-icon" style="font-size: 0.85rem; color: var(--text-muted); transition: transform 0.2s ease;">▼</span>
-          </div>
-          <div id="net-invite-content" class="net-invite-content">
-            <div class="text-center mt-2">
-              <div class="qr-box-container" id="net-qrcode-container">
-                <!-- QR generato dinamicamente -->
-              </div>
-              <div class="lan-url-display">
-                <span id="net-lan-url">Caricamento indirizzo LAN...</span>
-                <button type="button" class="preset-chip" id="net-copy-url-btn" title="Copia link">📋 Copia</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <button type="button" class="btn btn-secondary btn-block mt-3 btn-back-to-menu">
-          ⬅️ Torna al Menu Principale
-        </button>
-      </div>
-    </section>
-
-    <!-- Lobby Rete Wi-Fi -->
-    <section id="view-network-lobby" class="app-view" style="display: none;">
-      <div class="glass-card">
-        <div class="flex-between mb-2">
-          <h2 class="card-title">Lobby di Gioco 👥</h2>
-          <span class="turn-indicator"><span id="net-players-count">1</span> Giocatori</span>
-        </div>
-        <p class="card-subtitle">Giocatori attualmente collegati alla stanza:</p>
-
-        <div id="net-lobby-players-list" class="lobby-players-grid">
-          <!-- Chip giocatori generati via JS -->
-        </div>
-
-        <!-- Pannello Controlli Host -->
-        <div id="net-host-controls-panel" style="display: none; border-top: 1px solid var(--border-subtle); padding-top: 18px; margin-top: 16px;">
-          <div class="form-group">
-            <div class="form-label">
-              <span>Numero Impostori:</span>
-            </div>
-            <div class="stepper-control">
-              <button type="button" class="stepper-btn" id="net-imp-minus">-</button>
-              <span class="stepper-val danger" id="net-imp-value">1</span>
-              <button type="button" class="stepper-btn" id="net-imp-plus">+</button>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label" for="net-category-select">Categoria Parola:</label>
-            <select id="net-category-select" class="custom-select"></select>
-          </div>
-
-          <button type="button" class="btn btn-primary btn-block mt-4" id="net-host-start-btn">
-            🚀 Avvia Partita per Tutti
-          </button>
-        </div>
-
-        <!-- Pannello Attesa per i Giocatori Normali -->
-        <div id="net-client-waiting-panel" class="text-center mt-4" style="display: none;">
-          <div style="font-size: 2rem; margin-bottom: 8px;">⏳</div>
-          <div style="font-weight: 700; font-size: 1.1rem; color: var(--accent-cyan);">In attesa dell'Host...</div>
-          <p class="card-subtitle mt-2">La partita inizierà non appena l'Host premerà Avvia.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- Rivelazione Ruolo Segreto su Smartphone (Rete Wi-Fi) -->
-    <section id="view-network-secret" class="app-view" style="display: none;">
-      <div class="glass-card text-center">
-        <h2 class="card-title" style="justify-content: center;">Il tuo Ruolo Segreto 🤫</h2>
-        <p class="card-subtitle">Tieni premuto lo schermo del tuo telefono per scoprire chi sei:</p>
-
-        <div class="hold-reveal-box">
-          <div class="btn-hold" id="net-hold-reveal-btn">
-            <div class="hold-icon">👆</div>
-            <div class="hold-text">TIENI PREMUTO PER VEDERE</div>
-            <div class="hold-subtext">Nessun altro vedrà la tua scheda</div>
-            <div class="hold-progress-bar" id="net-hold-progress-bar"></div>
-          </div>
-
-          <div id="net-secret-revealed-card" class="secret-card" style="display: none;"></div>
-        </div>
-
-        <!-- Se Host: può avviare la discussione per tutti -->
-        <button type="button" class="btn btn-primary btn-block mt-4" id="net-host-start-disc-btn" style="display: none;">
-          🗣️ Tutti Hanno Visto: Inizia Discussione
-        </button>
-      </div>
-    </section>
-
-    <!-- Discussione Rete Wi-Fi -->
-    <section id="view-network-discussion" class="app-view" style="display: none;">
-      <div class="glass-card">
-        <div class="starter-spotlight">
-          <div class="starter-title">Giro di Parole - Chi inizia:</div>
-          <div class="starter-name" id="net-starter-player-name">Marco</div>
-        </div>
-
-        <div class="quick-rules-box">
-          <h4>🗣️ Fase di Discussione in corso!</h4>
-          <p>Ognuno dice una parola a turno. L'impostore deve mimetizzarsi. Quando siete pronti, l'Host aprirà la votazione.</p>
-        </div>
-
-        <!-- Se Host: tasto per aprire voto -->
-        <button type="button" class="btn btn-primary btn-block mt-4" id="net-host-start-vote-btn" style="display: none;">
-          🗳️ Apri Votazione del Gruppo
-        </button>
-      </div>
-    </section>
-
-    <!-- Voto Rete Wi-Fi -->
-    <section id="view-network-voting" class="app-view" style="display: none;">
-      <div class="glass-card">
-        <h2 class="card-title">🗳️ Votazione Finale</h2>
-        <p class="card-subtitle" id="net-host-vote-instruction">Seleziona chi viene accusato:</p>
-
-        <div id="net-vote-grid-container" class="vote-grid"></div>
-
-        <button type="button" class="btn btn-danger btn-block mt-4" id="net-confirm-vote-btn" style="display: none;">
-          ⚡ Rivela Verdetto per Tutti
-        </button>
-      </div>
-    </section>
-
-    <!-- Game Over Rete Wi-Fi -->
-    <section id="view-network-game-over" class="app-view" style="display: none;">
-      <div class="glass-card game-over-banner">
-        <div class="game-over-icon" id="net-game-over-icon">🎉</div>
-        <h2 class="game-over-title" id="net-game-over-title">Verdetto Partita</h2>
-        <p class="card-subtitle" id="net-game-over-desc">Caricamento...</p>
-
-        <div style="margin: 20px 0;">
-          <div class="form-label" style="justify-content: center; margin-bottom: 6px;">Gli Impostori erano:</div>
-          <div id="net-game-over-impostors-list" class="impostor-reveal-list"></div>
-        </div>
-
-        <div style="background: rgba(0, 0, 0, 0.3); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 14px; margin-bottom: 24px;">
-          <div style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase;">La parola segreta era:</div>
-          <div style="font-size: 1.4rem; font-weight: 800; color: var(--accent-cyan); margin-top: 4px;" id="net-game-over-word">--</div>
-        </div>
-
-        <button type="button" class="btn btn-primary btn-block mb-2" id="net-rematch-btn" style="display: none;">
-          🔄 Nuova Partita (Tutti Insieme)
-        </button>
-        <button type="button" class="btn btn-secondary btn-block btn-back-to-menu">
-          ⬅️ Torna al Menu Principale
-        </button>
-      </div>
-    </section>
-
-    <!-- =========================================================================
-         VISTE MODALITÀ ONLINE P2P (SENZA PC / GITHUB PAGES)
-         ========================================================================= -->
-    <!-- Setup P2P: Crea o Unisciti -->
-    <section id="view-p2p-setup" class="app-view" style="display: none;">
-      <div class="glass-card">
-        <h2 class="card-title">⚡ Stanza Online Multi-Smartphone</h2>
-        <p class="card-subtitle">Gioca con i tuoi amici ognuno dal proprio telefono, senza bisogno di alcun PC o server locale!</p>
-
-        <div class="tab-container">
+        <div class="tab-container" id="p2p-tab-container">
           <button type="button" class="tab-btn active" id="p2p-tab-create">👑 Crea Nuova Stanza</button>
           <button type="button" class="tab-btn" id="p2p-tab-join">🚪 Entra con Codice</button>
+        </div>
+
+        <!-- Banner per chi arriva da Link di invito diretto (?room=XXXX) -->
+        <div id="p2p-direct-invite-banner" style="display: none; background: rgba(0, 242, 254, 0.08); border: 1px solid var(--border-glow); border-radius: var(--radius-md); padding: 16px; text-align: center; margin-bottom: 20px;">
+          <div style="font-size: 0.82rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">Sei stato invitato nella stanza:</div>
+          <div id="p2p-direct-room-code" style="font-size: 2.2rem; font-weight: 900; letter-spacing: 4px; color: var(--accent-cyan); margin: 6px 0;">----</div>
+          <div style="font-size: 0.92rem; color: var(--text-secondary);">Inserisci il tuo nome per entrare direttamente in partita!</div>
         </div>
 
         <!-- Pannello Crea Stanza (Host) -->
@@ -449,7 +276,7 @@
 
         <!-- Pannello Entra in Stanza (Client) -->
         <div id="p2p-panel-join" style="display: none;">
-          <div class="form-group">
+          <div class="form-group" id="p2p-join-code-group">
             <label class="form-label" for="p2p-join-code-input">Codice Stanza (4 lettere):</label>
             <input type="text" id="p2p-join-code-input" class="custom-select custom-input" placeholder="Es. AB7K" maxlength="6" style="text-transform: uppercase; font-weight: 800; letter-spacing: 2px; text-align: center; font-size: 1.3rem;" autocapitalize="characters" autocorrect="off" spellcheck="false" enterkeyhint="next">
           </div>
@@ -515,8 +342,24 @@
           </div>
 
           <div class="form-group" id="p2p-custom-word-container" style="display: none;">
-            <label class="form-label" for="p2p-custom-word-input">Parola Segreta:</label>
-            <input type="text" id="p2p-custom-word-input" class="custom-select" placeholder="Es. Tiramisù...">
+            <div style="background: rgba(168, 85, 247, 0.12); border: 1px solid var(--accent-purple); border-radius: var(--radius-md); padding: 12px 14px; font-size: 0.88rem; color: #d8b4fe; line-height: 1.5;">
+              🎲 <strong>Parola a Scelta Segreta:</strong> All'avvio della partita, uno dei giocatori verrà estratto a sorte dal sistema per digitare la parola dal proprio smartphone. <strong>Nessuno degli altri saprà chi l'ha inserita o chi è l'impostore!</strong><br>
+              <span style="font-size: 0.82rem; opacity: 0.9; margin-top: 4px; display: inline-block;">⚠️ In questa modalità l'indizio per l'impostore è disattivato per garantire un gioco equo e non svantaggiare o deviare l'impostore.</span>
+            </div>
+          </div>
+
+          <!-- Opzione Indizio per Impostore (P2P Host) -->
+          <div class="form-group" id="p2p-clue-toggle-group">
+            <div class="flex-between">
+              <div>
+                <label class="form-label" style="margin-bottom: 2px;" for="p2p-clue-toggle">💡 Indizio per l'Impostore:</label>
+                <div style="font-size: 0.8rem; color: var(--text-muted);">L'impostore riceverà un indizio vago sul contesto</div>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="p2p-clue-toggle">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
           </div>
 
           <button type="button" class="btn btn-primary btn-block mt-4" id="p2p-host-start-btn">
@@ -529,6 +372,46 @@
           <div style="font-size: 2rem; margin-bottom: 8px;">⏳</div>
           <div style="font-weight: 700; font-size: 1.1rem; color: var(--accent-cyan);">Sei connesso alla stanza!</div>
           <p class="card-subtitle mt-2">In attesa che l'Host configuri e avvii il round.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Fase Inserimento Parola Segreta a Scelta (Selezionata a caso per 1 giocatore) -->
+    <section id="view-p2p-word-pick" class="app-view" style="display: none;">
+      <!-- Pannello per il giocatore estratto a sorte -->
+      <div id="p2p-word-picker-active" style="display: none;">
+        <div class="glass-card text-center">
+          <div style="font-size: 3.2rem; margin-bottom: 8px;">🎲</div>
+          <h2 class="card-title justify-center" style="justify-content: center; color: var(--accent-cyan);">SEI STATO SCELTO TU!</h2>
+          <p class="card-subtitle">
+            Il destino ha scelto te per decidere la <strong>parola segreta</strong> di questo round!
+          </p>
+          <div style="background: rgba(0, 242, 254, 0.08); border: 1px solid var(--border-glow); border-radius: var(--radius-md); padding: 12px 14px; margin: 16px 0; font-size: 0.86rem; color: var(--text-secondary); text-align: left;">
+            🤫 <strong>Fai finta di nulla!</strong> Gli altri giocatori non sanno che sei tu a sceglierla. Nel round sarai un cittadino normale e conoscerai questa parola.
+          </div>
+          <div class="form-group text-left" style="text-align: left;">
+            <label class="form-label" for="p2p-input-chosen-word">Inserisci la tua Parola Segreta:</label>
+            <input type="text" id="p2p-input-chosen-word" class="custom-select custom-input" placeholder="Es. Pizza, Piramide, Chitarra..." maxlength="30" autocomplete="off" autocapitalize="words" autocorrect="off" spellcheck="false" enterkeyhint="go">
+          </div>
+          <button type="button" class="btn btn-primary btn-block mt-4" id="p2p-btn-submit-chosen-word">
+            ✨ Conferma Parola e Avvia Round
+          </button>
+        </div>
+      </div>
+
+      <!-- Pannello per tutti gli altri giocatori in attesa -->
+      <div id="p2p-word-picker-waiting" style="display: none;">
+        <div class="glass-card text-center">
+          <div style="font-size: 3.2rem; margin-bottom: 8px;">🤫</div>
+          <h2 class="card-title justify-center" style="justify-content: center;">Preparazione Parola Segreta...</h2>
+          <p class="card-subtitle">
+            Uno dei giocatori è stato estratto a sorte per inserire la parola segreta dal proprio smartphone.
+          </p>
+          <div style="margin: 28px 0;">
+            <div class="spinner-pulse" style="margin: 0 auto 16px;"></div>
+            <div style="font-size: 1rem; font-weight: 700; color: var(--accent-purple);">Nessuno sa chi la sta scegliendo!</div>
+            <div style="font-size: 0.86rem; color: var(--text-muted); margin-top: 6px;">Attendi che il giocatore misterioso confermi la parola...</div>
+          </div>
         </div>
       </div>
     </section>
@@ -548,6 +431,24 @@
           </div>
 
           <div id="p2p-secret-revealed-card" class="secret-card" style="display: none;"></div>
+        </div>
+
+        <!-- Box Monitoraggio: Chi ha visto il ruolo e chi manca -->
+        <div id="p2p-seen-status-container" class="seen-status-box mt-3">
+          <div class="flex-between" style="align-items: center; margin-bottom: 6px;">
+            <span class="seen-title">👁️ Ruolo visualizzato:</span>
+            <span class="seen-counter-badge" id="p2p-seen-counter">0 / 0</span>
+          </div>
+          <div class="seen-progress-track">
+            <div class="seen-progress-fill" id="p2p-seen-progress-fill" style="width: 0%;"></div>
+          </div>
+          <div class="seen-missing-container mt-2" id="p2p-seen-missing-container">
+            <span class="missing-label">Mancano:</span>
+            <div class="missing-chips" id="p2p-seen-missing-chips"></div>
+          </div>
+          <div class="seen-all-ready-msg mt-2" id="p2p-seen-all-ready" style="display: none;">
+            ✅ Tutti i giocatori hanno visto il proprio ruolo!
+          </div>
         </div>
 
         <!-- Se Host: tasto avvia discussione -->
@@ -672,7 +573,6 @@
     }
   </script>
   <script src="js/local_game.js"></script>
-  <script src="js/network_game.js"></script>
   <script src="js/p2p_game.js"></script>
   <script src="js/app.js"></script>
 </body>

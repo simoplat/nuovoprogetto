@@ -7,33 +7,38 @@ class ImpostorApp {
   constructor() {
     this.currentView = "view-mode-select";
     this.localGame = null;
-    this.netGame = null;
+    this.p2pGame = null;
     this.init();
   }
 
   init() {
     // Inizializza controller
     this.localGame = new LocalGameController();
-    this.netGame = new NetworkGameController();
     this.p2pGame = new P2PGameController();
 
     // Riferimenti globali per accesso rapido
     window.LocalGame = this.localGame;
-    window.NetGame = this.netGame;
     window.P2PGame = this.p2pGame;
 
     this.bindGlobalEvents();
     this.updateAudioButtonState();
 
+    // Aggiornamento dinamico delle categorie al caricamento del file words.json
+    window.addEventListener("wordsLoaded", () => {
+      if (this.localGame && typeof this.localGame.renderCategoryOptions === "function") {
+        this.localGame.renderCategoryOptions();
+      }
+      if (this.p2pGame && typeof this.p2pGame.renderCategoryOptions === "function") {
+        this.p2pGame.renderCategoryOptions();
+      }
+    });
+
     // Auto-detect parametri URL:
-    // ?room=XXXX -> Apertura automatica stanza P2P (da QR Code o link diretto su GitHub Pages)
-    // ?join=1   -> Apertura automatica stanza Wi-Fi LAN
+    // ?room=XXXX -> Apertura automatica diretta per inserire il nome nella stanza P2P
     try {
       const params = new URLSearchParams(window.location.search);
       if (params.get("room")) {
         this.p2pGame.initView();
-      } else if (params.get("join") === "1") {
-        this.netGame.initNetworkMode();
       }
     } catch (e) {}
   }
@@ -99,14 +104,6 @@ class ImpostorApp {
     if (selectP2PBtn) {
       selectP2PBtn.addEventListener("click", () => {
         this.p2pGame.initView();
-      });
-    }
-
-    // Selezione Modalità 3: Rete Locale Wi-Fi
-    const selectNetBtn = document.getElementById("select-mode-network");
-    if (selectNetBtn) {
-      selectNetBtn.addEventListener("click", () => {
-        this.netGame.initNetworkMode();
       });
     }
 

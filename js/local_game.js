@@ -7,8 +7,10 @@ class LocalGameController {
     this.players = this.loadSavedPlayers() || ["Giocatore 1", "Giocatore 2", "Giocatore 3", "Giocatore 4"];
     this.impostorCount = 1;
     this.category = "random";
-    this.customWord = "";
-    this.isCustomWord = false;
+    this.enableClue = false;
+    try {
+      this.enableClue = localStorage.getItem("impostore_clue_enabled") === "true";
+    } catch (e) {}
 
     // Stato partita attiva
     this.gameActive = false;
@@ -75,10 +77,17 @@ class LocalGameController {
     if (catSelect) {
       catSelect.addEventListener("change", (e) => {
         this.category = e.target.value;
-        const customContainer = document.getElementById("local-custom-word-container");
-        if (customContainer) {
-          customContainer.style.display = this.category === "custom" ? "block" : "none";
-        }
+      });
+    }
+
+    // Toggle Indizio Impostore
+    const clueToggle = document.getElementById("local-clue-toggle");
+    if (clueToggle) {
+      clueToggle.checked = this.enableClue;
+      clueToggle.addEventListener("change", (e) => {
+        this.enableClue = e.target.checked;
+        Sound.playClick();
+        try { localStorage.setItem("impostore_clue_enabled", this.enableClue); } catch (err) {}
       });
     }
 
@@ -157,6 +166,8 @@ class LocalGameController {
     this.renderCategoryOptions();
     this.renderPlayerInputs();
     this.updateImpostorLimits();
+    const clueToggle = document.getElementById("local-clue-toggle");
+    if (clueToggle) clueToggle.checked = this.enableClue;
   }
 
   renderCategoryOptions() {
@@ -172,12 +183,6 @@ class LocalGameController {
       if (cat.id === this.category) opt.selected = true;
       catSelect.appendChild(opt);
     });
-
-    // Opzione parola personalizzata
-    const customOpt = document.createElement("option");
-    customOpt.value = "custom";
-    customOpt.textContent = "✏️ Parola Segreta Personalizzata";
-    catSelect.appendChild(customOpt);
   }
 
   renderPlayerInputs() {
@@ -292,21 +297,10 @@ class LocalGameController {
     }
 
     // Estrazione parola segreta
-    let secretWord = "";
-    let categoryName = "";
-    if (this.category === "custom") {
-      const customInput = document.getElementById("local-custom-word-input");
-      secretWord = customInput ? customInput.value.trim() : "";
-      if (!secretWord) {
-        alert("Inserisci la parola segreta personalizzata!");
-        return;
-      }
-      categoryName = "Parola Personalizzata";
-    } else {
-      const picked = pickSecretWord(this.category);
-      secretWord = picked.word;
-      categoryName = picked.categoryName;
-    }
+    const picked = pickSecretWord(this.category);
+    const secretWord = picked.word;
+    const categoryName = picked.categoryName;
+    const secretClue = picked.clue;
 
     // Assegnazione ruoli (Algoritmo Fisher-Yates per mescolare equamente)
     const indices = Array.from({ length: this.players.length }, (_, i) => i);
@@ -320,7 +314,8 @@ class LocalGameController {
       name: name,
       isImpostor: impostorIndices.has(index),
       word: secretWord,
-      category: categoryName
+      category: categoryName,
+      clue: secretClue
     }));
 
     // Estrazione casuale di chi apre il giro
@@ -417,11 +412,22 @@ class LocalGameController {
 
     if (current.isImpostor) {
       Sound.playImpostorReveal();
+      let clueHtml = "";
+      if (this.enableClue && current.clue) {
+        clueHtml = `
+          <div class="impostor-clue-box">
+            <div class="impostor-clue-label">💡 Indizio sul Contesto:</div>
+            <div class="impostor-clue-text">"${current.clue}"</div>
+          </div>
+        `;
+      }
+
       secretCard.innerHTML = `
         <div class="secret-badge">Allerta Intrusione ⚠️</div>
         <div class="impostor-title">SEI L'IMPOSTORE!</div>
+        ${clueHtml}
         <p class="impostor-warning">
-          Non conosci la parola segreta! Ascolta attentamente gli altri, bluffa con astuzia e non farti scoprire dal gruppo.
+          Non conosci la parola esatta! Ascolta attentamente gli altri, ${this.enableClue ? "sfrutta l'indizio per bluffare" : "bluffa con astuzia"} e non farti scoprire dal gruppo.
         </p>
       `;
     } else {
