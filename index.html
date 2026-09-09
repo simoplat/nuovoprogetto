@@ -27,6 +27,7 @@
       <div class="header-controls">
         <button type="button" class="icon-btn" id="btn-rules" title="Regole del Gioco">❓</button>
         <button type="button" class="icon-btn" id="btn-audio-toggle" title="Attiva/Disattiva Audio">🔊</button>
+      </div>
     </header>
 
     <!-- Banner Notifica Riconnessione Dinamica P2P -->
@@ -82,7 +83,7 @@
         <div class="form-group">
           <div class="form-label">
             <span>Numero di Impostori:</span>
-            <span class="label-hint">(deve essere minore dei giocatori)</span>
+            <span class="label-hint">(fino a metà dei partecipanti)</span>
           </div>
           <div class="stepper-control">
             <button type="button" class="stepper-btn" id="local-imp-minus" aria-label="Riduci impostori">-</button>
@@ -248,6 +249,16 @@
       </div>
     </section>
 
+    <!-- =========================================================================
+         VISTA 7: SETUP MODALITÀ ONLINE P2P (Crea o Entra)
+         ========================================================================= -->
+    <section id="view-p2p-setup" class="app-view" style="display: none;">
+      <div class="glass-card">
+        <h2 class="card-title justify-center" style="justify-content: center;">⚡ Stanza Online P2P</h2>
+        <p class="card-subtitle text-center">
+          Gioca da smartphone multipli senza server. Crea una stanza o entra con il codice.
+        </p>
+
         <div class="tab-container" id="p2p-tab-container">
           <button type="button" class="tab-btn active" id="p2p-tab-create">👑 Crea Nuova Stanza</button>
           <button type="button" class="tab-btn" id="p2p-tab-join">🚪 Entra con Codice</button>
@@ -328,6 +339,7 @@
           <div class="form-group">
             <div class="form-label">
               <span>Numero di Impostori:</span>
+              <span class="label-hint">(fino a metà dei partecipanti)</span>
             </div>
             <div class="stepper-control">
               <button type="button" class="stepper-btn" id="p2p-imp-minus">-</button>

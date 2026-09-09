@@ -967,13 +967,13 @@ class P2PGameController {
 
   adjustImpostorCount(delta) {
     Sound.playClick();
-    const maxImp = Math.max(1, Math.floor((this.players.length - 1) / 2));
+    const maxImp = Math.max(1, Math.floor(this.players.length / 2));
     this.impostorCount = Math.max(1, Math.min(maxImp, this.impostorCount + delta));
     this.updateHostImpostorLimits();
   }
 
   updateHostImpostorLimits() {
-    const maxImp = Math.max(1, Math.floor((this.players.length - 1) / 2));
+    const maxImp = Math.max(1, Math.floor(this.players.length / 2));
     if (this.impostorCount > maxImp) this.impostorCount = maxImp;
 
     const valEl = document.getElementById("p2p-imp-value");
@@ -991,6 +991,10 @@ class P2PGameController {
   hostStartGame() {
     if (!this.isHost || this.players.length < 3) return;
     Sound.playClick();
+
+    // Vincolo: massimo la metà per difetto (es. 5 giocatori -> max 2 impostori)
+    const maxImp = Math.max(1, Math.floor(this.players.length / 2));
+    this.impostorCount = Math.max(1, Math.min(maxImp, this.impostorCount));
 
     this.seenRolePlayerIds.clear();
     this.hasReportedSeen = false;

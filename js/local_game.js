@@ -266,13 +266,13 @@ class LocalGameController {
 
   adjustImpostorCount(delta) {
     Sound.playClick();
-    const maxImpostors = Math.max(1, Math.floor((this.players.length - 1) / 2));
+    const maxImpostors = Math.max(1, Math.floor(this.players.length / 2));
     this.impostorCount = Math.max(1, Math.min(maxImpostors, this.impostorCount + delta));
     this.updateImpostorLimits();
   }
 
   updateImpostorLimits() {
-    const maxImpostors = Math.max(1, Math.floor((this.players.length - 1) / 2));
+    const maxImpostors = Math.max(1, Math.floor(this.players.length / 2));
     if (this.impostorCount > maxImpostors) {
       this.impostorCount = maxImpostors;
     }
@@ -295,6 +295,10 @@ class LocalGameController {
       alert("Sono necessari almeno 3 giocatori per giocare!");
       return;
     }
+
+    // Vincolo: massimo la metà per difetto (es. 5 giocatori -> max 2 impostori)
+    const maxImpostors = Math.max(1, Math.floor(this.players.length / 2));
+    this.impostorCount = Math.max(1, Math.min(maxImpostors, this.impostorCount));
 
     // Estrazione parola segreta
     const picked = pickSecretWord(this.category);
