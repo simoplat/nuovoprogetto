@@ -128,7 +128,7 @@
         <!-- Elenco Nomi Giocatori -->
         <div class="form-group">
           <div class="form-label">
-            <span>Giocatori (<span id="local-total-players-count">4</span>):</span>
+            <span>Giocatori (<span id="local-total-players-count">3</span>):</span>
             <span class="label-hint">Tocca per modificare i nomi</span>
           </div>
           
@@ -153,7 +153,7 @@
          ========================================================================= -->
     <section id="view-pass-reveal" class="app-view" style="display: none;">
       <div class="glass-card pass-phone-container">
-        <div class="turn-indicator" id="pass-turn-count">Giocatore 1 di 4</div>
+        <div class="turn-indicator" id="pass-turn-count">Giocatore 1 di 3</div>
         <h2 class="pass-instruction">Passa il dispositivo a:</h2>
         <div class="pass-target-name" id="pass-player-name">Marco</div>
         <p class="card-subtitle">Assicurati che nessuno stia sbirciando prima di rivelare la scheda!</p>
@@ -489,8 +489,8 @@
         </div>
 
         <!-- Se Host: tasto avvia discussione -->
-        <button type="button" class="btn btn-primary btn-block mt-4" id="p2p-host-start-disc-btn" style="display: none;">
-          🗣️ Tutti Hanno Visto: Inizia Discussione
+        <button type="button" class="btn btn-primary btn-block mt-4" id="p2p-host-start-disc-btn" style="display: none;" disabled>
+          ⏳ In attesa che tutti vedano la carta...
         </button>
       </div>
     </section>

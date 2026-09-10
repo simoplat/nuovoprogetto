@@ -188,9 +188,106 @@ const DEFAULT_FALLBACK_DATABASE = {
       { word: "Surf", clue: "Onda" },
       { word: "Padel", clue: "Vetro" },
       { word: "Ciclismo", clue: "Bicicletta" },
-      { word: "Freccette", "clue": "Bersaglio" },
+      { word: "Freccette", clue: "Bersaglio" },
       { word: "Videogiochi", clue: "Controller" },
       { word: "Golf", clue: "Buca" }
+    ]
+  },
+  musica: {
+    name: "Musica & Spettacolo 🎵",
+    words: [
+      { word: "Chitarra", clue: "Corde" },
+      { word: "Pianoforte", clue: "Martelletti" },
+      { word: "Batteria", clue: "Percussione" },
+      { word: "Violino", clue: "Archetto" },
+      { word: "Sassofono", clue: "Ancia" },
+      { word: "Microfono", clue: "Diaframma" },
+      { word: "Flauto", clue: "Imboccatura" },
+      { word: "Concerto", clue: "Palcoscenico" },
+      { word: "Opera", clue: "Libretto" },
+      { word: "DJ set", clue: "Missaggio" },
+      { word: "Spartito", clue: "Pentagramma" },
+      { word: "Vinile", clue: "Solco" },
+      { word: "Cuffie", clue: "Isolamento" },
+      { word: "Tromba", clue: "Pistoni" },
+      { word: "Arpa", clue: "Risonanza" },
+      { word: "Fisarmonica", clue: "Mantice" },
+      { word: "Coro", clue: "Polifonia" },
+      { word: "Sintetizzatore", clue: "Oscillatore" },
+      { word: "Basso elettrico", clue: "Fretless" },
+      { word: "Festival", clue: "Scaletta" }
+    ]
+  },
+  scienza: {
+    name: "Scienza & Spazio 🔬",
+    words: [
+      { word: "Microscopio", clue: "Ingrandimento" },
+      { word: "Telescopio", clue: "Focale" },
+      { word: "Buco nero", clue: "Singolarità" },
+      { word: "DNA", clue: "Elica" },
+      { word: "Satellite", clue: "Orbita" },
+      { word: "Molecola", clue: "Legame" },
+      { word: "Eclissi", clue: "Penombra" },
+      { word: "Robot", clue: "Attuatore" },
+      { word: "Asteroide", clue: "Impatto" },
+      { word: "Cometa", clue: "Chioma" },
+      { word: "Supernova", clue: "Collasso" },
+      { word: "Batterio", clue: "Scissione" },
+      { word: "Gravità", clue: "Curvatura" },
+      { word: "Termometro", clue: "Dilatazione" },
+      { word: "Laboratorio", clue: "Reagente" }
+    ]
+  },
+  mitologia: {
+    name: "Mitologia & Fantasy 🧙",
+    words: [
+      { word: "Drago", clue: "Soffio" },
+      { word: "Fenice", clue: "Cenere" },
+      { word: "Centauro", clue: "Ibrido" },
+      { word: "Sirena", clue: "Canto" },
+      { word: "Unicorno", clue: "Corno" },
+      { word: "Mummia", clue: "Bende" },
+      { word: "Sfinge", clue: "Enigma" },
+      { word: "Faraone", clue: "Sarcofago" },
+      { word: "Pozione", clue: "Calderone" },
+      { word: "Bacchetta magica", clue: "Incantesimo" },
+      { word: "Cavaliere", clue: "Armatura" },
+      { word: "Grifone", clue: "Artigli" },
+      { word: "Minotauro", clue: "Labirinto" }
+    ]
+  },
+  natura: {
+    name: "Natura & Fenomeni 🌿",
+    words: [
+      { word: "Cascata", clue: "Dislivello" },
+      { word: "Aurora boreale", clue: "Ionosfera" },
+      { word: "Arcobaleno", clue: "Rifrazione" },
+      { word: "Ghiacciaio", clue: "Morena" },
+      { word: "Tornado", clue: "Vortice" },
+      { word: "Tsunami", clue: "Maremoto" },
+      { word: "Giungla", clue: "Canopia" },
+      { word: "Barriera corallina", clue: "Atollo" },
+      { word: "Oasi", clue: "Falda" },
+      { word: "Caverna", clue: "Stalattite" },
+      { word: "Fulmine", clue: "Ionizzazione" },
+      { word: "Terremoto", clue: "Faglia" }
+    ]
+  },
+  storia: {
+    name: "Storia & Civiltà 🏛️",
+    words: [
+      { word: "Piramide", clue: "Monolito" },
+      { word: "Ghigliottina", clue: "Lama" },
+      { word: "Corona", clue: "Monarchia" },
+      { word: "Spada", clue: "Forgiatura" },
+      { word: "Scudo", clue: "Blasone" },
+      { word: "Catapulta", clue: "Torsione" },
+      { word: "Trincea", clue: "Fanteria" },
+      { word: "Samurai", clue: "Katana" },
+      { word: "Vichinghi", clue: "Drakkar" },
+      { word: "Anfora", clue: "Terracotta" },
+      { word: "Pergamena", clue: "Papiro" },
+      { word: "Centurione", clue: "Legione" }
     ]
   }
 };

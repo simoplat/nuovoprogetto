@@ -562,6 +562,11 @@ class P2PGameController {
         });
       }
     } else if (data.type === "ROLE_SEEN") {
+      const clientPlayer = this.players.find(p => p.id === conn.peer || (data.playerId && p.playerId === data.playerId));
+      if (clientPlayer) {
+        this.seenRolePlayerIds.add(clientPlayer.id);
+        if (clientPlayer.playerId) this.seenRolePlayerIds.add(clientPlayer.playerId);
+      }
       this.seenRolePlayerIds.add(conn.peer);
       this.broadcastSeenStatus();
     } else if (data.type === "CUSTOM_WORD_SUBMITTED") {
@@ -586,12 +591,19 @@ class P2PGameController {
     }
 
     // Se aveva già visto il ruolo, aggiorna il set dei visti
-    if (this.seenRolePlayerIds.has(oldPeerId)) {
+    if (this.seenRolePlayerIds.has(oldPeerId) || (existingPlayer.playerId && this.seenRolePlayerIds.has(existingPlayer.playerId))) {
       this.seenRolePlayerIds.delete(oldPeerId);
       this.seenRolePlayerIds.add(conn.peer);
+      if (existingPlayer.playerId) this.seenRolePlayerIds.add(existingPlayer.playerId);
     }
 
     console.log(`[Host] Giocatore ${existingPlayer.name} riconnesso con successo.`);
+
+    const missingPlayers = this.players
+      .filter(p => !this.seenRolePlayerIds.has(p.id) && !(p.playerId && this.seenRolePlayerIds.has(p.playerId)))
+      .map(p => p.name);
+    const seenCount = Math.max(0, this.players.length - missingPlayers.length);
+    const hasSeenRole = this.seenRolePlayerIds.has(conn.peer) || (existingPlayer.playerId && this.seenRolePlayerIds.has(existingPlayer.playerId));
 
     // Invia pacchetto completo di sincronizzazione al client per riprendere la partita
     conn.send({
@@ -602,10 +614,10 @@ class P2PGameController {
       starterName: this.starterName,
       categoryName: this.categoryName,
       secret: secret || null,
-      seenCount: this.seenRolePlayerIds.size,
+      seenCount: seenCount,
       totalCount: this.players.length,
-      missingPlayers: this.players.filter(p => !this.seenRolePlayerIds.has(p.id)).map(p => p.name),
-      hasSeenRole: this.seenRolePlayerIds.has(conn.peer),
+      missingPlayers: missingPlayers,
+      hasSeenRole: hasSeenRole,
       chooserId: this.wordChooserId
     });
 
@@ -1202,9 +1214,15 @@ class P2PGameController {
     if (hostDiscBtn) {
       hostDiscBtn.style.display = this.isHost ? "inline-flex" : "none";
       hostDiscBtn.classList.remove("pulse-glow");
+      hostDiscBtn.disabled = true;
+      hostDiscBtn.innerHTML = "⏳ In attesa che tutti vedano la carta...";
     }
 
-    this.updateSeenStatusUI(0, this.players.length, this.players.map(p => p.name));
+    if (this.isHost) {
+      this.broadcastSeenStatus();
+    } else {
+      this.updateSeenStatusUI(0, this.players.length, this.players.map(p => p.name));
+    }
   }
 
   onHoldStart() {
@@ -1255,13 +1273,17 @@ class P2PGameController {
     const holdBtn = document.getElementById("p2p-hold-reveal-btn");
     if (!card) return;
 
-    if (!this.hasReportedSeen) {
-      this.hasReportedSeen = true;
-      if (this.isHost) {
-        this.seenRolePlayerIds.add(this.myPeerId);
-        this.broadcastSeenStatus();
-      } else if (this.hostConn && this.hostConn.open) {
-        this.hostConn.send({ type: "ROLE_SEEN" });
+    this.hasReportedSeen = true;
+    if (this.isHost) {
+      const hostPlayer = this.players.find(p => p.isHost);
+      const hostId = hostPlayer ? hostPlayer.id : "host";
+      this.seenRolePlayerIds.add(hostId);
+      this.seenRolePlayerIds.add("host");
+      if (this.myPeerId) this.seenRolePlayerIds.add(this.myPeerId);
+      this.broadcastSeenStatus();
+    } else {
+      if (this.hostConn && this.hostConn.open) {
+        this.hostConn.send({ type: "ROLE_SEEN", playerId: this.playerId });
       }
     }
 
@@ -1303,11 +1325,11 @@ class P2PGameController {
 
   broadcastSeenStatus() {
     if (!this.isHost) return;
-    const seenCount = this.seenRolePlayerIds.size;
-    const totalCount = this.players.length;
     const missingPlayers = this.players
-      .filter(p => !this.seenRolePlayerIds.has(p.id))
+      .filter(p => !this.seenRolePlayerIds.has(p.id) && !(p.playerId && this.seenRolePlayerIds.has(p.playerId)))
       .map(p => p.name);
+    const totalCount = this.players.length;
+    const seenCount = Math.max(0, totalCount - missingPlayers.length);
 
     const payload = {
       type: "SEEN_STATUS_UPDATE",
@@ -1335,19 +1357,26 @@ class P2PGameController {
       progressFill.style.width = `${pct}%`;
     }
 
-    const allSeen = totalCount > 0 && seenCount >= totalCount;
+    const allSeen = totalCount > 0 && missingPlayers.length === 0 && seenCount >= totalCount;
 
     if (allSeen) {
       if (missingContainer) missingContainer.style.display = "none";
       if (allReadyEl) allReadyEl.style.display = "block";
       if (this.isHost && hostDiscBtn) {
+        hostDiscBtn.disabled = false;
         hostDiscBtn.classList.add("pulse-glow");
+        hostDiscBtn.innerHTML = "🗣️ Tutti Hanno Visto: Inizia Discussione";
       }
     } else {
       if (missingContainer) missingContainer.style.display = "flex";
       if (allReadyEl) allReadyEl.style.display = "none";
       if (this.isHost && hostDiscBtn) {
+        hostDiscBtn.disabled = true;
         hostDiscBtn.classList.remove("pulse-glow");
+        const remainingCount = missingPlayers.length;
+        hostDiscBtn.innerHTML = remainingCount === 1
+          ? "⏳ In attesa di 1 giocatore..."
+          : `⏳ In attesa di ${remainingCount} giocatori...`;
       }
 
       if (missingChipsEl) {
@@ -1365,6 +1394,15 @@ class P2PGameController {
 
   hostStartDiscussion() {
     if (!this.isHost) return;
+
+    // Impedisci l'avvio se non tutti i giocatori hanno visualizzato la carta
+    const missingPlayers = this.players
+      .filter(p => !this.seenRolePlayerIds.has(p.id) && !(p.playerId && this.seenRolePlayerIds.has(p.playerId)));
+    if (this.players.length === 0 || missingPlayers.length > 0) {
+      console.warn("[Host] Avvio discussione bloccato: non tutti i giocatori hanno visto la propria carta.", missingPlayers.map(p => p.name));
+      return;
+    }
+
     Sound.playClick();
     this.status = "discussion";
 

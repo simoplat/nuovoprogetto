@@ -4,7 +4,7 @@
 
 class LocalGameController {
   constructor() {
-    this.players = this.loadSavedPlayers() || ["Giocatore 1", "Giocatore 2", "Giocatore 3", "Giocatore 4"];
+    this.players = this.loadSavedPlayers() || ["Giocatore 1", "Giocatore 2", "Giocatore 3"];
     this.impostorCount = 1;
     this.category = "random";
     this.enableClue = false;
