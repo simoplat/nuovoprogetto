@@ -94,6 +94,83 @@ const LUPUS_ROLES = {
     color: "#eab308",
     description: "Non hai poteri notturni speciali. La tua forza risiede nella deduzione, nell'osservazione e nel voto diurno per mandare al rogo i Lupi Mannari!",
     nightAction: "I Contadini dormono sonni profondi durante tutta la notte."
+  },
+  giullare: {
+    id: "giullare",
+    name: "Il Giullare",
+    faction: "solitario",
+    factionLabel: "Fazione Solitaria 🃏",
+    icon: "🃏",
+    image: "img/lupus/giullare.jpg",
+    color: "#f59e0b",
+    description: "Il generatore di caos per eccellenza! Non appartieni a nessuna fazione e vinci UNICAMENTE se riesci a farti condannare al rogo dal villaggio. Comportati in modo ambiguo, semina il dubbio e fatti bruciare!",
+    nightAction: "Il Giullare dorme sonni tranquilli tutta la notte sognando il suo rogo trionfale."
+  },
+  infiltrato: {
+    id: "infiltrato",
+    name: "L'Infiltrato (Traditore)",
+    faction: "lupi",
+    factionLabel: "Branco dei Lupi 🕵️",
+    icon: "🕵️",
+    image: "img/lupus/infiltrato.jpg",
+    color: "#ef4444",
+    description: "Sei un normale umano ma il tuo cuore appartiene ai Lupi! Vinci se il branco trionfa, ma non sai chi siano i veri lupi e non ti svegli con loro. Al Veggente risulti un innocente 'Non Lupo'. Depista il villaggio!",
+    nightAction: "L'Infiltrato dorme con il resto degli umani: non si sveglia con i lupi e non conosce la loro identità."
+  },
+  lupo_bianco: {
+    id: "lupo_bianco",
+    name: "Il Lupo Bianco",
+    faction: "solitario",
+    factionLabel: "Fazione Solitaria 🐺❄️",
+    icon: "🐺❄️",
+    image: "img/lupus/lupo_bianco.jpg",
+    color: "#38bdf8",
+    description: "Ti svegli ogni notte con il branco e fingi alleanza. A notti alterne (notte 2, 4, 6...), però, ti svegli una seconda volta da solo e puoi sbranare uno degli altri lupi! Vinci SOLO se resti l'ultimo e unico sopravvissuto della partita.",
+    nightAction: "Si sveglia con il branco per scegliere la vittima del villaggio. A notti alterne (pari) si sveglia da solo e può eliminare un compagno lupo."
+  },
+  lupo_stregone: {
+    id: "lupo_stregone",
+    name: "Il Lupo Stregone",
+    faction: "lupi",
+    factionLabel: "Branco dei Lupi 🐺🔮",
+    icon: "🐺🔮",
+    image: "img/lupus/lupo_stregone.jpg",
+    color: "#9333ea",
+    description: "Ti svegli con il branco dei Lupi ogni notte. Subito dopo, ti svegli da solo e puoi scagliare la tua maledizione: indica un abitante al Narratore. Se quel giocatore ha un potere notturno attivo (Guardia, Veggente, Strega, Beccamorto), il suo potere sarà bloccato per questa notte!",
+    nightAction: "Si sveglia con i lupi. Subito dopo apre gli occhi da solo e indica un giocatore per bloccarne il potere notturno se attivo."
+  },
+  beccamorto: {
+    id: "beccamorto",
+    name: "Il Beccamorto",
+    faction: "villaggio",
+    factionLabel: "Villaggio ⚰️",
+    icon: "⚰️",
+    image: "img/lupus/beccamorto.jpg",
+    color: "#64748b",
+    description: "I morti ti parlano nel silenzio del cimitero. Dalla Notte 2 in poi, ogni notte il Narratore ti sveglia e ti rivela segretamente il ruolo esatto del giocatore morto nel round precedente (con 1 giorno di ritardo).",
+    nightAction: "Dalla Notte 2 in poi, il Beccamorto apre gli occhi. Il Narratore gli mostra la carta o mima il ruolo del morto del round precedente."
+  },
+  idiota: {
+    id: "idiota",
+    name: "L'Idiota del Villaggio",
+    faction: "villaggio",
+    factionLabel: "Villaggio 🤡",
+    icon: "🤡",
+    image: "img/lupus/idiota.jpg",
+    color: "#14b8a6",
+    description: "Sei un membro innocente del Villaggio, ma i tuoi modi stralunati ingannano le visioni mistiche: se il Veggente ti scruta di notte, il Narratore gli risponderà falsamente che sei un LUPO! Difenditi dal rogo!",
+    nightAction: "L'Idiota dorme sonni beati. Al Veggente risulterà falsamente come 'Lupo'."
+  },
+  cane_nero: {
+    id: "cane_nero",
+    name: "Il Cane Nero (Lupo Illusionista)",
+    faction: "lupi",
+    factionLabel: "Branco dei Lupi 🐕‍🦺",
+    icon: "🐕‍🦺",
+    image: "img/lupus/cane_nero.jpg",
+    color: "#dc2626",
+    description: "Sei un feroce Lupo Mannaro sotto le sembianze di un fedele segugio nero. Ti svegli ogni notte con il branco per scegliere la vittima. La tua abilità illusoria: al Veggente risulti insospettabile come 'NON Lupo'!",
+    nightAction: "Si sveglia con il branco dei lupi ogni notte. Se il Veggente lo scruta, il Narratore risponde che è 'Non Lupo'."
   }
 };
 
@@ -121,7 +198,14 @@ class LupusGameController {
       guardia: true,
       strega: true,
       cupido: true,
-      donna: false
+      donna: false,
+      giullare: false,
+      infiltrato: false,
+      lupo_bianco: false,
+      lupo_stregone: false,
+      beccamorto: false,
+      idiota: false,
+      cane_nero: false
     };
 
     // Stato partita
@@ -195,7 +279,10 @@ class LupusGameController {
     }
 
     // Tasti Ruoli Speciali (Checkbox/Toggles)
-    ["veggente", "guardia", "strega", "cupido", "donna"].forEach(roleKey => {
+    [
+      "veggente", "guardia", "strega", "cupido", "donna",
+      "giullare", "infiltrato", "lupo_bianco", "lupo_stregone", "beccamorto", "idiota", "cane_nero"
+    ].forEach(roleKey => {
       const toggle = document.getElementById(`lupus-toggle-${roleKey}`);
       if (toggle) {
         toggle.addEventListener("change", (e) => {
@@ -463,6 +550,13 @@ class LupusGameController {
     if (this.enabledRoles.strega) { specials++; activeSpecialNames.push("1 Strega 🧙‍♀️"); }
     if (this.enabledRoles.cupido) { specials++; activeSpecialNames.push("1 Cupido 💘"); }
     if (this.enabledRoles.donna) { specials++; activeSpecialNames.push("1 Donna 💃"); }
+    if (this.enabledRoles.beccamorto) { specials++; activeSpecialNames.push("1 Beccamorto ⚰️"); }
+    if (this.enabledRoles.idiota) { specials++; activeSpecialNames.push("1 Idiota 🤡"); }
+    if (this.enabledRoles.lupo_stregone) { specials++; activeSpecialNames.push("1 Lupo Stregone 🐺🔮"); }
+    if (this.enabledRoles.cane_nero) { specials++; activeSpecialNames.push("1 Cane Nero 🐕‍🦺"); }
+    if (this.enabledRoles.infiltrato) { specials++; activeSpecialNames.push("1 Infiltrato 🕵️"); }
+    if (this.enabledRoles.giullare) { specials++; activeSpecialNames.push("1 Giullare 🃏"); }
+    if (this.enabledRoles.lupo_bianco) { specials++; activeSpecialNames.push("1 Lupo Bianco 🐺❄️"); }
 
     const peasants = total - (wolves + specials);
 
@@ -471,7 +565,7 @@ class LupusGameController {
       summaryBox.innerHTML = `
         <div style="color: var(--accent-danger); font-weight: 700;">⚠️ Troppi ruoli speciali selezionati!</div>
         <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">
-          Con ${total} giocatori e ${wolves} lupi, puoi attivare al massimo ${total - wolves} figure speciali. Disattivane qualcuna per procedere.
+          Con ${total} giocatori e ${wolves} lupi base, puoi attivare al massimo ${Math.max(0, total - wolves)} figure speciali. Disattivane qualcuna per procedere.
         </div>
       `;
       if (startBtn) startBtn.disabled = true;
@@ -481,7 +575,7 @@ class LupusGameController {
     if (startBtn) startBtn.disabled = false;
     summaryBox.className = "lupus-summary-box";
 
-    const parts = [`<strong>${wolves}</strong> Lup${wolves === 1 ? "o" : "i"} 🐺`];
+    const parts = [`<strong>${wolves}</strong> Lup${wolves === 1 ? "o" : "i"} Base 🐺`];
     if (activeSpecialNames.length > 0) {
       parts.push(activeSpecialNames.join(", "));
     }
@@ -517,7 +611,7 @@ class LupusGameController {
     const wolves = this.wolvesCount;
     const roleDeck = [];
 
-    // 1. Inserisci Lupi
+    // 1. Inserisci Lupi base
     for (let i = 0; i < wolves; i++) {
       roleDeck.push("lupo");
     }
@@ -528,6 +622,13 @@ class LupusGameController {
     if (this.enabledRoles.strega) roleDeck.push("strega");
     if (this.enabledRoles.cupido) roleDeck.push("cupido");
     if (this.enabledRoles.donna) roleDeck.push("donna");
+    if (this.enabledRoles.beccamorto) roleDeck.push("beccamorto");
+    if (this.enabledRoles.idiota) roleDeck.push("idiota");
+    if (this.enabledRoles.lupo_stregone) roleDeck.push("lupo_stregone");
+    if (this.enabledRoles.cane_nero) roleDeck.push("cane_nero");
+    if (this.enabledRoles.infiltrato) roleDeck.push("infiltrato");
+    if (this.enabledRoles.giullare) roleDeck.push("giullare");
+    if (this.enabledRoles.lupo_bianco) roleDeck.push("lupo_bianco");
 
     // 3. I restanti sono Contadini
     while (roleDeck.length < total) {
@@ -708,14 +809,22 @@ class LupusGameController {
       cardContainer.className = `lupus-tarot-card theme-${role.faction}`;
     }
 
-    if (role.id === "lupo") {
+    const isWakingWithWolves = ["lupo", "lupo_bianco", "lupo_stregone", "cane_nero"].includes(role.id);
+
+    if (isWakingWithWolves) {
       Sound.playImpostorReveal();
       const otherWolves = this.assignments
-        .filter(a => a.roleKey === "lupo" && a.name !== current.name)
-        .map(a => a.name);
+        .filter(a => ["lupo", "lupo_bianco", "lupo_stregone", "cane_nero"].includes(a.roleKey) && a.name !== current.name)
+        .map(a => `${a.name} (${a.role.name})`);
 
       if (alliesBox && alliesList) {
         alliesBox.style.display = "block";
+        const titleSpan = alliesBox.querySelector(".lupus-allies-title");
+        if (titleSpan) {
+          titleSpan.textContent = role.id === "lupo_bianco"
+            ? "🐺 Branco con cui fingi alleanza:"
+            : "🐺 Compagni del Branco:";
+        }
         if (otherWolves.length > 0) {
           alliesList.innerHTML = otherWolves.map(name => `
             <span class="lupus-ally-pill">🐺 ${name}</span>
@@ -732,7 +841,8 @@ class LupusGameController {
     if (holdBtn) holdBtn.style.display = "none";
     secretCard.style.display = "flex";
     document.body.style.overflow = "hidden";
-    secretCard.className = `secret-card lupus-card-modal-overlay ${role.faction === "lupi" ? "impostor" : "innocent"}`;
+    const modalTheme = role.faction === "lupi" ? "impostor" : role.faction === "solitario" ? "solitario" : "innocent";
+    secretCard.className = `secret-card lupus-card-modal-overlay ${modalTheme}`;
 
     // Fissa la vista in alto per evitare che scenda e tagli
     window.scrollTo(0, 0);
@@ -836,7 +946,7 @@ class LupusGameController {
           this.renderMasterRoster();
           const isGameOver = this.checkVictoryCondition();
           if (isGameOver) {
-            this.renderGameOverCard(player);
+            this.renderGameOverCard(player, isGameOver);
           } else {
             // Se eravamo nello step del voto, riaggiorna la griglia
             const currentSteps = this.getRoundSteps();
@@ -895,15 +1005,40 @@ class LupusGameController {
       });
     }
 
-    // 4. I Lupi Mannari (se ci sono lupi vivi)
-    const wolvesAlive = this.assignments.some(p => p.roleKey === "lupo" && p.isAlive);
+    // 4. I Lupi Mannari (se ci sono lupi del branco vivi: normali, stregone, cane nero o lupo bianco)
+    const wolfRoles = ["lupo", "lupo_stregone", "cane_nero", "lupo_bianco"];
+    const wolvesAlive = this.assignments.some(p => wolfRoles.includes(p.roleKey) && p.isAlive);
     if (wolvesAlive) {
       steps.push({
         type: "night",
         phaseBadge: `Notte ${this.nightCount} 🌙`,
         badgeClass: "badge-night",
         title: "🐺 Risveglio del Branco dei Lupi",
-        instruction: "Il Narratore dice: <em>'I Lupi Mannari aprano gli occhi, si riconoscano e scelgano silenziosamente la loro vittima.'</em> I lupi concordano una vittima indicandola al Narratore. Il Narratore memorizza la vittima e fa riaddormentare i Lupi."
+        instruction: "Il Narratore dice: <em>'I Lupi Mannari aprano gli occhi, si riconoscano e scelgano silenziosamente la loro vittima.'</em> (Si svegliano tutti i Lupi: normali, Lupo Stregone, Cane Nero e Lupo Bianco. L'Infiltrato NON si sveglia). I lupi concordano una vittima indicandola al Narratore. Il Narratore memorizza la vittima e fa riaddormentare i Lupi."
+      });
+    }
+
+    // 4b. Il Lupo Stregone (se abilitato e vivo)
+    const stregoneAlive = this.assignments.some(p => p.roleKey === "lupo_stregone" && p.isAlive);
+    if (this.enabledRoles.lupo_stregone && stregoneAlive) {
+      steps.push({
+        type: "night",
+        phaseBadge: `Notte ${this.nightCount} 🌙`,
+        badgeClass: "badge-night",
+        title: "🐺🔮 Risveglio del Lupo Stregone",
+        instruction: "Il Narratore dice: <em>'Il Lupo Stregone apra gli occhi.'</em> Il Lupo Stregone indica un giocatore al Narratore per annullarne il potere notturno. Se quel giocatore ha un potere notturno attivo (Guardia, Veggente, Strega, Beccamorto), il suo potere è <strong>bloccato</strong> per questa notte! Poi il Lupo Stregone si riaddormenta."
+      });
+    }
+
+    // 4c. Il Lupo Bianco (a notti alterne: 2, 4, 6... se abilitato e vivo)
+    const lupoBiancoAlive = this.assignments.some(p => p.roleKey === "lupo_bianco" && p.isAlive);
+    if (this.enabledRoles.lupo_bianco && lupoBiancoAlive && (this.nightCount % 2 === 0)) {
+      steps.push({
+        type: "night",
+        phaseBadge: `Notte ${this.nightCount} 🌙`,
+        badgeClass: "badge-night",
+        title: "🐺❄️ Risveglio Solitario del Lupo Bianco",
+        instruction: "A notti alterne (notte pari), il Lupo Bianco si risveglia da solo per tradire il branco! Il Narratore dice: <em>'Il Lupo Bianco apra gli occhi.'</em> Può decidere di sbranare uno degli altri Lupi indicandolo al Narratore, oppure rinunciare (scuotendo la testa). Il Narratore memorizza l'eventuale seconda vittima e fa riaddormentare il Lupo Bianco."
       });
     }
 
@@ -927,7 +1062,19 @@ class LupusGameController {
         phaseBadge: `Notte ${this.nightCount} 🌙`,
         badgeClass: "badge-night",
         title: "🔮 Risveglio del Veggente",
-        instruction: "Il Narratore dice: <em>'Il Veggente apra gli occhi e indichi la persona di cui vuole scoprire l'identità.'</em> Il Veggente indica una persona. Il Narratore annuisce silenziosamente (Lupo) o scuote la testa (Non Lupo). Poi fa riaddormentare il Veggente."
+        instruction: "Il Narratore dice: <em>'Il Veggente apra gli occhi e indichi la persona di cui vuole scoprire l'identità.'</em> Il Veggente indica una persona. Il Narratore annuisce silenziosamente (Lupo) o scuote la testa (Non Lupo). Poi fa riaddormentare il Veggente.<br><span style='font-size: 0.84rem; color: #fbbf24;'>⚠️ Guida risposte Narratore: l'<strong>Idiota del Villaggio</strong> risponde <strong>LUPO</strong>. Il <strong>Cane Nero</strong> e l'<strong>Infiltrato</strong> rispondono <strong>NON LUPO</strong>.</span>"
+      });
+    }
+
+    // 6b. Il Beccamorto (dalla Notte 2 in poi, se abilitato e vivo)
+    const beccamortoAlive = this.assignments.some(p => p.roleKey === "beccamorto" && p.isAlive);
+    if (this.enabledRoles.beccamorto && beccamortoAlive && this.nightCount >= 2) {
+      steps.push({
+        type: "night",
+        phaseBadge: `Notte ${this.nightCount} 🌙`,
+        badgeClass: "badge-night",
+        title: "⚰️ Risveglio del Beccamorto",
+        instruction: "Il Narratore dice: <em>'Il Beccamorto apra gli occhi.'</em> Il Narratore rivela segretamente al Beccamorto (mostrando la carta o mimando il ruolo) l'<strong>esatta identità del giocatore morto nel round precedente</strong> (con 1 giorno di ritardo). Poi fa riaddormentare il Beccamorto."
       });
     }
 
@@ -1255,11 +1402,17 @@ class LupusGameController {
     // Aggiorna registro abitanti
     this.renderMasterRoster();
 
-    // Verifica se la partita è finita
-    const isGameOver = this.checkVictoryCondition();
+    // 1. Vittoria immediata se il Giullare viene condannato al rogo dal Villaggio!
+    if (condemned.roleKey === "giullare") {
+      this.renderGameOverCard(condemned, "giullare");
+      return;
+    }
 
-    if (isGameOver) {
-      this.renderGameOverCard(condemned);
+    // 2. Verifica se la partita è finita per altre condizioni di vittoria
+    const winType = this.checkVictoryCondition();
+
+    if (winType) {
+      this.renderGameOverCard(condemned, winType);
       return;
     }
 
@@ -1351,7 +1504,7 @@ class LupusGameController {
     }
   }
 
-  renderGameOverCard(condemned) {
+  renderGameOverCard(condemned, winType) {
     if (this.autoNextNightTimer) {
       clearInterval(this.autoNextNightTimer);
       this.autoNextNightTimer = null;
@@ -1381,14 +1534,21 @@ class LupusGameController {
     if (stepDesc) stepDesc.style.display = "none";
     if (stepCounter) stepCounter.style.display = "none";
 
-    const alive = this.assignments.filter(p => p.isAlive);
-    const aliveWolves = alive.filter(p => p.roleKey === "lupo");
-    const isVillageWin = (aliveWolves.length === 0);
+    if (!winType) {
+      const alive = this.assignments.filter(p => p.isAlive);
+      const aliveWolves = alive.filter(p => ["lupo", "lupo_stregone", "cane_nero", "lupo_bianco"].includes(p.roleKey));
+      winType = (aliveWolves.length === 0) ? "villaggio" : "lupi";
+    }
+
+    const isVillageWin = (winType === "villaggio");
+    const isGiullareWin = (winType === "giullare");
+    const isLupoBiancoWin = (winType === "lupo_bianco");
+    const isWolvesWin = (winType === "lupi");
 
     if (phaseTitle) phaseTitle.textContent = `Round ${this.nightCount} - Epilogo 🏆`;
     if (phaseBadge) {
       phaseBadge.textContent = "🏆 Fine Partita";
-      phaseBadge.className = "phase-badge " + (isVillageWin ? "badge-day" : "badge-night");
+      phaseBadge.className = "phase-badge " + (isVillageWin ? "badge-day" : (isGiullareWin || isLupoBiancoWin) ? "badge-solitario" : "badge-night");
     }
 
     if (gameoverWidget && gameoverContent) {
@@ -1402,13 +1562,22 @@ class LupusGameController {
         const badgeClass = isDead ? "dead-badge" : "alive-badge";
         const factionColor = p.role.color || "#eab308";
 
+        let extraBadge = "";
+        if (isGiullareWin && p.roleKey === "giullare") {
+          extraBadge = `<span style="font-size: 0.72rem; color: #f59e0b; font-weight: 800; margin-left: 6px;">🃏 VINCITORE SOLITARIO!</span>`;
+        } else if (isLupoBiancoWin && p.roleKey === "lupo_bianco") {
+          extraBadge = `<span style="font-size: 0.72rem; color: #38bdf8; font-weight: 800; margin-left: 6px;">🐺❄️ VINCITORE SOLITARIO!</span>`;
+        } else if (isWolvesWin && p.roleKey === "infiltrato") {
+          extraBadge = `<span style="font-size: 0.72rem; color: #ef4444; font-weight: 800; margin-left: 6px;">🕵️ Vince con i Lupi!</span>`;
+        }
+
         playersHtml += `
           <div class="lupus-gameover-player ${statusClass}">
             <div class="gameover-player-info">
               <span style="font-size: 1.35rem; flex-shrink: 0; line-height: 1;">${p.role.icon}</span>
               <div class="gameover-player-texts">
-                <div class="gameover-player-name">${p.name}</div>
-                <div class="gameover-player-role" style="color: ${factionColor};">${p.role.name}</div>
+                <div class="gameover-player-name">${p.name} ${extraBadge}</div>
+                <div class="gameover-player-role" style="color: ${factionColor};">${p.role.name} (${p.role.factionLabel})</div>
               </div>
             </div>
             <span class="role-badge ${badgeClass}">${statusBadge}</span>
@@ -1416,14 +1585,43 @@ class LupusGameController {
         `;
       });
 
+      let headline = "TRIONFO DEL VILLAGGIO";
+      let headlineColor = "#10b981";
+      let victoryEmoji = "🎉👨‍🌾✨";
+      let boxThemeClass = "village-wins";
+      let victoryDesc = "Tutti i Lupi Mannari sono stati eliminati. Il villaggio è finalmente al sicuro!";
+
+      if (isGiullareWin) {
+        headline = "TRIONFO DEL GIULLARE!";
+        headlineColor = "#f59e0b";
+        victoryEmoji = "🃏🎭👑";
+        boxThemeClass = "solitario-wins giullare-wins";
+        victoryDesc = "Il Giullare è riuscito a farsi bruciare al rogo dal villaggio! Ha seminato il caos e vince la partita da solo!";
+      } else if (isLupoBiancoWin) {
+        headline = "IL LUPO BIANCO HA VINTO DA SOLO!";
+        headlineColor = "#38bdf8";
+        victoryEmoji = "🐺❄️👑";
+        boxThemeClass = "solitario-wins lupo-bianco-wins";
+        victoryDesc = "Il Lupo Bianco ha ingannato il branco ed è l'ultimo e unico sopravvissuto di tutta la partita!";
+      } else if (isWolvesWin) {
+        headline = "IL BRANCO DEI LUPI DOMINA";
+        headlineColor = "var(--accent-danger)";
+        victoryEmoji = "🐺🩸🌑";
+        boxThemeClass = "wolves-win";
+        victoryDesc = "I Lupi Mannari e i loro alleati hanno conquistato il villaggio! Le tenebre trionfano.";
+      }
+
       gameoverContent.innerHTML = `
-        <div class="lupus-gameover-box ${isVillageWin ? 'village-wins' : 'wolves-win'}">
+        <div class="lupus-gameover-box ${boxThemeClass}">
           <div style="font-size: 2.8rem; margin-bottom: 8px; line-height: 1;">
-            ${isVillageWin ? '🎉👨‍🌾✨' : '🐺🩸🌑'}
+            ${victoryEmoji}
           </div>
-          <h3 style="font-size: 1.4rem; font-weight: 900; margin: 0 0 10px; line-height: 1.25; color: ${isVillageWin ? '#10b981' : 'var(--accent-danger)'};">
-            ${isVillageWin ? 'TRIONFO DEL VILLAGGIO' : 'IL BRANCO DEI LUPI DOMINA'}
+          <h3 style="font-size: 1.4rem; font-weight: 900; margin: 0 0 8px; line-height: 1.25; color: ${headlineColor};">
+            ${headline}
           </h3>
+          <p style="font-size: 0.9rem; color: var(--text-secondary); margin: 0 auto 12px; max-width: 440px; line-height: 1.4;">
+            ${victoryDesc}
+          </p>
           ${condemned ? `
             <div style="font-size: 0.92rem; color: #fbbf24; margin: 0 auto 14px; font-weight: 700; line-height: 1.35; padding: 6px 12px; background: rgba(251, 191, 36, 0.12); border: 1px solid rgba(251, 191, 36, 0.35); border-radius: var(--radius-sm); display: inline-block;">
               🔥 Ultimo condannato al rogo: <strong>${condemned.name}</strong> (${condemned.role.name})
@@ -1459,7 +1657,7 @@ class LupusGameController {
     }
 
     try {
-      if (isVillageWin) {
+      if (isVillageWin || isGiullareWin || isLupoBiancoWin) {
         Sound.playSuccess();
       } else {
         Sound.playGameOver();
@@ -1515,11 +1713,30 @@ class LupusGameController {
     const banner = document.getElementById("lupus-victory-banner");
 
     const alive = this.assignments.filter(p => p.isAlive);
-    const aliveWolves = alive.filter(p => p.roleKey === "lupo");
-    const aliveVillage = alive.filter(p => p.roleKey !== "lupo");
+    const wolfThreatRoles = ["lupo", "lupo_stregone", "cane_nero", "lupo_bianco"];
+    const aliveWolves = alive.filter(p => wolfThreatRoles.includes(p.roleKey));
+    // User instruction: "Infiltrato vale come non lupo e lupo bianco è ultimo in assoluto"
+    const aliveNonWolves = alive.filter(p => !wolfThreatRoles.includes(p.roleKey));
 
+    // 1. Lupo Bianco: ultimo in assoluto (unico superstite di tutta la partita)
+    if (alive.length === 1 && alive[0].roleKey === "lupo_bianco") {
+      if (banner) {
+        banner.style.display = "block";
+        banner.className = "lupus-victory-banner solitario-wins";
+        banner.innerHTML = `
+          <div style="font-size: 2.2rem; margin-bottom: 6px;">🐺❄️👑</div>
+          <h3 style="font-size: 1.4rem; color: #38bdf8; font-weight: 900;">IL LUPO BIANCO HA VINTO DA SOLO!</h3>
+          <p style="font-size: 0.9rem; color: var(--text-secondary); margin-top: 4px;">
+            Il Lupo Bianco è l'ultimo e unico sopravvissuto della partita! Ha sterminato sia il branco che il villaggio.
+          </p>
+        `;
+      }
+      try { Sound.playSuccess(); } catch (e) {}
+      return "lupo_bianco";
+    }
+
+    // 2. Tutti i lupi morti -> Vittoria Villaggio!
     if (aliveWolves.length === 0) {
-      // Tutti i lupi morti -> Vittoria Villaggio!
       if (banner) {
         banner.style.display = "block";
         banner.className = "lupus-victory-banner village-wins";
@@ -1527,16 +1744,17 @@ class LupusGameController {
           <div style="font-size: 2.2rem; margin-bottom: 6px;">🎉👨‍🌾</div>
           <h3 style="font-size: 1.4rem; color: #10b981; font-weight: 900;">IL VILLAGGIO HA VINTO!</h3>
           <p style="font-size: 0.9rem; color: var(--text-secondary); margin-top: 4px;">
-            Tutti i Lupi Mannari sono stati individuati e condannati al rogo! Il villaggio è finalmente al sicuro.
+            Tutti i Lupi Mannari sono stati individuati ed eliminati! Il villaggio è finalmente al sicuro.
           </p>
         `;
       }
       try { Sound.playSuccess(); } catch (e) {}
-      return true;
+      return "villaggio";
     }
 
-    if (aliveWolves.length >= aliveVillage.length) {
-      // Lupi >= Contadini -> Vittoria Lupi!
+    // 3. I Lupi (Branco) vincono quando eguagliano o superano i non-lupi (Infiltrato conta tra i non-lupi ma vince con loro)
+    const packWolves = alive.filter(p => ["lupo", "lupo_stregone", "cane_nero"].includes(p.roleKey));
+    if (packWolves.length > 0 && aliveWolves.length >= aliveNonWolves.length) {
       if (banner) {
         banner.style.display = "block";
         banner.className = "lupus-victory-banner wolves-win";
@@ -1549,7 +1767,7 @@ class LupusGameController {
         `;
       }
       try { Sound.playGameOver(); } catch (e) {}
-      return true;
+      return "lupi";
     }
 
     if (banner) banner.style.display = "none";
