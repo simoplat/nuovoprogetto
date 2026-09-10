@@ -1265,6 +1265,14 @@ class LupusGameController {
       if (nextBtn) {
         nextBtn.style.display = "inline-flex";
         nextBtn.textContent = "Avanti ➡️";
+        if (curStep.stepSubtype === "cupido") {
+          const lovers = this.nightActions.cupidoLovers || [];
+          nextBtn.disabled = lovers.length !== 2;
+          nextBtn.title = lovers.length !== 2 ? "Seleziona 2 persone per poter premere Avanti" : "";
+        } else {
+          nextBtn.disabled = false;
+          nextBtn.title = "";
+        }
       }
       this.stopDiscussionTimer();
     } else if (curStep.type === "dawn") {
@@ -1282,6 +1290,8 @@ class LupusGameController {
       if (nextBtn) {
         nextBtn.style.display = "inline-flex";
         nextBtn.textContent = "Vai al Dibattito ☀️";
+        nextBtn.disabled = false;
+        nextBtn.title = "";
       }
       this.stopDiscussionTimer();
     } else if (curStep.type === "discussion") {
@@ -1321,6 +1331,13 @@ class LupusGameController {
   masterNextStep() {
     Sound.playClick();
     const steps = this.getRoundSteps();
+    const curStep = steps[this.masterStepIndex];
+    if (curStep && curStep.stepSubtype === "cupido") {
+      const lovers = this.nightActions.cupidoLovers || [];
+      if (lovers.length !== 2) {
+        return;
+      }
+    }
     if (this.masterStepIndex < steps.length - 1) {
       this.masterStepIndex++;
       this.renderMasterPhaseGuide();
@@ -1371,6 +1388,11 @@ class LupusGameController {
     if (stepSubtype === "cupido") {
       const alive = this.assignments.filter(p => p.isAlive);
       const currentSelected = this.nightActions.cupidoLovers || [];
+      const nextBtn = document.getElementById("lupus-master-next-step");
+      if (nextBtn) {
+        nextBtn.disabled = currentSelected.length !== 2;
+        nextBtn.title = currentSelected.length !== 2 ? "Seleziona 2 persone per poter premere Avanti" : "";
+      }
       const chipsHtml = alive.map(p => {
         const isSel = currentSelected.includes(p.id);
         return `
@@ -1386,9 +1408,9 @@ class LupusGameController {
       if (currentSelected.length === 2) {
         const p1 = this.assignments.find(p => p.id === currentSelected[0]);
         const p2 = this.assignments.find(p => p.id === currentSelected[1]);
-        statusText = `💘 Innamorati legati: <strong>${p1?.name}</strong> ❤️ <strong>${p2?.name}</strong> (Se uno muore, muore anche l'altro!)`;
+        statusText = `💘 Innamorati legati: <strong>${p1?.name}</strong> ❤️ <strong>${p2?.name}</strong> (2/2 selezionati - Puoi premere Avanti)`;
       } else {
-        statusText = `Tocca 2 giocatori (${currentSelected.length}/2 scelti)`;
+        statusText = `<span style="color: #fca5a5;">⚠️ Seleziona 2 persone per poter premere Avanti (${currentSelected.length}/2 scelti)</span>`;
       }
 
       actionWidget.innerHTML = `
