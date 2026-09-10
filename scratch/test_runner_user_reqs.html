@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Test Lupus User Requirements</title>
+</head>
+<body>
+  <div id="test-output">Running...</div>
+  <iframe id="app-frame" src="../index.html" style="width: 390px; height: 750px;"></iframe>
+
+  <script>
+    const iframe = document.getElementById('app-frame');
+    iframe.onload = () => {
+      try {
+        const win = iframe.contentWindow;
+        const doc = iframe.contentDocument;
+        const lupus = win.App.lupusGame;
+        if (!lupus) throw new Error("Lupus game controller missing!");
+
+        // ====================================================================
+        // TEST 1: Role Card as Fullscreen Modal Overlay (Opens on hold, closes on release)
+        // ====================================================================
+        console.log("--- TEST 1: Role Card Modal ---");
+        lupus.startGame();
+        win.App.switchView("view-lupus-pass");
+        lupus.renderTurnReveal();
+
+        const promptWrap = doc.getElementById("lupus-pass-prompt-wrap");
+        const secretCard = doc.getElementById("lupus-secret-revealed-card");
+        const cardBox = doc.getElementById("lupus-card-box");
+        const holdBtn = doc.getElementById("lupus-hold-reveal-btn");
+
+        if (!secretCard.classList.contains("lupus-card-modal-overlay")) {
+          throw new Error("secretCard missing class lupus-card-modal-overlay");
+        }
+        if (secretCard.style.display !== "none") {
+          throw new Error("secretCard should be hidden before reveal");
+        }
+
+        // Simulate Reveal (after holding)
+        lupus.revealCardContent();
+        if (secretCard.style.display !== "flex") {
+          throw new Error("secretCard modal must be display flex, got: " + secretCard.style.display);
+        }
+        if (doc.body.style.overflow !== "hidden") {
+          throw new Error("body overflow must be hidden when modal is open");
+        }
+
+        const modalBox = doc.querySelector(".lupus-card-modal-container");
+        if (!modalBox) throw new Error("Modal container .lupus-card-modal-container missing!");
+
+        const hintEl = doc.querySelector(".lupus-modal-hold-hint");
+        if (!hintEl) throw new Error("Hint .lupus-modal-hold-hint missing!");
+
+        // Simulate finger release (onHoldEnd)
+        lupus.isHolding = true;
+        lupus.onHoldEnd();
+        if (secretCard.style.display !== "none") {
+          throw new Error("secretCard must be hidden after hold end");
+        }
+        if (doc.body.style.overflow !== "") {
+          throw new Error("body overflow must be restored after hold end");
+        }
+        const nextContainer = doc.getElementById("lupus-pass-next-btn-container");
+        if (nextContainer.style.display !== "block") {
+          throw new Error("nextBtnContainer should be shown after revealing card");
+        }
+        console.log("TEST 1 PASSED: Role card is modal overlay and closes on finger lift.");
+
+        // ====================================================================
+        // TEST 2: Status Button Disabled in Night & Discussion, Active ONLY at Dawn
+        // ====================================================================
+        console.log("--- TEST 2: Status Button Phase Permissions ---");
+        win.App.switchView("view-lupus-master");
+        lupus.initMasterDashboard();
+
+        const steps = lupus.getRoundSteps();
+        const nightIdx = steps.findIndex(s => s.type === "night");
+        const dawnIdx = steps.findIndex(s => s.type === "dawn");
+        const discussionIdx = steps.findIndex(s => s.type === "discussion");
+        const votingIdx = steps.findIndex(s => s.type === "voting");
+
+        if (nightIdx === -1 || dawnIdx === -1 || discussionIdx === -1 || votingIdx === -1) {
+          throw new Error("Required steps missing from getRoundSteps");
+        }
+
+        // Step 1: Night Phase (Buttons MUST be disabled)
+        lupus.masterStepIndex = nightIdx;
+        lupus.renderMasterPhaseGuide();
+
+        let statusBtns = doc.querySelectorAll("#lupus-master-roster .btn-roster-status");
+        if (!statusBtns[0].disabled) throw new Error("Status button MUST be disabled during Night phase!");
+        if (!statusBtns[0].classList.contains("readonly-status")) {
+          throw new Error("Status button MUST have readonly-status class during Night phase");
+        }
+
+        const firstPlayer = lupus.assignments[0];
+        const aliveState = firstPlayer.isAlive;
+        statusBtns[0].click();
+        if (firstPlayer.isAlive !== aliveState) {
+          throw new Error("Status button click MUST NOT toggle player alive state during Night phase!");
+        }
+
+        let rosterLabel = doc.getElementById("lupus-roster-label");
+        if (!rosterLabel.textContent.includes("notte in corso")) {
+          throw new Error("Roster label should mention notte in corso");
+        }
+
+        // Step 2: Dawn Phase (Alba) - Buttons MUST be enabled to declare night deaths
+        lupus.masterStepIndex = dawnIdx;
+        lupus.renderMasterPhaseGuide();
+
+        statusBtns = doc.querySelectorAll("#lupus-master-roster .btn-roster-status");
+        if (statusBtns[0].disabled) throw new Error("Status button MUST be enabled at Dawn (Alba)!");
+        statusBtns[0].click();
+        if (firstPlayer.isAlive === aliveState) {
+          throw new Error("Status button click at Dawn SHOULD toggle player alive state!");
+        }
+        // Restore player state
+        firstPlayer.isAlive = aliveState;
+        lupus.renderMasterRoster();
+
+        // Step 3: Discussion Phase (Buttons MUST be disabled)
+        lupus.masterStepIndex = discussionIdx;
+        lupus.renderMasterPhaseGuide();
+
+        statusBtns = doc.querySelectorAll("#lupus-master-roster .btn-roster-status");
+        if (!statusBtns[0].disabled) throw new Error("Status button MUST be disabled during Discussion phase!");
+
+        // Step 4: Voting Phase (Buttons MUST be disabled)
+        lupus.masterStepIndex = votingIdx;
+        lupus.renderMasterPhaseGuide();
+
+        statusBtns = doc.querySelectorAll("#lupus-master-roster .btn-roster-status");
+        if (!statusBtns[0].disabled) throw new Error("Status button MUST be disabled during Voting phase!");
+        console.log("TEST 2 PASSED: Status toggling is disabled in Night, Discussion, and Voting, enabled only at Dawn.");
+
+        // ====================================================================
+        // TEST 3: Discussion Timer Auto-Start & Only 'Concludi e Vai al Voto' Button
+        // ====================================================================
+        console.log("--- TEST 3: Discussion Timer & Navigation ---");
+        lupus.resetDiscussionTimer();
+        lupus.masterStepIndex = discussionIdx;
+        lupus.renderMasterPhaseGuide();
+
+        const timerWidget = doc.getElementById("lupus-step-timer-widget");
+        const nextBtn = doc.getElementById("lupus-master-next-step");
+        const earlyEndBtn = doc.getElementById("lupus-end-discussion-early-btn");
+        const timerToggleBtn = doc.getElementById("lupus-timer-toggle-btn");
+
+        if (timerWidget.style.display === "none") {
+          throw new Error("Timer widget should be visible in discussion phase");
+        }
+
+        // Must auto-start timer
+        if (!lupus.isDiscussionRunning) {
+          throw new Error("Discussion timer should have auto-started upon entering discussion phase!");
+        }
+        if (timerToggleBtn.textContent !== "⏸️ Pausa Timer") {
+          throw new Error("Timer toggle button should show pause when auto-started, got: " + timerToggleBtn.textContent);
+        }
+
+        // Next button ('Vai al voto') MUST be hidden
+        if (nextBtn.style.display !== "none") {
+          throw new Error("'Vai al Voto' nextBtn MUST be hidden, got display: " + nextBtn.style.display);
+        }
+
+        // Only earlyEndBtn ('Concludi e Vai al Voto') should be present
+        if (!earlyEndBtn.textContent.includes("Concludi e Vai al Voto")) {
+          throw new Error("earlyEndBtn should be 'Concludi e Vai al Voto', got: " + earlyEndBtn.textContent);
+        }
+
+        // Click earlyEndBtn -> should stop timer and advance to voting
+        earlyEndBtn.click();
+        if (lupus.isDiscussionRunning) {
+          throw new Error("Timer should stop when concluding discussion early");
+        }
+        const curStepAfterEnd = lupus.getRoundSteps()[lupus.masterStepIndex];
+        if (curStepAfterEnd.type !== "voting") {
+          throw new Error("Should have navigated to voting phase after early end, got: " + curStepAfterEnd.type);
+        }
+        console.log("TEST 3 PASSED: Timer auto-started, 'Vai al Voto' hidden, 'Concludi e Vai al Voto' transitions cleanly.");
+
+        // ====================================================================
+        // ALL TESTS COMPLETE
+        // ====================================================================
+        doc.getElementById("test-output").textContent = "SUCCESS: ALL TESTS PASSED!";
+        console.log("SUCCESS: ALL TESTS PASSED!");
+      } catch (err) {
+        console.error("TEST FAILED:", err);
+        const doc = iframe.contentDocument || document;
+        const out = doc.getElementById("test-output") || document.getElementById("test-output");
+        if (out) out.textContent = "FAILURE: " + err.message;
+      }
+    };
+  </script>
+</body>
+</html>

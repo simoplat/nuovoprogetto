@@ -234,6 +234,15 @@ class LupusGameController {
 
       holdBtn.addEventListener("mousedown", startHold);
       window.addEventListener("mouseup", endHold);
+
+      const secretCard = document.getElementById("lupus-secret-revealed-card");
+      if (secretCard) {
+        secretCard.addEventListener("pointerup", endHold);
+        secretCard.addEventListener("touchend", endHold);
+        secretCard.addEventListener("mouseup", endHold);
+        secretCard.addEventListener("pointercancel", endHold);
+        secretCard.addEventListener("touchcancel", endHold);
+      }
     }
 
     // Tasto Avanzamento Turno Passa il Telefono
@@ -575,6 +584,7 @@ class LupusGameController {
 
     const targetNameEl = document.getElementById("lupus-pass-target-name");
     const progressEl = document.getElementById("lupus-pass-progress-chip");
+    const promptWrap = document.getElementById("lupus-pass-prompt-wrap");
     const secretCard = document.getElementById("lupus-secret-revealed-card");
     const holdBtn = document.getElementById("lupus-hold-reveal-btn");
     const nextBtnContainer = document.getElementById("lupus-pass-next-btn-container");
@@ -583,8 +593,10 @@ class LupusGameController {
 
     if (targetNameEl) targetNameEl.textContent = current.name;
     if (progressEl) progressEl.textContent = `Giocatore ${this.currentTurnIndex + 1} di ${this.assignments.length}`;
+    if (promptWrap) promptWrap.style.display = "block";
 
     if (secretCard) secretCard.style.display = "none";
+    document.body.style.overflow = "";
     if (holdBtn) {
       holdBtn.style.display = "flex";
       holdBtn.classList.remove("holding");
@@ -599,6 +611,8 @@ class LupusGameController {
         nextTurnBtn.innerHTML = "📜 Ho visto! Vai alla Guida del Narratore";
       }
     }
+
+    window.scrollTo(0, 0);
   }
 
   onHoldStart() {
@@ -632,14 +646,21 @@ class LupusGameController {
 
     const holdBtn = document.getElementById("lupus-hold-reveal-btn");
     const progressBar = document.getElementById("lupus-hold-progress-bar");
+    const promptWrap = document.getElementById("lupus-pass-prompt-wrap");
+    const progressEl = document.getElementById("lupus-pass-progress-chip");
     if (holdBtn) holdBtn.classList.remove("holding");
     if (progressBar) progressBar.style.width = "0%";
 
-    // Per sicurezza la carta viene occultata all'istante non appena si rilascia il dito
+    // Ripristina lo scroll del body
+    document.body.style.overflow = "";
+
+    // Per sicurezza la carta modale viene occultata all'istante non appena si rilascia il dito
     const secretCard = document.getElementById("lupus-secret-revealed-card");
     const nextBtnContainer = document.getElementById("lupus-pass-next-btn-container");
     if (secretCard && secretCard.style.display !== "none") {
       secretCard.style.display = "none";
+      if (promptWrap) promptWrap.style.display = "block";
+      if (progressEl) progressEl.textContent = `Giocatore ${this.currentTurnIndex + 1} di ${this.assignments.length}`;
       if (holdBtn) holdBtn.style.display = "flex";
       if (nextBtnContainer) nextBtnContainer.style.display = "block";
     }
@@ -651,9 +672,17 @@ class LupusGameController {
 
     const secretCard = document.getElementById("lupus-secret-revealed-card");
     const holdBtn = document.getElementById("lupus-hold-reveal-btn");
+    const promptWrap = document.getElementById("lupus-pass-prompt-wrap");
+    const progressEl = document.getElementById("lupus-pass-progress-chip");
     if (!secretCard) return;
 
     const role = current.role;
+
+    // Ottimizzazione visuale: nascondi istruzioni ingombranti e mostra nome sul badge compatto
+    if (promptWrap) promptWrap.style.display = "none";
+    if (progressEl) {
+      progressEl.innerHTML = `👤 <strong>${current.name}</strong> • Giocatore ${this.currentTurnIndex + 1} di ${this.assignments.length}`;
+    }
 
     // Popola carta
     const imgEl = document.getElementById("lupus-card-img");
@@ -701,8 +730,12 @@ class LupusGameController {
     }
 
     if (holdBtn) holdBtn.style.display = "none";
-    secretCard.style.display = "block";
-    secretCard.className = `secret-card ${role.faction === "lupi" ? "impostor" : "innocent"}`;
+    secretCard.style.display = "flex";
+    document.body.style.overflow = "hidden";
+    secretCard.className = `secret-card lupus-card-modal-overlay ${role.faction === "lupi" ? "impostor" : "innocent"}`;
+
+    // Fissa la vista in alto per evitare che scenda e tagli
+    window.scrollTo(0, 0);
   }
 
   nextTurn() {
@@ -738,10 +771,50 @@ class LupusGameController {
     const grid = document.getElementById("lupus-master-roster");
     if (!grid) return;
 
+    const steps = this.getRoundSteps();
+    const curStep = steps[this.masterStepIndex];
+    // Solo all'Alba (risveglio villaggio) è possibile segnare chi è morto nella notte!
+    // Durante la notte, il dibattito e la votazione, lo stato è esclusivamente informativo.
+    const isDawn = curStep && curStep.type === "dawn";
+    const isStatusDisabled = !isDawn;
+
+    const rosterLabel = document.getElementById("lupus-roster-label");
+    if (rosterLabel) {
+      if (!curStep) {
+        rosterLabel.textContent = "👥 Registro Abitanti:";
+      } else if (curStep.type === "dawn") {
+        rosterLabel.textContent = "👥 Registro Abitanti (tocca per segnare chi è morto nella notte):";
+      } else if (curStep.type === "night") {
+        rosterLabel.textContent = "👥 Registro Abitanti (notte in corso • status informativo):";
+      } else if (curStep.type === "discussion") {
+        rosterLabel.textContent = "👥 Registro Abitanti (dibattito in corso • status informativo):";
+      } else if (curStep.type === "voting") {
+        rosterLabel.textContent = "👥 Registro Abitanti (Status informativo • Vota nella sezione sotto):";
+      } else {
+        rosterLabel.textContent = "👥 Registro Abitanti (status informativo):";
+      }
+    }
+
     grid.innerHTML = "";
     this.assignments.forEach(player => {
       const chip = document.createElement("div");
-      chip.className = `lupus-roster-chip ${player.isAlive ? "alive" : "dead"}`;
+      chip.className = `lupus-roster-chip ${player.isAlive ? "alive" : "dead"} ${isStatusDisabled ? "readonly-phase" : ""}`;
+
+      let btnTitle = "";
+      if (isStatusDisabled) {
+        if (curStep && curStep.type === "night") {
+          btnTitle = "Durante la notte il villaggio dorme: annuncia i caduti al risveglio all'Alba.";
+        } else if (curStep && curStep.type === "voting") {
+          btnTitle = "Status informativo durante la votazione: seleziona e vota nella sezione apposita sottostante.";
+        } else if (curStep && curStep.type === "discussion") {
+          btnTitle = "Status informativo durante il dibattito: vota al rogo nel passaggio successivo.";
+        } else {
+          btnTitle = "Status informativo: modifica abilitata solo al risveglio all'Alba.";
+        }
+      } else {
+        btnTitle = player.isAlive ? "Segna come Eliminato nella notte" : "Riporta in Vita";
+      }
+
       chip.innerHTML = `
         <div class="roster-chip-info">
           <span class="roster-chip-icon">${player.role.icon}</span>
@@ -750,27 +823,29 @@ class LupusGameController {
             <div class="roster-chip-role">${player.role.name}</div>
           </div>
         </div>
-        <button type="button" class="btn-roster-status" title="${player.isAlive ? 'Segna come Eliminato' : 'Riporta in Vita'}">
+        <button type="button" class="btn-roster-status ${isStatusDisabled ? 'readonly-status' : ''}" ${isStatusDisabled ? 'disabled aria-disabled="true"' : ''} title="${btnTitle}">
           ${player.isAlive ? "🟢 Vivo" : "🔴 Morto"}
         </button>
       `;
 
       const statusBtn = chip.querySelector(".btn-roster-status");
-      statusBtn.addEventListener("click", () => {
-        try { Sound.playClick(); } catch (e) {}
-        player.isAlive = !player.isAlive;
-        this.renderMasterRoster();
-        const isGameOver = this.checkVictoryCondition();
-        if (isGameOver) {
-          this.renderGameOverCard(player);
-        } else {
-          // Se eravamo nello step del voto, riaggiorna la griglia
-          const steps = this.getRoundSteps();
-          if (steps[this.masterStepIndex] && steps[this.masterStepIndex].type === "voting") {
-            this.renderVotingGrid();
+      if (!isStatusDisabled) {
+        statusBtn.addEventListener("click", () => {
+          try { Sound.playClick(); } catch (e) {}
+          player.isAlive = !player.isAlive;
+          this.renderMasterRoster();
+          const isGameOver = this.checkVictoryCondition();
+          if (isGameOver) {
+            this.renderGameOverCard(player);
+          } else {
+            // Se eravamo nello step del voto, riaggiorna la griglia
+            const currentSteps = this.getRoundSteps();
+            if (currentSteps[this.masterStepIndex] && currentSteps[this.masterStepIndex].type === "voting") {
+              this.renderVotingGrid();
+            }
           }
-        }
-      });
+        });
+      }
 
       grid.appendChild(chip);
     });
@@ -943,10 +1018,10 @@ class LupusGameController {
       if (timerWidget) timerWidget.style.display = "block";
       if (votingWidget) votingWidget.style.display = "none";
       if (navControls) navControls.style.display = "flex";
-      if (nextBtn) {
-        nextBtn.style.display = "inline-flex";
-        nextBtn.textContent = "Vai al Voto ⚖️";
-      }
+      // Togli 'vai al voto': lascia solo '⚖️ Concludi e Vai al Voto' nel widget timer
+      if (nextBtn) nextBtn.style.display = "none";
+      // Avvia automaticamente il timer di discussione
+      this.startDiscussionTimerAuto();
     } else if (curStep.type === "voting") {
       if (timerWidget) timerWidget.style.display = "none";
       if (votingWidget) votingWidget.style.display = "block";
@@ -955,6 +1030,12 @@ class LupusGameController {
       if (navControls) navControls.style.display = "flex";
       // Nello step del voto il tasto Avanti è nascosto per costringere a confermare la votazione o andare indietro
       if (nextBtn) nextBtn.style.display = "none";
+
+      if (this.isDiscussionRunning) {
+        clearInterval(this.discussionTimer);
+        this.discussionTimer = null;
+        this.isDiscussionRunning = false;
+      }
     } else {
       if (timerWidget) timerWidget.style.display = "none";
       if (votingWidget) votingWidget.style.display = "none";
@@ -963,7 +1044,18 @@ class LupusGameController {
         nextBtn.style.display = "inline-flex";
         nextBtn.textContent = (this.masterStepIndex === steps.length - 2) ? "Vai al Dibattito ☀️" : "Avanti ➡️";
       }
+
+      if (this.isDiscussionRunning) {
+        clearInterval(this.discussionTimer);
+        this.discussionTimer = null;
+        this.isDiscussionRunning = false;
+        const timerBtn = document.getElementById("lupus-timer-toggle-btn");
+        if (timerBtn) timerBtn.textContent = "▶️ Riprendi Timer";
+      }
     }
+
+    // Aggiorna sempre il registro abitanti per riflettere lo stato informativo/interattivo della fase corrente
+    this.renderMasterRoster();
   }
 
   masterNextStep() {
@@ -989,6 +1081,7 @@ class LupusGameController {
 
   resetDiscussionTimer() {
     clearInterval(this.discussionTimer);
+    this.discussionTimer = null;
     this.isDiscussionRunning = false;
     this.discussionSeconds = this.initialDiscussionSeconds;
     this.updateTimerDisplay();
@@ -1005,47 +1098,61 @@ class LupusGameController {
     }
   }
 
+  startDiscussionTimerAuto() {
+    if (this.isDiscussionRunning) return;
+    if (this.discussionSeconds <= 0) {
+      this.discussionSeconds = this.initialDiscussionSeconds;
+    }
+    this.isDiscussionRunning = true;
+    const timerBtn = document.getElementById("lupus-timer-toggle-btn");
+    if (timerBtn) timerBtn.textContent = "⏸️ Pausa Timer";
+    this.updateTimerDisplay();
+
+    clearInterval(this.discussionTimer);
+    this.discussionTimer = setInterval(() => {
+      if (this.discussionSeconds > 0) {
+        this.discussionSeconds--;
+        this.updateTimerDisplay();
+
+        // Audio feedback
+        if (this.discussionSeconds <= 10 && this.discussionSeconds > 0) {
+          Sound.playTimerTick(true);
+        } else if (this.discussionSeconds % 30 === 0 && this.discussionSeconds > 0) {
+          Sound.playTimerTick(false);
+        }
+      } else {
+        clearInterval(this.discussionTimer);
+        this.discussionTimer = null;
+        this.isDiscussionRunning = false;
+        Sound.playTimerEnd();
+        const tb = document.getElementById("lupus-timer-toggle-btn");
+        if (tb) tb.textContent = "⏱️ Tempo Scaduto!";
+        this.updateTimerDisplay();
+
+        // Dopo 1 secondo avanza direttamente alla votazione del rogo
+        setTimeout(() => {
+          const steps = this.getRoundSteps();
+          const votingIdx = steps.findIndex(s => s.type === "voting");
+          if (votingIdx !== -1 && this.masterStepIndex !== votingIdx) {
+            this.masterStepIndex = votingIdx;
+            this.renderMasterPhaseGuide();
+          }
+        }, 1200);
+      }
+    }, 1000);
+  }
+
   toggleDiscussionTimer() {
     Sound.playClick();
     const timerBtn = document.getElementById("lupus-timer-toggle-btn");
 
     if (this.isDiscussionRunning) {
       clearInterval(this.discussionTimer);
+      this.discussionTimer = null;
       this.isDiscussionRunning = false;
       if (timerBtn) timerBtn.textContent = "▶️ Riprendi Timer";
     } else {
-      this.isDiscussionRunning = true;
-      if (timerBtn) timerBtn.textContent = "⏸️ Pausa Timer";
-
-      this.discussionTimer = setInterval(() => {
-        if (this.discussionSeconds > 0) {
-          this.discussionSeconds--;
-          this.updateTimerDisplay();
-
-          // Audio feedback
-          if (this.discussionSeconds <= 10 && this.discussionSeconds > 0) {
-            Sound.playTimerTick(true);
-          } else if (this.discussionSeconds % 30 === 0 && this.discussionSeconds > 0) {
-            Sound.playTimerTick(false);
-          }
-        } else {
-          clearInterval(this.discussionTimer);
-          this.isDiscussionRunning = false;
-          Sound.playTimerEnd();
-          if (timerBtn) timerBtn.textContent = "⏱️ Tempo Scaduto!";
-          this.updateTimerDisplay();
-
-          // Dopo 1 secondo avanza direttamente alla votazione del rogo
-          setTimeout(() => {
-            const steps = this.getRoundSteps();
-            const votingIdx = steps.findIndex(s => s.type === "voting");
-            if (votingIdx !== -1 && this.masterStepIndex !== votingIdx) {
-              this.masterStepIndex = votingIdx;
-              this.renderMasterPhaseGuide();
-            }
-          }, 1200);
-        }
-      }, 1000);
+      this.startDiscussionTimerAuto();
     }
   }
 
@@ -1265,6 +1372,15 @@ class LupusGameController {
     if (votingWidget) votingWidget.style.display = "none";
     if (navControls) navControls.style.display = "none";
 
+    // Nascondi eventuale banner globale di vittoria duplicato sopra il registro, per non avere titoli ripetuti
+    const victoryBanner = document.getElementById("lupus-victory-banner");
+    if (victoryBanner) victoryBanner.style.display = "none";
+
+    // Nascondi intestazione duplicata dello step nella scheda per lasciare spazio esclusivo alla card finale
+    if (stepTitle) stepTitle.style.display = "none";
+    if (stepDesc) stepDesc.style.display = "none";
+    if (stepCounter) stepCounter.style.display = "none";
+
     const alive = this.assignments.filter(p => p.isAlive);
     const aliveWolves = alive.filter(p => p.roleKey === "lupo");
     const isVillageWin = (aliveWolves.length === 0);
@@ -1273,16 +1389,6 @@ class LupusGameController {
     if (phaseBadge) {
       phaseBadge.textContent = "🏆 Fine Partita";
       phaseBadge.className = "phase-badge " + (isVillageWin ? "badge-day" : "badge-night");
-    }
-    if (stepCounter) stepCounter.textContent = "Verdetto Finale";
-    if (stepTitle) {
-      stepTitle.textContent = isVillageWin ? "🎉 IL VILLAGGIO HA VINTO!" : "🐺 I LUPI HANNO VINTO!";
-      stepTitle.style.color = isVillageWin ? "#10b981" : "var(--accent-danger)";
-    }
-    if (stepDesc) {
-      stepDesc.innerHTML = isVillageWin
-        ? "Tutti i Lupi Mannari sono stati individuati e condannati al rogo! Il villaggio è finalmente al sicuro."
-        : "I Lupi Mannari hanno sopraffatto il villaggio. Non restano abbastanza cittadini per contrastare il branco!";
     }
 
     if (gameoverWidget && gameoverContent) {
@@ -1293,35 +1399,38 @@ class LupusGameController {
         const isDead = !p.isAlive;
         const statusClass = isDead ? "dead" : "alive";
         const statusBadge = isDead ? "🔴 Morto" : "🟢 Sopravvissuto";
+        const badgeClass = isDead ? "dead-badge" : "alive-badge";
         const factionColor = p.role.color || "#eab308";
 
         playersHtml += `
           <div class="lupus-gameover-player ${statusClass}">
-            <span style="font-size: 1.3rem;">${p.role.icon}</span>
-            <div style="flex: 1; min-width: 0;">
-              <div style="font-weight: 800; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${p.name}</div>
-              <div style="font-size: 0.76rem; color: ${factionColor}; font-weight: 700;">${p.role.name}</div>
+            <div class="gameover-player-info">
+              <span style="font-size: 1.35rem; flex-shrink: 0; line-height: 1;">${p.role.icon}</span>
+              <div class="gameover-player-texts">
+                <div class="gameover-player-name">${p.name}</div>
+                <div class="gameover-player-role" style="color: ${factionColor};">${p.role.name}</div>
+              </div>
             </div>
-            <span class="role-badge" style="color: ${isDead ? '#ef4444' : '#10b981'};">${statusBadge}</span>
+            <span class="role-badge ${badgeClass}">${statusBadge}</span>
           </div>
         `;
       });
 
       gameoverContent.innerHTML = `
         <div class="lupus-gameover-box ${isVillageWin ? 'village-wins' : 'wolves-win'}">
-          <div style="font-size: 2.8rem; margin-bottom: 6px;">
+          <div style="font-size: 2.8rem; margin-bottom: 8px; line-height: 1;">
             ${isVillageWin ? '🎉👨‍🌾✨' : '🐺🩸🌑'}
           </div>
-          <h3 style="font-size: 1.35rem; font-weight: 900; margin-bottom: 6px; color: ${isVillageWin ? '#10b981' : 'var(--accent-danger)'};">
-            ${isVillageWin ? 'TRIONFO DEL VILLAGGIO' : 'IL BRANCO DOMINA'}
+          <h3 style="font-size: 1.4rem; font-weight: 900; margin: 0 0 10px; line-height: 1.25; color: ${isVillageWin ? '#10b981' : 'var(--accent-danger)'};">
+            ${isVillageWin ? 'TRIONFO DEL VILLAGGIO' : 'IL BRANCO DEI LUPI DOMINA'}
           </h3>
           ${condemned ? `
-            <div style="font-size: 0.88rem; color: #fbbf24; margin-bottom: 12px; font-weight: 600;">
+            <div style="font-size: 0.92rem; color: #fbbf24; margin: 0 auto 14px; font-weight: 700; line-height: 1.35; padding: 6px 12px; background: rgba(251, 191, 36, 0.12); border: 1px solid rgba(251, 191, 36, 0.35); border-radius: var(--radius-sm); display: inline-block;">
               🔥 Ultimo condannato al rogo: <strong>${condemned.name}</strong> (${condemned.role.name})
             </div>
           ` : ''}
 
-          <div style="font-size: 0.86rem; color: var(--text-secondary); margin-bottom: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
+          <div style="font-size: 0.82rem; color: var(--text-secondary); margin: 6px 0 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;">
             Identità Segrete di Tutti i Partecipanti:
           </div>
 
