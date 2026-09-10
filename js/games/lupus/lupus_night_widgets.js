@@ -12,6 +12,11 @@ class LupusNightWidgets {
     const actionWidget = document.getElementById("lupus-step-action-widget");
     if (!actionWidget) return;
 
+    // Sincronizza lo stato del pulsante Avanti
+    if (game.masterUI && typeof game.masterUI.updateNextBtnState === "function") {
+      game.masterUI.updateNextBtnState();
+    }
+
     if (stepSubtype === "intro") {
       actionWidget.innerHTML = `
         <div class="lupus-action-widget" style="text-align: center;">
@@ -28,11 +33,6 @@ class LupusNightWidgets {
     if (stepSubtype === "cupido") {
       const alive = game.assignments.filter(p => p.isAlive);
       const currentSelected = game.nightActions.cupidoLovers || [];
-      const nextBtn = document.getElementById("lupus-master-next-step");
-      if (nextBtn) {
-        nextBtn.disabled = currentSelected.length !== 2;
-        nextBtn.title = currentSelected.length !== 2 ? "Seleziona 2 persone per poter premere Avanti" : "";
-      }
       const chipsHtml = alive.map(p => {
         const isSel = currentSelected.includes(p.id);
         return `
@@ -92,11 +92,13 @@ class LupusNightWidgets {
       const selectedId = game.nightActions.donnaTarget;
 
       const isHome = (selectedId === null);
+      const isChosen = (selectedId !== undefined);
+
       const homeCard = `
         <div class="lupus-action-card action-none ${isHome ? 'selected selected-donna' : ''}" data-player-id="HOME">
           <div class="action-card-avatar">🏠</div>
           <div class="action-card-name">A Casa Sua</div>
-          <div class="action-card-role">Nessun rifugio</div>
+          <div class="action-card-role">Resta a casa</div>
         </div>
       `;
 
@@ -112,12 +114,14 @@ class LupusNightWidgets {
       }).join("");
 
       let statusText = "";
-      if (isHome) {
-        statusText = "🏠 La Donna resta a casa sua stanotte (vulnerabile se attaccata).";
+      if (!isChosen) {
+        statusText = `<span style="color: #fca5a5;">⚠️ Seleziona una persona da visitare oppure "A Casa Sua" per poter premere Avanti</span>`;
+      } else if (isHome) {
+        statusText = "🏠 La Donna resta a casa sua stanotte (vulnerabile se attaccata) - Puoi premere Avanti.";
       } else {
         const host = game.assignments.find(p => p.id === selectedId);
         const isHostWolf = host && (["lupo", "lupo_stregone", "cane_nero", "lupo_bianco"].includes(host.roleKey) || (host.roleKey === "infiltrato" && host.isTransformed));
-        statusText = `💃 Rifugio: <strong>${host?.name}</strong> ${isHostWolf ? '⚠️ (È un LUPO! La Donna morirà all\'Alba)' : '(Innocente: se attaccata a casa è salva!)'}`;
+        statusText = `💃 Rifugio: <strong>${host?.name}</strong> ${isHostWolf ? '⚠️ (È un LUPO! La Donna morirà all\'Alba)' : '(Innocente)'} - Puoi premere Avanti.`;
       }
 
       actionWidget.innerHTML = `
@@ -151,6 +155,7 @@ class LupusNightWidgets {
 
       const rollData = game.nightActions.infiltratoRoll;
       const isTransformed = infiltratoPlayer.isTransformed;
+      const isRolled = (rollData !== null) || isTransformed;
 
       let resultHtml = "";
       if (isTransformed) {
@@ -181,6 +186,13 @@ class LupusNightWidgets {
         `;
       }
 
+      let statusMsg = "";
+      if (!isRolled) {
+        statusMsg = `<div class="lupus-action-status" style="margin-top: 10px;"><span style="color: #fca5a5;">⚠️ Lancia il dado della Luna Piena per poter premere Avanti</span></div>`;
+      } else {
+        statusMsg = `<div class="lupus-action-status" style="margin-top: 10px;"><span style="color: #6ee7b7;">✅ Controllo Luna Piena eseguito - Puoi premere Avanti</span></div>`;
+      }
+
       actionWidget.innerHTML = `
         <div class="lupus-action-widget">
           <div class="lupus-moon-box">
@@ -197,9 +209,6 @@ class LupusNightWidgets {
                 <button type="button" class="btn btn-primary btn-sm" id="lupus-btn-roll-moon">
                   🎲 Lancia Dado Luna Piena
                 </button>
-                <button type="button" class="btn btn-secondary btn-sm" id="lupus-btn-force-transform">
-                  ⚡ Forza Trasformazione
-                </button>
               ` : `
                 <button type="button" class="btn btn-secondary btn-sm" id="lupus-btn-undo-transform">
                   ↩️ Annulla Trasformazione (Errore)
@@ -207,6 +216,7 @@ class LupusNightWidgets {
               `}
             </div>
             ${resultHtml}
+            ${statusMsg}
           </div>
         </div>
       `;
@@ -228,16 +238,6 @@ class LupusNightWidgets {
         });
       }
 
-      const forceBtn = actionWidget.querySelector("#lupus-btn-force-transform");
-      if (forceBtn) {
-        forceBtn.addEventListener("click", () => {
-          infiltratoPlayer.isTransformed = true;
-          game.nightActions.infiltratoRoll = { value: 1, success: true, forced: true };
-          try { Sound.playImpostorReveal(); } catch (e) {}
-          this.renderNightActionWidget("infiltrato_moon");
-        });
-      }
-
       const undoBtn = actionWidget.querySelector("#lupus-btn-undo-transform");
       if (undoBtn) {
         undoBtn.addEventListener("click", () => {
@@ -253,6 +253,7 @@ class LupusNightWidgets {
     if (stepSubtype === "lupi") {
       const candidates = game.assignments.filter(p => p.isAlive);
       const selectedId = game.nightActions.wolfTarget;
+      const isChosen = (typeof selectedId === "string" && selectedId.length > 0);
 
       const cardsHtml = candidates.map(p => {
         const isSel = (selectedId === p.id);
@@ -266,11 +267,11 @@ class LupusNightWidgets {
       }).join("");
 
       let statusText = "";
-      if (selectedId) {
+      if (isChosen) {
         const victim = game.assignments.find(p => p.id === selectedId);
-        statusText = `🩸 Vittima designata dai Lupi: <strong>${victim?.name}</strong> (${victim?.role.name})`;
+        statusText = `🩸 Vittima designata dai Lupi: <strong>${victim?.name}</strong> (${victim?.role.name}) - Puoi premere Avanti.`;
       } else {
-        statusText = "Tocca un giocatore per memorizzare l'attacco del branco.";
+        statusText = `<span style="color: #fca5a5;">⚠️ I Lupi devono scegliere per forza un abitante da sbranare per poter premere Avanti</span>`;
       }
 
       actionWidget.innerHTML = `
@@ -295,6 +296,7 @@ class LupusNightWidgets {
       const stregonePlayer = game.assignments.find(p => p.roleKey === "lupo_stregone" && p.isAlive);
       const candidates = game.assignments.filter(p => p.isAlive && p.id !== stregonePlayer?.id);
       const selectedId = game.nightActions.stregoneTarget;
+      const isChosen = (selectedId !== undefined);
 
       const noneCard = `
         <div class="lupus-action-card action-none ${selectedId === null ? 'selected selected-stregone' : ''}" data-player-id="NONE">
@@ -316,12 +318,14 @@ class LupusNightWidgets {
       }).join("");
 
       let statusText = "";
-      if (selectedId) {
+      if (!isChosen) {
+        statusText = `<span style="color: #fca5a5;">⚠️ Seleziona chi silenziare o "Nessuno" per poter premere Avanti</span>`;
+      } else if (selectedId) {
         const target = game.assignments.find(p => p.id === selectedId);
         const hasPower = ["guardia", "veggente", "strega", "beccamorto"].includes(target?.roleKey);
-        statusText = `🔮 Giocatore silenziato: <strong>${target?.name}</strong> ${hasPower ? '⛔ (Potere notturno annullato per stanotte!)' : '(Nessun potere notturno bloccabile)'}`;
+        statusText = `🔮 Giocatore silenziato: <strong>${target?.name}</strong> ${hasPower ? '⛔ (Potere notturno annullato per stanotte!)' : '(Nessun potere notturno)'} - Puoi premere Avanti.`;
       } else {
-        statusText = "🚫 Nessun giocatore silenziato per questa notte.";
+        statusText = "🚫 Nessun giocatore silenziato per questa notte - Puoi premere Avanti.";
       }
 
       actionWidget.innerHTML = `
@@ -347,6 +351,7 @@ class LupusNightWidgets {
       const lupoBiancoPlayer = game.assignments.find(p => p.roleKey === "lupo_bianco" && p.isAlive);
       const packWolves = game.assignments.filter(p => p.isAlive && ["lupo", "lupo_stregone", "cane_nero"].includes(p.roleKey));
       const selectedId = game.nightActions.lupoBiancoTarget;
+      const isChosen = (selectedId !== undefined);
 
       const passCard = `
         <div class="lupus-action-card action-none ${selectedId === null ? 'selected selected-lupobianco' : ''}" data-player-id="PASS">
@@ -368,11 +373,13 @@ class LupusNightWidgets {
       }).join("");
 
       let statusText = "";
-      if (selectedId) {
+      if (!isChosen) {
+        statusText = `<span style="color: #fca5a5;">⚠️ Seleziona chi sbranare o "Passa" per poter premere Avanti</span>`;
+      } else if (selectedId) {
         const victim = game.assignments.find(p => p.id === selectedId);
-        statusText = `🐺❄️ Bersaglio Lupo Bianco: <strong>${victim?.name}</strong> (Morirà all'Alba!)`;
+        statusText = `🐺❄️ Bersaglio Lupo Bianco: <strong>${victim?.name}</strong> (Morirà all'Alba!) - Puoi premere Avanti.`;
       } else {
-        statusText = "🚫 Il Lupo Bianco non sbrana nessun compagno stanotte.";
+        statusText = "🚫 Il Lupo Bianco non sbrana nessun compagno stanotte - Puoi premere Avanti.";
       }
 
       actionWidget.innerHTML = `
@@ -399,12 +406,15 @@ class LupusNightWidgets {
       const isSilenced = guardiaPlayer && (game.nightActions.stregoneTarget === guardiaPlayer.id);
 
       if (isSilenced) {
+        // Se silenziata, impostiamo automaticamente guardTarget a null
+        game.nightActions.guardTarget = null;
         actionWidget.innerHTML = `
           <div class="lupus-action-widget">
             <div class="lupus-silenced-alert">
               ⛔ <strong>POTERE BLOCCATO DAL LUPO STREGONE!</strong><br>
-              La Guardia è stata silenziata questa notte. Qualsiasi indicazione non avrà effetto: lo scudo non proteggerà nessuno.
+              La Guardia è stata silenziata questa notte. Lo scudo non proteggerà nessuno.
             </div>
+            <div class="lupus-action-status"><span style="color: #6ee7b7;">✅ Puoi premere Avanti.</span></div>
           </div>
         `;
         return;
@@ -412,30 +422,43 @@ class LupusNightWidgets {
 
       const candidates = game.assignments.filter(p => p.isAlive);
       const selectedId = game.nightActions.guardTarget;
+      const isChosen = (selectedId !== undefined);
+
+      const noneCard = `
+        <div class="lupus-action-card action-none ${selectedId === null ? 'selected selected-guard' : ''}" data-player-id="NO_GUARD">
+          <div class="action-card-avatar">🚫</div>
+          <div class="action-card-name">Nessuno</div>
+          <div class="action-card-role">Nessuna protezione</div>
+        </div>
+      `;
 
       const cardsHtml = candidates.map(p => {
         const isSel = (selectedId === p.id);
+        const isSelf = (guardiaPlayer && p.id === guardiaPlayer.id);
         return `
           <div class="lupus-action-card ${isSel ? 'selected selected-guard' : ''}" data-player-id="${p.id}">
             <div class="action-card-avatar">${p.role.icon}</div>
-            <div class="action-card-name">${p.name}</div>
+            <div class="action-card-name">${p.name} ${isSelf ? '<span style="font-size: 0.75rem; color: #93c5fd;">(Te stesso)</span>' : ''}</div>
             <div class="action-card-role">${p.role.name}</div>
           </div>
         `;
       }).join("");
 
       let statusText = "";
-      if (selectedId) {
+      if (!isChosen) {
+        statusText = `<span style="color: #fca5a5;">⚠️ Seleziona chi proteggere (puoi scegliere anche Te stesso o Nessuno) per poter premere Avanti</span>`;
+      } else if (selectedId) {
         const target = game.assignments.find(p => p.id === selectedId);
-        statusText = `🛡️ Protetto dallo Scudo: <strong>${target?.name}</strong> (Sopravvive se attaccato dai Lupi)`;
+        const isSelf = (guardiaPlayer && target?.id === guardiaPlayer.id);
+        statusText = `🛡️ Protetto dallo Scudo: <strong>${target?.name}</strong> ${isSelf ? '(Te stesso)' : ''} - Puoi premere Avanti.`;
       } else {
-        statusText = "Tocca un giocatore da difendere con lo scudo.";
+        statusText = "🚫 Nessuna protezione assegnata stanotte - Puoi premere Avanti.";
       }
 
       actionWidget.innerHTML = `
         <div class="lupus-action-widget">
-          <div class="lupus-action-prompt">🛡️ La Guardia indica chi proteggere per questa notte:</div>
-          <div class="lupus-action-grid">${cardsHtml}</div>
+          <div class="lupus-action-prompt">🛡️ La Guardia indica chi proteggere per questa notte (anche se stessa):</div>
+          <div class="lupus-action-grid">${noneCard}${cardsHtml}</div>
           <div class="lupus-action-status">${statusText}</div>
         </div>
       `;
@@ -443,7 +466,8 @@ class LupusNightWidgets {
       actionWidget.querySelectorAll(".lupus-action-card").forEach(card => {
         card.addEventListener("click", () => {
           try { Sound.playClick(); } catch (e) {}
-          game.nightActions.guardTarget = card.dataset.playerId;
+          const pid = card.dataset.playerId;
+          game.nightActions.guardTarget = (pid === "NO_GUARD") ? null : pid;
           this.renderNightActionWidget("guardia");
         });
       });
@@ -455,12 +479,14 @@ class LupusNightWidgets {
       const isSilenced = veggentePlayer && (game.nightActions.stregoneTarget === veggentePlayer.id);
 
       if (isSilenced) {
+        game.nightActions.seerTarget = null;
         actionWidget.innerHTML = `
           <div class="lupus-action-widget">
             <div class="lupus-silenced-alert">
               ⛔ <strong>POTERE BLOCCATO DAL LUPO STREGONE!</strong><br>
               Il Veggente è stato silenziato dal Lupo Stregone. La sua vista mistica è oscurata per questa notte.
             </div>
+            <div class="lupus-action-status"><span style="color: #6ee7b7;">✅ Puoi premere Avanti.</span></div>
           </div>
         `;
         return;
@@ -468,6 +494,15 @@ class LupusNightWidgets {
 
       const candidates = game.assignments.filter(p => p.isAlive && p.id !== veggentePlayer?.id);
       const selectedId = game.nightActions.seerTarget;
+      const isChosen = (selectedId !== undefined);
+
+      const noneCard = `
+        <div class="lupus-action-card action-none ${selectedId === null ? 'selected' : ''}" data-player-id="NO_SEER">
+          <div class="action-card-avatar">🚫</div>
+          <div class="action-card-name">Nessuno</div>
+          <div class="action-card-role">Non scruta</div>
+        </div>
+      `;
 
       const cardsHtml = candidates.map(p => {
         const isSel = (selectedId === p.id);
@@ -519,12 +554,22 @@ class LupusNightWidgets {
             </div>
           `;
         }
+      } else if (selectedId === null) {
+        resultHtml = `
+          <div class="lupus-action-status"><span style="color: #94a3b8;">🚫 Nessun giocatore scrutato questa notte - Puoi premere Avanti.</span></div>
+        `;
+      }
+
+      let statusMsg = "";
+      if (!isChosen) {
+        statusMsg = `<div class="lupus-action-status"><span style="color: #fca5a5;">⚠️ Seleziona il giocatore scrutato (o 'Nessuno') per poter premere Avanti</span></div>`;
       }
 
       actionWidget.innerHTML = `
         <div class="lupus-action-widget">
           <div class="lupus-action-prompt">🔮 Tocca il giocatore indicato dal Veggente per scoprire la risposta:</div>
-          <div class="lupus-action-grid">${cardsHtml}</div>
+          <div class="lupus-action-grid">${noneCard}${cardsHtml}</div>
+          ${statusMsg}
           ${resultHtml}
         </div>
       `;
@@ -532,7 +577,8 @@ class LupusNightWidgets {
       actionWidget.querySelectorAll(".lupus-action-card").forEach(card => {
         card.addEventListener("click", () => {
           try { Sound.playClick(); } catch (e) {}
-          game.nightActions.seerTarget = card.dataset.playerId;
+          const pid = card.dataset.playerId;
+          game.nightActions.seerTarget = (pid === "NO_SEER") ? null : pid;
           this.renderNightActionWidget("veggente");
         });
       });
@@ -544,12 +590,14 @@ class LupusNightWidgets {
       const isSilenced = beccamortoPlayer && (game.nightActions.stregoneTarget === beccamortoPlayer.id);
 
       if (isSilenced) {
+        game.nightActions.beccamortoSeen = true;
         actionWidget.innerHTML = `
           <div class="lupus-action-widget">
             <div class="lupus-silenced-alert">
               ⛔ <strong>POTERE BLOCCATO DAL LUPO STREGONE!</strong><br>
               Il Beccamorto è stato silenziato. I morti tacciono stanotte.
             </div>
+            <div class="lupus-action-status"><span style="color: #6ee7b7;">✅ Puoi premere Avanti.</span></div>
           </div>
         `;
         return;
@@ -585,12 +633,36 @@ class LupusNightWidgets {
         `;
       }
 
+      const isConfirmed = !!game.nightActions.beccamortoSeen;
+      const confirmBtnHtml = `
+        <div style="text-align: center; margin-top: 14px;">
+          <button type="button" class="btn ${isConfirmed ? 'btn-secondary' : 'btn-primary'} btn-sm" id="lupus-btn-confirm-beccamorto">
+            ${isConfirmed ? '✅ Identità Mostrata al Beccamorto' : '👁️ Ho mostrato l\'identità al Beccamorto'}
+          </button>
+        </div>
+      `;
+
+      let statusMsg = isConfirmed
+        ? `<div class="lupus-action-status" style="margin-top: 8px;"><span style="color: #6ee7b7;">✅ Confermato - Puoi premere Avanti</span></div>`
+        : `<div class="lupus-action-status" style="margin-top: 8px;"><span style="color: #fca5a5;">⚠️ Tocca il pulsante di presa visione per poter premere Avanti</span></div>`;
+
       actionWidget.innerHTML = `
         <div class="lupus-action-widget">
           <div class="lupus-action-prompt">⚰️ Identità del/i giocatore/i eliminato/i nel round precedente:</div>
           ${contentHtml}
+          ${confirmBtnHtml}
+          ${statusMsg}
         </div>
       `;
+
+      const confirmBtn = actionWidget.querySelector("#lupus-btn-confirm-beccamorto");
+      if (confirmBtn) {
+        confirmBtn.addEventListener("click", () => {
+          try { Sound.playClick(); } catch (e) {}
+          game.nightActions.beccamortoSeen = true;
+          this.renderNightActionWidget("beccamorto");
+        });
+      }
       return;
     }
 
@@ -599,12 +671,15 @@ class LupusNightWidgets {
       const isSilenced = stregaPlayer && (game.nightActions.stregoneTarget === stregaPlayer.id);
 
       if (isSilenced) {
+        game.nightActions.witchHealTarget = null;
+        game.nightActions.witchKill = null;
         actionWidget.innerHTML = `
           <div class="lupus-action-widget">
             <div class="lupus-silenced-alert">
               ⛔ <strong>POTERE BLOCCATO DAL LUPO STREGONE!</strong><br>
               La Strega è stata silenziata dal Lupo Stregone e non può usare alcuna pozione questa notte.
             </div>
+            <div class="lupus-action-status"><span style="color: #6ee7b7;">✅ Puoi premere Avanti.</span></div>
           </div>
         `;
         return;
@@ -645,7 +720,9 @@ class LupusNightWidgets {
 
         const chosenHealPlayer = healTargetId ? game.assignments.find(p => p.id === healTargetId) : null;
         let healStatus = "";
-        if (chosenHealPlayer) {
+        if (healTargetId === undefined) {
+          healStatus = `<span style="color: #fca5a5;">⚠️ Fai una scelta per la Pozione di Vita (o seleziona "Non Usare")</span>`;
+        } else if (chosenHealPlayer) {
           if (wolfVictim && chosenHealPlayer.id === wolfVictim.id) {
             healStatus = `🧪 Pozione di Vita su <strong>${chosenHealPlayer.name}</strong> (Salva dall'attacco dei Lupi!)`;
           } else {
@@ -691,9 +768,14 @@ class LupusNightWidgets {
           `;
         }).join("");
 
-        let poisonStatus = poisonTargetId
-          ? `☠️ Bersaglio veleno: <strong>${game.assignments.find(p => p.id === poisonTargetId)?.name}</strong> (Morirà all'Alba!)`
-          : "🚫 Nessun veleno usato stanotte.";
+        let poisonStatus = "";
+        if (poisonTargetId === undefined) {
+          poisonStatus = `<span style="color: #fca5a5;">⚠️ Fai una scelta per la Pozione di Morte (o seleziona "Non Avvelenare")</span>`;
+        } else if (poisonTargetId) {
+          poisonStatus = `☠️ Bersaglio veleno: <strong>${game.assignments.find(p => p.id === poisonTargetId)?.name}</strong> (Morirà all'Alba!)`;
+        } else {
+          poisonStatus = "🚫 Nessun veleno usato stanotte.";
+        }
 
         deathSection = `
           <div style="font-size: 0.85rem; color: #cbd5e1; margin-bottom: 6px;">Tocca chi avvelenare (oppure conserva la pozione):</div>

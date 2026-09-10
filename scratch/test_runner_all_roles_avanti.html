@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Test Avanti Validation Across All Roles</title>
+</head>
+<body>
+  <div id="test-output">Running...</div>
+  <iframe id="app-frame" src="../index.html" style="width: 1000px; height: 800px;"></iframe>
+
+  <script>
+    const iframe = document.getElementById('app-frame');
+    iframe.onload = () => {
+      try {
+        const win = iframe.contentWindow;
+        const doc = iframe.contentDocument;
+        const lupus = win.App.lupusGame;
+
+        if (!lupus) throw new Error("lupusGame controller not found");
+
+        // Enable all roles to test each step
+        lupus.enabledRoles = {
+          cupido: true,
+          donna: true,
+          infiltrato: true,
+          lupo_stregone: true,
+          lupo_bianco: true,
+          guardia: true,
+          veggente: true,
+          beccamorto: true,
+          strega: true,
+          giullare: false,
+          idiota: false,
+          cane_nero: false
+        };
+
+        lupus.players = [
+          "Alice", "Bob", "Charlie", "Diana", "Elena", "Fabio",
+          "Giorgio", "Hanna", "Irene", "Jack", "Kevin"
+        ];
+        lupus.wolvesCount = 1;
+        lupus.startGame();
+
+        const roleKeys = [
+          "lupo", "cupido", "donna", "infiltrato", "lupo_stregone",
+          "lupo_bianco", "guardia", "veggente", "beccamorto", "strega", "contadino"
+        ];
+        lupus.assignments.forEach((p, idx) => {
+          p.roleKey = roleKeys[idx];
+          p.role = win.LUPUS_ROLES[roleKeys[idx]];
+          p.isAlive = true;
+          p.isTransformed = false;
+        });
+
+        lupus.initMasterDashboard();
+        win.App.switchView("view-lupus-master");
+
+        const nextBtn = doc.getElementById("lupus-master-next-step");
+        if (!nextBtn) throw new Error("Next button not found");
+
+        const checkStep = (expectedSubtype) => {
+          const steps = lupus.getRoundSteps();
+          const cur = steps[lupus.masterStepIndex];
+          if (!cur || cur.stepSubtype !== expectedSubtype) {
+            throw new Error(`Expected step '${expectedSubtype}', but was '${cur ? cur.stepSubtype : 'null'}'`);
+          }
+        };
+
+        // 1. Intro step: nextBtn should be enabled immediately
+        checkStep("intro");
+        if (nextBtn.disabled) throw new Error("Intro step nextBtn should be enabled");
+        lupus.masterNextStep();
+
+        // 2. Cupido step
+        checkStep("cupido");
+        if (!nextBtn.disabled) throw new Error("Cupido step nextBtn should be disabled initially");
+        const cupidoCards = doc.querySelectorAll(".lupus-action-card");
+        cupidoCards[0].click(); // 1 lover
+        if (!nextBtn.disabled) throw new Error("Cupido step nextBtn should be disabled with 1 lover");
+        cupidoCards[1].click(); // 2 lovers
+        if (nextBtn.disabled) throw new Error("Cupido step nextBtn should be enabled with 2 lovers");
+        lupus.masterNextStep();
+
+        // 3. Donna step
+        checkStep("donna");
+        if (!nextBtn.disabled) throw new Error("Donna step nextBtn should be disabled initially");
+        const homeCard = doc.querySelector('.lupus-action-card[data-player-id="HOME"]');
+        if (!homeCard) throw new Error("Donna A Casa Sua card not found");
+        homeCard.click();
+        if (nextBtn.disabled) throw new Error("Donna step nextBtn should be enabled after picking A Casa Sua");
+        lupus.masterNextStep();
+
+        // 4. Infiltrato Moon step
+        checkStep("infiltrato_moon");
+        if (!nextBtn.disabled) throw new Error("Infiltrato Moon nextBtn should be disabled initially");
+        // Verify Forza Trasformazione button does NOT exist
+        const forceBtn = doc.getElementById("lupus-btn-force-transform");
+        if (forceBtn) throw new Error("Forza Trasformazione button should be removed!");
+        const rollBtn = doc.getElementById("lupus-btn-roll-moon");
+        if (!rollBtn) throw new Error("Roll Moon button not found");
+        rollBtn.click();
+        if (nextBtn.disabled) throw new Error("Infiltrato Moon nextBtn should be enabled after rolling dice");
+        lupus.masterNextStep();
+
+        // 5. Lupi step
+        checkStep("lupi");
+        if (!nextBtn.disabled) throw new Error("Lupi step nextBtn should be disabled initially");
+        // Verify wolves cannot pass (no pass / no-kill button)
+        const wolfPass = doc.querySelector('.lupus-action-card[data-player-id="NO_KILL"], .lupus-action-card[data-player-id="NONE"]');
+        if (wolfPass) throw new Error("Wolves should NOT have a pass/none button!");
+        const wolfVictimCard = doc.querySelector(".lupus-action-card");
+        wolfVictimCard.click();
+        if (nextBtn.disabled) throw new Error("Lupi step nextBtn should be enabled after selecting victim");
+        lupus.masterNextStep();
+
+        // 6. Lupo Stregone step
+        checkStep("lupo_stregone");
+        if (!nextBtn.disabled) throw new Error("Lupo Stregone nextBtn should be disabled initially");
+        const stregoneNone = doc.querySelector('.lupus-action-card[data-player-id="NONE"]');
+        if (!stregoneNone) throw new Error("Lupo Stregone Nessuno card not found");
+        stregoneNone.click();
+        if (nextBtn.disabled) throw new Error("Lupo Stregone nextBtn should be enabled after picking Nessuno");
+        lupus.masterNextStep();
+
+        // 7. Guardia step
+        checkStep("guardia");
+        if (!nextBtn.disabled) throw new Error("Guardia nextBtn should be disabled initially");
+        const guardSelfCard = Array.from(doc.querySelectorAll(".lupus-action-card")).find(c => c.textContent.includes("Te stesso"));
+        if (!guardSelfCard) throw new Error("Guardia Te stesso option not found in cards");
+        const guardNone = doc.querySelector('.lupus-action-card[data-player-id="NO_GUARD"]');
+        if (!guardNone) throw new Error("Guardia Nessuno card not found");
+        guardSelfCard.click(); // Guard protects herself!
+        if (nextBtn.disabled) throw new Error("Guardia nextBtn should be enabled after selecting Te stesso");
+        lupus.masterNextStep();
+
+        // 8. Veggente step
+        checkStep("veggente");
+        if (!nextBtn.disabled) throw new Error("Veggente nextBtn should be disabled initially");
+        const seerCards = doc.querySelectorAll('.lupus-action-card:not([data-player-id="NO_SEER"])');
+        seerCards[0].click();
+        if (nextBtn.disabled) throw new Error("Veggente nextBtn should be enabled after selecting a player");
+        lupus.masterNextStep();
+
+        // 9. Strega step
+        checkStep("strega");
+        if (!nextBtn.disabled) throw new Error("Strega nextBtn should be disabled initially");
+        const noHeal = doc.querySelector('.lupus-action-card[data-player-id="NO_HEAL"]');
+        const noPoison = doc.querySelector('.lupus-action-card[data-player-id="NO_POISON"]');
+        if (!noHeal || !noPoison) throw new Error("Strega Non Usare / Non Avvelenare cards not found");
+        noHeal.click();
+        if (!nextBtn.disabled) throw new Error("Strega nextBtn should still be disabled because poison potion is not yet decided");
+        noPoison.click();
+        if (nextBtn.disabled) throw new Error("Strega nextBtn should be enabled after resolving both potions");
+        lupus.masterNextStep();
+
+        // 10. Dawn step reached
+        checkStep("dawn");
+        if (nextBtn.disabled) throw new Error("Dawn nextBtn should be enabled");
+
+        document.getElementById('test-output').innerText = "ALL_ROLES_AVANTI_SUCCESS: Validation on Avanti for all night roles passed completely!";
+      } catch (err) {
+        document.getElementById('test-output').innerText = "ERROR: " + err.message + "\n" + err.stack;
+      }
+    };
+  </script>
+</body>
+</html>

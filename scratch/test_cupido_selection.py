@@ -93,8 +93,14 @@ test_html_content = '''<!DOCTYPE html>
           throw new Error("masterNextStep() should advance to next step (" + (initStep + 1) + "), but is " + lupus.masterStepIndex);
         }
 
-        // In the next step, nextBtn should not be disabled by Cupido's logic
-        if (nextBtn.disabled) throw new Error("Next button should be enabled in the subsequent step");
+        // In the next step, nextBtn is governed by that step's required action
+        const nextStep = steps[lupus.masterStepIndex];
+        if (!nextStep) throw new Error("Next step not found");
+        const nextActionCards = doc.querySelectorAll(".lupus-action-card");
+        if (nextActionCards.length > 0) {
+          nextActionCards[0].click();
+          if (nextBtn.disabled) throw new Error("Next button should be enabled after making a selection in the next step");
+        }
 
         document.getElementById('test-output').innerText = "ALL_TESTS_SUCCESS: Cupido lover selection validation passed completely!";
       } catch (err) {

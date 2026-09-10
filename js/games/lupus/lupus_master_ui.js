@@ -95,6 +95,113 @@ class LupusMasterUI {
     if (countBadge) countBadge.textContent = `${aliveCount}/${totalCount} Vivi`;
   }
 
+  isStepActionComplete(curStep) {
+    if (!curStep) return { complete: true, message: "" };
+    if (curStep.type !== "night") return { complete: true, message: "" };
+
+    const game = this.game;
+    const subtype = curStep.stepSubtype;
+
+    if (subtype === "intro") {
+      return { complete: true, message: "" };
+    }
+
+    if (subtype === "cupido") {
+      const count = (game.nightActions.cupidoLovers || []).length;
+      return {
+        complete: count === 2,
+        message: count === 2 ? "" : `Seleziona 2 persone per poter premere Avanti (${count}/2 scelti)`
+      };
+    }
+
+    if (subtype === "donna") {
+      const complete = game.nightActions.donnaTarget !== undefined;
+      return {
+        complete,
+        message: complete ? "" : "Seleziona dove si rifugia la Donna (o 'A Casa Sua') per poter premere Avanti"
+      };
+    }
+
+    if (subtype === "infiltrato_moon") {
+      const infiltrato = game.assignments.find(p => p.roleKey === "infiltrato" && p.isAlive);
+      const complete = !infiltrato || infiltrato.isTransformed || game.nightActions.infiltratoRoll !== null;
+      return {
+        complete,
+        message: complete ? "" : "Lancia il dado della Luna Piena per poter premere Avanti"
+      };
+    }
+
+    if (subtype === "lupi") {
+      const complete = typeof game.nightActions.wolfTarget === "string" && game.nightActions.wolfTarget.length > 0;
+      return {
+        complete,
+        message: complete ? "" : "I Lupi devono scegliere per forza un abitante da sbranare per poter premere Avanti"
+      };
+    }
+
+    if (subtype === "lupo_stregone") {
+      const complete = game.nightActions.stregoneTarget !== undefined;
+      return {
+        complete,
+        message: complete ? "" : "Seleziona chi silenziare o 'Nessuno' per poter premere Avanti"
+      };
+    }
+
+    if (subtype === "lupo_bianco") {
+      const complete = game.nightActions.lupoBiancoTarget !== undefined;
+      return {
+        complete,
+        message: complete ? "" : "Seleziona chi sbranare o 'Passa' per poter premere Avanti"
+      };
+    }
+
+    if (subtype === "guardia") {
+      const complete = game.nightActions.guardTarget !== undefined;
+      return {
+        complete,
+        message: complete ? "" : "Seleziona chi proteggere (puoi scegliere anche Te stesso o Nessuno) per poter premere Avanti"
+      };
+    }
+
+    if (subtype === "veggente") {
+      const complete = game.nightActions.seerTarget !== undefined;
+      return {
+        complete,
+        message: complete ? "" : "Seleziona chi scrutare (o 'Nessuno') per poter premere Avanti"
+      };
+    }
+
+    if (subtype === "beccamorto") {
+      const complete = !!game.nightActions.beccamortoSeen;
+      return {
+        complete,
+        message: complete ? "" : "Tocca 'Ho mostrato l'identità al Beccamorto' per poter premere Avanti"
+      };
+    }
+
+    if (subtype === "strega") {
+      const lifeReady = game.witchLifeUsed || game.nightActions.witchHealTarget !== undefined;
+      const deathReady = game.witchDeathUsed || game.nightActions.witchKill !== undefined;
+      const complete = lifeReady && deathReady;
+      return {
+        complete,
+        message: complete ? "" : "Fai una scelta per ciascuna pozione disponibile (o seleziona Non Usare) per poter premere Avanti"
+      };
+    }
+
+    return { complete: true, message: "" };
+  }
+
+  updateNextBtnState() {
+    const nextBtn = document.getElementById("lupus-master-next-step");
+    if (!nextBtn) return;
+    const steps = this.game.getRoundSteps();
+    const curStep = steps[this.game.masterStepIndex];
+    const status = this.isStepActionComplete(curStep);
+    nextBtn.disabled = !status.complete;
+    nextBtn.title = status.message;
+  }
+
   renderMasterPhaseGuide() {
     const game = this.game;
     const phaseTitle = document.getElementById("lupus-phase-title");
@@ -151,14 +258,7 @@ class LupusMasterUI {
       if (nextBtn) {
         nextBtn.style.display = "inline-flex";
         nextBtn.textContent = "Avanti ➡️";
-        if (curStep.stepSubtype === "cupido") {
-          const lovers = game.nightActions.cupidoLovers || [];
-          nextBtn.disabled = lovers.length !== 2;
-          nextBtn.title = lovers.length !== 2 ? "Seleziona 2 persone per poter premere Avanti" : "";
-        } else {
-          nextBtn.disabled = false;
-          nextBtn.title = "";
-        }
+        this.updateNextBtnState();
       }
       this.stopDiscussionTimer();
     } else if (curStep.type === "dawn") {

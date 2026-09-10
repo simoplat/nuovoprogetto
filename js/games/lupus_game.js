@@ -75,16 +75,17 @@ class LupusGameController {
     this.lastRoundDeaths = [];
     this.nightActions = {
       cupidoLovers: [],
-      donnaTarget: null,
-      wolfTarget: null,
-      stregoneTarget: null,
-      lupoBiancoTarget: null,
-      guardTarget: null,
-      seerTarget: null,
+      donnaTarget: undefined,
+      wolfTarget: undefined,
+      stregoneTarget: undefined,
+      lupoBiancoTarget: undefined,
+      guardTarget: undefined,
+      seerTarget: undefined,
       witchHeal: false,
-      witchHealTarget: null,
-      witchKill: null,
-      infiltratoRoll: null
+      witchHealTarget: undefined,
+      witchKill: undefined,
+      infiltratoRoll: null,
+      beccamortoSeen: false
     };
     this.nightResolved = false;
     this.preDawnAliveSnapshot = null;
@@ -226,16 +227,17 @@ class LupusGameController {
     this.lastRoundDeaths = [];
     this.nightActions = {
       cupidoLovers: [],
-      donnaTarget: null,
-      wolfTarget: null,
-      stregoneTarget: null,
-      lupoBiancoTarget: null,
-      guardTarget: null,
-      seerTarget: null,
+      donnaTarget: undefined,
+      wolfTarget: undefined,
+      stregoneTarget: undefined,
+      lupoBiancoTarget: undefined,
+      guardTarget: undefined,
+      seerTarget: undefined,
       witchHeal: false,
-      witchHealTarget: null,
-      witchKill: null,
-      infiltratoRoll: null
+      witchHealTarget: undefined,
+      witchKill: undefined,
+      infiltratoRoll: null,
+      beccamortoSeen: false
     };
     this.nightResolved = false;
     this.preDawnAliveSnapshot = null;
@@ -440,13 +442,17 @@ class LupusGameController {
     return steps;
   }
 
+  isStepActionComplete(curStep) {
+    return this.masterUI.isStepActionComplete(curStep);
+  }
+
   masterNextStep() {
     Sound.playClick();
     const steps = this.getRoundSteps();
     const curStep = steps[this.masterStepIndex];
-    if (curStep && curStep.stepSubtype === "cupido") {
-      const lovers = this.nightActions.cupidoLovers || [];
-      if (lovers.length !== 2) {
+    if (curStep && curStep.type === "night") {
+      const check = this.masterUI.isStepActionComplete(curStep);
+      if (!check.complete) {
         return;
       }
     }
@@ -493,16 +499,17 @@ class LupusGameController {
     // Reset azioni notturne transitorie
     this.nightActions = {
       cupidoLovers: [...(this.lovers || [])],
-      donnaTarget: null,
-      wolfTarget: null,
-      stregoneTarget: null,
-      lupoBiancoTarget: null,
-      guardTarget: null,
-      seerTarget: null,
+      donnaTarget: undefined,
+      wolfTarget: undefined,
+      stregoneTarget: undefined,
+      lupoBiancoTarget: undefined,
+      guardTarget: undefined,
+      seerTarget: undefined,
       witchHeal: false,
-      witchHealTarget: null,
-      witchKill: null,
-      infiltratoRoll: null
+      witchHealTarget: undefined,
+      witchKill: undefined,
+      infiltratoRoll: null,
+      beccamortoSeen: false
     };
     this.nightResolved = false;
     this.preDawnAliveSnapshot = null;
