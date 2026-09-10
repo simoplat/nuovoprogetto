@@ -17,10 +17,17 @@
  * - Risoluzione della condanna con verifica vittoria e prosecuzione fluida al round / notte successiva
  */
 
+// Configurazione probabilistica per la trasformazione dell'Infiltrato (Lupo Mannaro Latente)
+const INFILTRATO_CONFIG = {
+  baseChance: 0.10,      // Probabilità Notte 1: 10%
+  chancePerNight: 0.08,  // Incremento a ogni notte successiva: +8% (Notte 2: 18%, Notte 3: 26%...)
+  maxChance: 0.45        // SOGLIA MASSIMA MODIFICABILE (45%)
+};
+
 const LUPUS_ROLES = {
   lupo: {
     id: "lupo",
-    name: "Lupo Mannaro",
+    name: "Lupo",
     faction: "lupi",
     factionLabel: "Branco dei Lupi 🐺",
     icon: "🐺",
@@ -48,8 +55,8 @@ const LUPUS_ROLES = {
     icon: "🛡️",
     image: "img/lupus/guardia.jpg",
     color: "#3b82f6",
-    description: "Ogni notte vegli sul villaggio e scegli un cittadino da difendere con il tuo scudo. Se i Lupi Mannari attaccano quella persona, il tuo intervento la salverà dalla morte!",
-    nightAction: "La Guardia apre gli occhi e indica al Narratore il giocatore da proteggere per questa notte."
+    description: "Ogni notte indichi un giocatore (puoi scegliere anche te stesso) per proteggerlo con il suo scudo. Se i Lupi lo attaccano, sopravviverà!",
+    nightAction: "La Guardia apre gli occhi e indica chi proteggere per la notte."
   },
   strega: {
     id: "strega",
@@ -59,19 +66,19 @@ const LUPUS_ROLES = {
     icon: "🧙‍♀️",
     image: "img/lupus/strega.jpg",
     color: "#10b981",
-    description: "Possiedi due pozioni magiche monouso: la Pozione di Vita (salva la vittima dei lupi) e la Pozione di Morte (avvelena un giocatore a tua scelta).",
-    nightAction: "La Strega apre gli occhi. Il Narratore le mostra la vittima dei Lupi; lei decide se salvarla e/o usare il veleno su qualcun altro."
+    description: "Possiedi 2 potenti pozioni utilizzabili una sola volta per partita: la Pozione di Vita per salvare chiunque tu scelga, e la Pozione di Morte per avvelenare un sospettato.",
+    nightAction: "La Strega può decidere chi salvare con la Pozione di Vita (anche su chi non è attaccato) e chi eliminare con la Pozione di Morte."
   },
   cupido: {
     id: "cupido",
     name: "Cupido",
     faction: "villaggio",
-    factionLabel: "Villaggio (Innamorati) 💘",
+    factionLabel: "Villaggio 💘",
     icon: "💘",
     image: "img/lupus/cupido.jpg",
     color: "#f43f5e",
-    description: "Nella prima notte scocchi le tue frecce e leghi due giocatori come Innamorati. Se uno muore, anche l'altro muore all'istante di crepacuore!",
-    nightAction: "SOLO la prima notte: Cupido indica due giocatori. Il Narratore tocca le loro spalle per farli riconoscere."
+    description: "Solo la Prima Notte, scagli le tue frecce su due giocatori legandoli per la vita. Se uno dei due muore in qualunque momento, l'altro muore all'istante di crepacuore!",
+    nightAction: "Cupido apre gli occhi solo la prima notte e sceglie 2 giocatori da innamorare toccando loro la spalla."
   },
   donna: {
     id: "donna",
@@ -80,9 +87,9 @@ const LUPUS_ROLES = {
     factionLabel: "Villaggio 💃",
     icon: "💃",
     image: "img/lupus/donna.jpg",
-    color: "#e11d48",
-    description: "Ogni notte scegli un giocatore con cui rifugiarti. Se i lupi attaccano te, non ti trovano e ti salvi! Ma attenta: se scegli un lupo o se il tuo ospite muore, muori anche tu!",
-    nightAction: "La Donna apre gli occhi e indica al Narratore la persona con cui trascorre la notte."
+    color: "#ec4899",
+    description: "Ogni notte scegli un abitante da visitare per rifugiarti a casa sua. Se visiti un Lupo muori sbranata! Se i lupi attaccano te sei salva (non eri a casa), ma se sbranano il tuo ospite morite entrambi!",
+    nightAction: "La Donna apre gli occhi e indica con chi trascorrerà la notte."
   },
   contadino: {
     id: "contadino",
@@ -108,14 +115,14 @@ const LUPUS_ROLES = {
   },
   infiltrato: {
     id: "infiltrato",
-    name: "L'Infiltrato (Traditore)",
+    name: "Lupo Mannaro",
     faction: "lupi",
-    factionLabel: "Branco dei Lupi 🕵️",
-    icon: "🕵️",
-    image: "img/lupus/infiltrato.jpg",
+    factionLabel: "Branco dei Lupi 🐺🌕",
+    icon: "🐺🌕",
+    image: "img/lupus/lupo_mannaro.jpg",
     color: "#ef4444",
-    description: "Sei un normale umano ma il tuo cuore appartiene ai Lupi! Vinci se il branco trionfa, ma non sai chi siano i veri lupi e non ti svegli con loro. Al Veggente risulti un innocente 'Non Lupo'. Depista il villaggio!",
-    nightAction: "L'Infiltrato dorme con il resto degli umani: non si sveglia con i lupi e non conosce la loro identità."
+    description: "Umano affetto da licantropia latente! Dormi con gli umani e al Veggente appari Non Lupo, ma ogni notte il dado della Luna Piena può trasformarti definitivamente in un vero Lupo del branco! Una volta trasformato, ti sveglierai con i lupi e conterai a tutti gli effetti come lupo.",
+    nightAction: "Ogni notte viene lanciato il dado della Luna Piena: se si trasforma, diventa per sempre un Lupo a tutti gli effetti (non può più tornare umano)."
   },
   lupo_bianco: {
     id: "lupo_bianco",
@@ -225,6 +232,9 @@ class LupusGameController {
     this.voteConfirmed = false;
     this.autoNextNightTimer = null;
 
+    // Configurazione probabilità Infiltrato (modificabile da settings o codice)
+    this.infiltratoConfig = { ...INFILTRATO_CONFIG };
+
     // Stato notturno interattivo e pozioni persistenti
     this.lovers = []; // [id1, id2]
     this.witchLifeUsed = false;
@@ -239,7 +249,9 @@ class LupusGameController {
       guardTarget: null,
       seerTarget: null,
       witchHeal: false,
-      witchKill: null
+      witchHealTarget: null,
+      witchKill: null,
+      infiltratoRoll: null
     };
     this.nightResolved = false;
     this.preDawnAliveSnapshot = null;
@@ -576,7 +588,7 @@ class LupusGameController {
     if (this.enabledRoles.idiota) { specials++; activeSpecialNames.push("1 Idiota 🤡"); }
     if (this.enabledRoles.lupo_stregone) { specials++; activeSpecialNames.push("1 Lupo Stregone 🐺🔮"); }
     if (this.enabledRoles.cane_nero) { specials++; activeSpecialNames.push("1 Cane Nero 🐕‍🦺"); }
-    if (this.enabledRoles.infiltrato) { specials++; activeSpecialNames.push("1 Infiltrato 🕵️"); }
+    if (this.enabledRoles.infiltrato) { specials++; activeSpecialNames.push("1 Lupo Mannaro 🐺🌕"); }
     if (this.enabledRoles.giullare) { specials++; activeSpecialNames.push("1 Giullare 🃏"); }
     if (this.enabledRoles.lupo_bianco) { specials++; activeSpecialNames.push("1 Lupo Bianco 🐺❄️"); }
 
@@ -672,7 +684,8 @@ class LupusGameController {
         roleKey: roleKey,
         role: LUPUS_ROLES[roleKey],
         isAlive: true,
-        isLover: false
+        isLover: false,
+        isTransformed: false
       };
     });
 
@@ -706,7 +719,9 @@ class LupusGameController {
       guardTarget: null,
       seerTarget: null,
       witchHeal: false,
-      witchKill: null
+      witchHealTarget: null,
+      witchKill: null,
+      infiltratoRoll: null
     };
     this.nightResolved = false;
     this.preDawnAliveSnapshot = null;
@@ -1053,17 +1068,34 @@ class LupusGameController {
       });
     }
 
-    // 4. I Lupi Mannari (se ci sono lupi del branco vivi: normali, stregone, cane nero o lupo bianco)
+    // 3b. La Luna Piena del Lupo Mannaro (se abilitato, vivo e non ancora trasformato)
+    const infiltratoPlayer = this.assignments.find(p => p.roleKey === "infiltrato" && p.isAlive);
+    if (this.enabledRoles.infiltrato && infiltratoPlayer && !infiltratoPlayer.isTransformed) {
+      steps.push({
+        type: "night",
+        stepSubtype: "infiltrato_moon",
+        phaseBadge: `Notte ${this.nightCount} 🌙`,
+        badgeClass: "badge-night",
+        title: "🌕 Il Richiamo della Luna (Lupo Mannaro)",
+        instruction: "Il Narratore verifica la Luna Piena per il Lupo Mannaro: tocca <strong>🎲 Lancia Dado</strong>. Se la luna è piena, si trasforma permanentemente in un feroce Lupo del branco! (Il Narratore toccherà con discrezione la sua spalla per avvisarlo di aprire gli occhi con i Lupi nel passaggio successivo)."
+      });
+    }
+
+    // 4. I Lupi (se ci sono lupi del branco vivi: normali, stregone, cane nero, lupo bianco o lupo mannaro trasformato)
     const wolfRoles = ["lupo", "lupo_stregone", "cane_nero", "lupo_bianco"];
-    const wolvesAlive = this.assignments.some(p => wolfRoles.includes(p.roleKey) && p.isAlive);
+    const wolvesAlive = this.assignments.some(p => (wolfRoles.includes(p.roleKey) || (p.roleKey === "infiltrato" && p.isTransformed)) && p.isAlive);
     if (wolvesAlive) {
+      const infiltratoTransformed = this.assignments.find(p => p.roleKey === "infiltrato" && p.isAlive && p.isTransformed);
+      const infiltratoNote = infiltratoTransformed
+        ? ` (🐺 Il Lupo Mannaro si è trasformato e ORA si sveglia con i lupi!)`
+        : ` (Il Lupo Mannaro NON si sveglia finché non si trasforma).`;
       steps.push({
         type: "night",
         stepSubtype: "lupi",
         phaseBadge: `Notte ${this.nightCount} 🌙`,
         badgeClass: "badge-night",
         title: "🐺 Risveglio del Branco dei Lupi",
-        instruction: "Il Narratore dice: <em>'I Lupi Mannari aprano gli occhi, si riconoscano e scelgano silenziosamente la loro vittima.'</em> (Si svegliano tutti i Lupi: normali, Lupo Stregone, Cane Nero e Lupo Bianco. L'Infiltrato NON si sveglia). I lupi concordano una vittima indicandola al Narratore."
+        instruction: `Il Narratore dice: <em>'I Lupi aprano gli occhi, si riconoscano e scelgano silenziosamente la loro vittima.'</em> (Si svegliano tutti i Lupi del branco: normali, Lupo Stregone, Cane Nero, Lupo Bianco${infiltratoTransformed ? ', e il Lupo Mannaro trasformato' : ''}).${infiltratoNote} I lupi concordano una vittima indicandola al Narratore.`
       });
     }
 
@@ -1422,7 +1454,7 @@ class LupusGameController {
         statusText = "🏠 La Donna resta a casa sua stanotte (vulnerabile se attaccata).";
       } else {
         const host = this.assignments.find(p => p.id === selectedId);
-        const isHostWolf = host && ["lupo", "lupo_stregone", "cane_nero", "lupo_bianco"].includes(host.roleKey);
+        const isHostWolf = host && (["lupo", "lupo_stregone", "cane_nero", "lupo_bianco"].includes(host.roleKey) || (host.roleKey === "infiltrato" && host.isTransformed));
         statusText = `💃 Rifugio: <strong>${host?.name}</strong> ${isHostWolf ? '⚠️ (È un LUPO! La Donna morirà all\'Alba)' : '(Innocente: se attaccata a casa è salva!)'}`;
       }
 
@@ -1442,6 +1474,117 @@ class LupusGameController {
           this.renderNightActionWidget("donna");
         });
       });
+      return;
+    }
+
+    if (stepSubtype === "infiltrato_moon") {
+      const infiltratoPlayer = this.assignments.find(p => p.roleKey === "infiltrato" && p.isAlive);
+      if (!infiltratoPlayer) return;
+
+      const currentNight = this.nightCount || 1;
+      const rawChance = this.infiltratoConfig.baseChance + (currentNight - 1) * this.infiltratoConfig.chancePerNight;
+      const moonChance = Math.min(this.infiltratoConfig.maxChance, rawChance);
+      const pct = Math.round(moonChance * 100);
+      const maxPct = Math.round(this.infiltratoConfig.maxChance * 100);
+
+      const rollData = this.nightActions.infiltratoRoll;
+      const isTransformed = infiltratoPlayer.isTransformed;
+
+      let resultHtml = "";
+      if (isTransformed) {
+        resultHtml = `
+          <div class="lupus-moon-result-box transformed">
+            <div style="font-size: 2.2rem; margin-bottom: 4px;">🌕🐺</div>
+            <div style="font-size: 1.25rem; font-weight: 900; letter-spacing: 0.5px;">LUNA PIENA: TRASFORMAZIONE AVVENUTA!</div>
+            <div style="font-size: 0.9rem; margin-top: 6px; line-height: 1.4;">
+              ${rollData ? `Dado estratto: <strong>${rollData.value}%</strong> (Soglia: &le; ${pct}%)<br>` : ''}
+              <strong>${infiltratoPlayer.name}</strong> è diventato a tutti gli effetti un <strong>Lupo Mannaro</strong>!<br>
+              <em>Non potrà mai più tornare normale.</em>
+            </div>
+            <div style="font-size: 0.85rem; margin-top: 10px; background: rgba(0,0,0,0.35); border: 1px solid rgba(254, 240, 138, 0.3); border-radius: var(--radius-sm); padding: 9px; color: #fef08a; text-align: left;">
+              👉 <strong>Istruzione Narratore:</strong> Tocca con discrezione la spalla di <strong>${infiltratoPlayer.name}</strong> per fargli capire che ora è un Lupo e dovrà svegliarsi al prossimo richiamo del branco!
+            </div>
+          </div>
+        `;
+      } else if (rollData && !rollData.success) {
+        resultHtml = `
+          <div class="lupus-moon-result-box dormant">
+            <div style="font-size: 2.2rem; margin-bottom: 4px;">🌑</div>
+            <div style="font-size: 1.15rem; font-weight: 800;">LUNA VELATA: NESSUNA TRASFORMAZIONE</div>
+            <div style="font-size: 0.88rem; margin-top: 6px;">
+              Dado estratto: <strong>${rollData.value}%</strong> (Soglia: &le; ${pct}%)<br>
+              <strong>${infiltratoPlayer.name}</strong> rimane umano e dorme con gli innocenti.
+            </div>
+          </div>
+        `;
+      }
+
+      actionWidget.innerHTML = `
+        <div class="lupus-action-widget">
+          <div class="lupus-moon-box">
+            <div style="font-size: 1.05rem; font-weight: 800; color: #e9d5ff; margin-bottom: 6px;">
+              🌕 Verifica Licantropia: ${infiltratoPlayer.name} (Lupo Mannaro)
+            </div>
+            <div class="lupus-moon-chance-bar">
+              <span>Notte ${currentNight}: <strong>${pct}%</strong> di probabilità</span>
+              <span style="opacity: 0.8; font-size: 0.8rem;">(Tetto Max: ${maxPct}%)</span>
+            </div>
+            
+            <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 10px;">
+              ${!isTransformed ? `
+                <button type="button" class="btn btn-primary btn-sm" id="lupus-btn-roll-moon">
+                  🎲 Lancia Dado Luna Piena
+                </button>
+                <button type="button" class="btn btn-secondary btn-sm" id="lupus-btn-force-transform">
+                  ⚡ Forza Trasformazione
+                </button>
+              ` : `
+                <button type="button" class="btn btn-secondary btn-sm" id="lupus-btn-undo-transform">
+                  ↩️ Annulla Trasformazione (Errore)
+                </button>
+              `}
+            </div>
+            ${resultHtml}
+          </div>
+        </div>
+      `;
+
+      const rollBtn = actionWidget.querySelector("#lupus-btn-roll-moon");
+      if (rollBtn) {
+        rollBtn.addEventListener("click", () => {
+          const roll = Math.floor(Math.random() * 100) + 1;
+          const success = roll <= pct;
+          this.nightActions.infiltratoRoll = { value: roll, success: success };
+          if (success) {
+            infiltratoPlayer.isTransformed = true;
+            try { Sound.playImpostorReveal(); } catch (e) {}
+          } else {
+            infiltratoPlayer.isTransformed = false;
+            try { Sound.playClick(); } catch (e) {}
+          }
+          this.renderNightActionWidget("infiltrato_moon");
+        });
+      }
+
+      const forceBtn = actionWidget.querySelector("#lupus-btn-force-transform");
+      if (forceBtn) {
+        forceBtn.addEventListener("click", () => {
+          infiltratoPlayer.isTransformed = true;
+          this.nightActions.infiltratoRoll = { value: 1, success: true, forced: true };
+          try { Sound.playImpostorReveal(); } catch (e) {}
+          this.renderNightActionWidget("infiltrato_moon");
+        });
+      }
+
+      const undoBtn = actionWidget.querySelector("#lupus-btn-undo-transform");
+      if (undoBtn) {
+        undoBtn.addEventListener("click", () => {
+          infiltratoPlayer.isTransformed = false;
+          this.nightActions.infiltratoRoll = null;
+          try { Sound.playClick(); } catch (e) {}
+          this.renderNightActionWidget("infiltrato_moon");
+        });
+      }
       return;
     }
 
@@ -1678,12 +1821,17 @@ class LupusGameController {
       let resultHtml = "";
       if (selectedId) {
         const target = this.assignments.find(p => p.id === selectedId);
-        const isWolfAnswer = target && ["lupo", "lupo_stregone", "lupo_bianco", "idiota"].includes(target.roleKey);
+        const isWolfAnswer = target && (
+          ["lupo", "lupo_stregone", "lupo_bianco", "idiota"].includes(target.roleKey) ||
+          (target.roleKey === "infiltrato" && target.isTransformed)
+        );
 
         if (isWolfAnswer) {
           let note = "";
           if (target.roleKey === "idiota") {
             note = `<div style="font-size: 0.8rem; margin-top: 4px; color: #fde68a;">⚠️ È l'<strong>Idiota del Villaggio</strong>! Innocente, ma per le sue follie appare come LUPO.</div>`;
+          } else if (target.roleKey === "infiltrato" && target.isTransformed) {
+            note = `<div style="font-size: 0.8rem; margin-top: 4px; color: #fca5a5;">⚠️ È il <strong>Lupo Mannaro Trasformato</strong>! La luna piena l'ha risvegliato: appare LUPO.</div>`;
           }
           resultHtml = `
             <div class="lupus-seer-result-box wolf">
@@ -1697,8 +1845,8 @@ class LupusGameController {
           let note = "";
           if (target.roleKey === "cane_nero") {
             note = `<div style="font-size: 0.8rem; margin-top: 4px; color: #a7f3d0;">⚠️ È il <strong>Cane Nero</strong>! Lupo Mannaro sotto mentite spoglie: appare NON LUPO.</div>`;
-          } else if (target.roleKey === "infiltrato") {
-            note = `<div style="font-size: 0.8rem; margin-top: 4px; color: #a7f3d0;">⚠️ È l'<strong>Infiltrato</strong>! Alleato dei lupi, ma biologicamente umano: appare NON LUPO.</div>`;
+          } else if (target.roleKey === "infiltrato" && !target.isTransformed) {
+            note = `<div style="font-size: 0.8rem; margin-top: 4px; color: #a7f3d0;">⚠️ È il <strong>Lupo Mannaro (Latente)</strong>! Non si è ancora trasformato: appare NON LUPO.</div>`;
           }
           resultHtml = `
             <div class="lupus-seer-result-box innocent">
@@ -1803,28 +1951,54 @@ class LupusGameController {
       const wolfVictim = this.nightActions.wolfTarget ? this.assignments.find(p => p.id === this.nightActions.wolfTarget) : null;
       const isLifeAvailable = !this.witchLifeUsed;
       const isDeathAvailable = !this.witchDeathUsed;
-      const isHealActive = this.nightActions.witchHeal;
+      const healTargetId = this.nightActions.witchHealTarget;
       const poisonTargetId = this.nightActions.witchKill;
 
-      // Section 1: Life potion
+      // Section 1: Life potion (ora selezionabile su qualsiasi giocatore vivo)
       let lifeSection = "";
       if (isLifeAvailable) {
-        if (wolfVictim) {
-          lifeSection = `
-            <div style="font-size: 0.88rem; color: #cbd5e1; margin-bottom: 8px;">
-              I Lupi hanno attaccato: <strong>${wolfVictim.name}</strong> (${wolfVictim.role.name}).
+        const healCandidates = this.assignments.filter(p => p.isAlive);
+        const wolfInfo = wolfVictim
+          ? `<div style="font-size: 0.88rem; color: #fca5a5; margin-bottom: 8px; font-weight: 600;">🐺 Vittima attaccata dai Lupi: <strong>${wolfVictim.name}</strong> (${wolfVictim.role.name})</div>`
+          : `<div style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 8px;">🐺 Nessuna vittima indicata dai Lupi questa notte.</div>`;
+
+        const noneHealCard = `
+          <div class="lupus-action-card action-none ${healTargetId === null ? 'selected selected-heal' : ''}" data-action="heal" data-player-id="NO_HEAL">
+            <div class="action-card-avatar">🚫</div>
+            <div class="action-card-name">Non Usare</div>
+            <div class="action-card-role">Conserva pozione</div>
+          </div>
+        `;
+        const healCards = healCandidates.map(p => {
+          const isSel = (healTargetId === p.id);
+          const isWolfTarget = (wolfVictim && wolfVictim.id === p.id);
+          return `
+            <div class="lupus-action-card ${isSel ? 'selected selected-heal' : ''} ${isWolfTarget ? 'card-wolf-target' : ''}" data-action="heal" data-player-id="${p.id}">
+              <div class="action-card-avatar">${p.role.icon}</div>
+              <div class="action-card-name">${p.name} ${isWolfTarget ? '⚠️' : ''}</div>
+              <div class="action-card-role">${isWolfTarget ? 'Attaccato dai Lupi!' : p.role.name}</div>
             </div>
-            <button type="button" class="btn ${isHealActive ? 'btn-success' : 'btn-secondary'} btn-block btn-sm" id="lupus-witch-heal-toggle">
-              ${isHealActive ? `✅ Pozione di Vita ATTIVA (Salva ${wolfVictim.name})` : `🧪 Usa Pozione di Vita per Salvare ${wolfVictim.name}`}
-            </button>
           `;
+        }).join("");
+
+        const chosenHealPlayer = healTargetId ? this.assignments.find(p => p.id === healTargetId) : null;
+        let healStatus = "";
+        if (chosenHealPlayer) {
+          if (wolfVictim && chosenHealPlayer.id === wolfVictim.id) {
+            healStatus = `🧪 Pozione di Vita su <strong>${chosenHealPlayer.name}</strong> (Salva dall'attacco dei Lupi!)`;
+          } else {
+            healStatus = `🧪 Pozione di Vita su <strong>${chosenHealPlayer.name}</strong> (Protegge anche se non attaccato!)`;
+          }
         } else {
-          lifeSection = `
-            <div style="font-size: 0.85rem; color: #94a3b8;">
-              Nessuna vittima indicata dai Lupi questa notte.
-            </div>
-          `;
+          healStatus = "🚫 Nessuna Pozione di Vita usata stanotte.";
         }
+
+        lifeSection = `
+          ${wolfInfo}
+          <div style="font-size: 0.84rem; color: #cbd5e1; margin-bottom: 6px;">Tocca chi salvare/benedire con la Pozione di Vita (anche chi non è attaccato):</div>
+          <div class="lupus-action-grid">${noneHealCard}${healCards}</div>
+          <div class="lupus-action-status" style="margin-top: 6px;">${healStatus}</div>
+        `;
       } else {
         lifeSection = `
           <div style="font-size: 0.85rem; color: #f87171;">
@@ -1838,7 +2012,7 @@ class LupusGameController {
       if (isDeathAvailable) {
         const candidates = this.assignments.filter(p => p.isAlive && p.id !== stregaPlayer?.id);
         const noneCard = `
-          <div class="lupus-action-card action-none ${poisonTargetId === null ? 'selected selected-poison' : ''}" data-player-id="NO_POISON">
+          <div class="lupus-action-card action-none ${poisonTargetId === null ? 'selected selected-poison' : ''}" data-action="poison" data-player-id="NO_POISON">
             <div class="action-card-avatar">🚫</div>
             <div class="action-card-name">Non Avvelenare</div>
             <div class="action-card-role">Conserva pozione</div>
@@ -1847,7 +2021,7 @@ class LupusGameController {
         const poisonCards = candidates.map(p => {
           const isSel = (poisonTargetId === p.id);
           return `
-            <div class="lupus-action-card ${isSel ? 'selected selected-poison' : ''}" data-player-id="${p.id}">
+            <div class="lupus-action-card ${isSel ? 'selected selected-poison' : ''}" data-action="poison" data-player-id="${p.id}">
               <div class="action-card-avatar">${p.role.icon}</div>
               <div class="action-card-name">${p.name}</div>
               <div class="action-card-role">${p.role.name}</div>
@@ -1902,18 +2076,19 @@ class LupusGameController {
         </div>
       `;
 
-      // Bind heal toggle
-      const healBtn = actionWidget.querySelector("#lupus-witch-heal-toggle");
-      if (healBtn) {
-        healBtn.addEventListener("click", () => {
+      // Bind heal cards
+      actionWidget.querySelectorAll('.lupus-action-card[data-action="heal"]').forEach(card => {
+        card.addEventListener("click", () => {
           try { Sound.playClick(); } catch (e) {}
-          this.nightActions.witchHeal = !this.nightActions.witchHeal;
+          const pid = card.dataset.playerId;
+          this.nightActions.witchHealTarget = (pid === "NO_HEAL") ? null : pid;
+          this.nightActions.witchHeal = (pid !== "NO_HEAL" && pid === (wolfVictim ? wolfVictim.id : null));
           this.renderNightActionWidget("strega");
         });
-      }
+      });
 
       // Bind poison cards
-      actionWidget.querySelectorAll(".witch-potion-item:nth-child(2) .lupus-action-card").forEach(card => {
+      actionWidget.querySelectorAll('.lupus-action-card[data-action="poison"]').forEach(card => {
         card.addEventListener("click", () => {
           try { Sound.playClick(); } catch (e) {}
           const pid = card.dataset.playerId;
@@ -1950,15 +2125,20 @@ class LupusGameController {
     const donnaPlayer = this.assignments.find(p => p.roleKey === "donna" && p.isAlive);
     const donnaTargetId = donnaPlayer ? this.nightActions.donnaTarget : null;
     const donnaHost = donnaTargetId ? this.assignments.find(p => p.id === donnaTargetId && p.isAlive) : null;
-    const isDonnaVisitingWolf = donnaHost && ["lupo", "lupo_stregone", "cane_nero", "lupo_bianco"].includes(donnaHost.roleKey);
+    const isDonnaVisitingWolf = donnaHost && (
+      ["lupo", "lupo_stregone", "cane_nero", "lupo_bianco"].includes(donnaHost.roleKey) ||
+      (donnaHost.roleKey === "infiltrato" && donnaHost.isTransformed)
+    );
     const wereWolvesTargetingDonna = wolfVictim && donnaPlayer && (wolfVictim.id === donnaPlayer.id);
 
-    // Protezioni
+    // Protezioni e Pozione di Vita
     const isProtectedByGuard = !isGuardSilenced && wolfVictim && (this.nightActions.guardTarget === wolfVictim.id);
-    const witchSavedVictim = !isStregaSilenced && !this.witchLifeUsed && this.nightActions.witchHeal && wolfVictim;
-    if (witchSavedVictim) {
+    const healTargetId = (!isStregaSilenced && !this.witchLifeUsed) ? this.nightActions.witchHealTarget : null;
+    const healTargetPlayer = healTargetId ? this.assignments.find(p => p.id === healTargetId && p.isAlive) : null;
+    if (healTargetPlayer) {
       this.witchLifeUsed = true;
     }
+    const isHealedByWitch = healTargetPlayer && wolfVictim && (healTargetPlayer.id === wolfVictim.id);
 
     const deaths = new Map(); // id -> reason
     const events = [];
@@ -1978,7 +2158,7 @@ class LupusGameController {
           icon: "🛡️",
           text: `<strong>${wolfVictim.name}</strong> è stat${getSfx(wolfVictim.name)} attaccat${getSfx(wolfVictim.name)} dai Lupi, ma lo <strong>scudo della Guardia</strong> l'ha salvat${getSfx(wolfVictim.name)}!`
         });
-      } else if (witchSavedVictim) {
+      } else if (isHealedByWitch) {
         events.push({
           type: "saved",
           icon: "🧪",
@@ -2002,6 +2182,15 @@ class LupusGameController {
           });
         }
       }
+    }
+
+    // Se la Strega ha usato la Pozione di Vita su qualcuno non attaccato dai Lupi
+    if (healTargetPlayer && (!wolfVictim || healTargetPlayer.id !== wolfVictim.id)) {
+      events.push({
+        type: "saved",
+        icon: "🧪",
+        text: `La Strega ha somministrato la sua <strong>Pozione di Vita</strong> su <strong>${healTargetPlayer.name}</strong> (${healTargetPlayer.role.name}), che non era in pericolo mortale dai Lupi. La pozione è stata consumata!`
+      });
     }
 
     // 2. Risoluzione Donna che visita un Lupo
@@ -2032,12 +2221,20 @@ class LupusGameController {
     const witchVictim = witchKillId ? this.assignments.find(p => p.id === witchKillId && p.isAlive) : null;
     if (witchVictim && !deaths.has(witchVictim.id)) {
       this.witchDeathUsed = true;
-      deaths.set(witchVictim.id, "Avvelenato dalla Strega");
-      events.push({
-        type: "death",
-        icon: "☠️",
-        text: `<strong>${witchVictim.name}</strong> (${witchVictim.role.name}) è stat${getSfx(witchVictim.name)} avvelenat${getSfx(witchVictim.name)} dalla Strega con la Pozione di Morte!`
-      });
+      if (healTargetPlayer && healTargetPlayer.id === witchVictim.id) {
+        events.push({
+          type: "saved",
+          icon: "🧪☠️",
+          text: `La Strega ha somministrato sia la Pozione di Morte che la Pozione di Vita a <strong>${witchVictim.name}</strong>: l'antidoto ha neutralizzato il veleno!`
+        });
+      } else {
+        deaths.set(witchVictim.id, "Avvelenato dalla Strega");
+        events.push({
+          type: "death",
+          icon: "☠️",
+          text: `<strong>${witchVictim.name}</strong> (${witchVictim.role.name}) è stat${getSfx(witchVictim.name)} avvelenat${getSfx(witchVictim.name)} dalla Strega con la Pozione di Morte!`
+        });
+      }
     }
 
     // 5. Risoluzione Innamorati a Catena (Cupido)
@@ -2372,7 +2569,7 @@ class LupusGameController {
     if (navControls) navControls.style.display = "none";
 
     const aliveCount = this.assignments.filter(p => p.isAlive).length;
-    const aliveWolves = this.assignments.filter(p => p.isAlive && ["lupo", "lupo_stregone", "cane_nero", "lupo_bianco"].includes(p.roleKey)).length;
+    const aliveWolves = this.assignments.filter(p => p.isAlive && (["lupo", "lupo_stregone", "cane_nero", "lupo_bianco"].includes(p.roleKey) || (p.roleKey === "infiltrato" && p.isTransformed))).length;
     const sfx = condemned.name.endsWith("a") ? "a" : "o";
 
     if (phaseBadge) {
@@ -2472,7 +2669,7 @@ class LupusGameController {
 
     if (!winType) {
       const alive = this.assignments.filter(p => p.isAlive);
-      const aliveWolves = alive.filter(p => ["lupo", "lupo_stregone", "cane_nero", "lupo_bianco"].includes(p.roleKey));
+      const aliveWolves = alive.filter(p => ["lupo", "lupo_stregone", "cane_nero", "lupo_bianco"].includes(p.roleKey) || (p.roleKey === "infiltrato" && p.isTransformed));
       winType = (aliveWolves.length === 0) ? "villaggio" : "lupi";
     }
 
@@ -2504,7 +2701,7 @@ class LupusGameController {
         } else if (isLupoBiancoWin && p.roleKey === "lupo_bianco") {
           extraBadge = `<span style="font-size: 0.72rem; color: #38bdf8; font-weight: 800; margin-left: 6px;">🐺❄️ VINCITORE SOLITARIO!</span>`;
         } else if (isWolvesWin && p.roleKey === "infiltrato") {
-          extraBadge = `<span style="font-size: 0.72rem; color: #ef4444; font-weight: 800; margin-left: 6px;">🕵️ Vince con i Lupi!</span>`;
+          extraBadge = `<span style="font-size: 0.72rem; color: #ef4444; font-weight: 800; margin-left: 6px;">${p.isTransformed ? '🐺 Lupo Mannaro Trasformato!' : '🐺🌕 Vince con i Lupi!'}</span>`;
         }
 
         playersHtml += `
@@ -2538,37 +2735,25 @@ class LupusGameController {
         headlineColor = "#38bdf8";
         victoryEmoji = "🐺❄️👑";
         boxThemeClass = "solitario-wins lupo-bianco-wins";
-        victoryDesc = "Il Lupo Bianco ha ingannato il branco ed è l'ultimo e unico sopravvissuto di tutta la partita!";
+        victoryDesc = "Il Lupo Bianco è l'ultimo e unico sopravvissuto della partita! Ha sbranato a tradimento tutti i compagni e i contadini!";
       } else if (isWolvesWin) {
-        headline = "IL BRANCO DEI LUPI DOMINA";
-        headlineColor = "var(--accent-danger)";
-        victoryEmoji = "🐺🩸🌑";
+        headline = "I LUPI MANNARI HANNO VINTO!";
+        headlineColor = "#ef4444";
+        victoryEmoji = "🐺🩸👑";
         boxThemeClass = "wolves-win";
-        victoryDesc = "I Lupi Mannari e i loro alleati hanno conquistato il villaggio! Le tenebre trionfano.";
+        victoryDesc = "I Lupi Mannari eguagliano o superano i cittadini rimasti in vita. Il villaggio è caduto per sempre nelle loro fauci!";
       }
 
       gameoverContent.innerHTML = `
         <div class="lupus-gameover-box ${boxThemeClass}">
-          <div style="font-size: 2.8rem; margin-bottom: 8px; line-height: 1;">
-            ${victoryEmoji}
+          <div class="gameover-emoji">${victoryEmoji}</div>
+          <div class="gameover-headline" style="color: ${headlineColor};">${headline}</div>
+          <p class="gameover-desc">${victoryDesc}</p>
+          
+          <div style="font-size: 0.88rem; font-weight: 800; color: #cbd5e1; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px;">
+            Identità e Ruoli di Tutti i Giocatori:
           </div>
-          <h3 style="font-size: 1.4rem; font-weight: 900; margin: 0 0 8px; line-height: 1.25; color: ${headlineColor};">
-            ${headline}
-          </h3>
-          <p style="font-size: 0.9rem; color: var(--text-secondary); margin: 0 auto 12px; max-width: 440px; line-height: 1.4;">
-            ${victoryDesc}
-          </p>
-          ${condemned ? `
-            <div style="font-size: 0.92rem; color: #fbbf24; margin: 0 auto 14px; font-weight: 700; line-height: 1.35; padding: 6px 12px; background: rgba(251, 191, 36, 0.12); border: 1px solid rgba(251, 191, 36, 0.35); border-radius: var(--radius-sm); display: inline-block;">
-              🔥 Ultimo condannato al rogo: <strong>${condemned.name}</strong> (${condemned.role.name})
-            </div>
-          ` : ''}
-
-          <div style="font-size: 0.82rem; color: var(--text-secondary); margin: 6px 0 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;">
-            Identità Segrete di Tutti i Partecipanti:
-          </div>
-
-          <div class="lupus-gameover-roster">
+          <div class="lupus-gameover-players-list">
             ${playersHtml}
           </div>
 
@@ -2590,21 +2775,23 @@ class LupusGameController {
           this.startGame();
         });
       }
-    }
 
-    try {
-      if (isVillageWin || isGiullareWin || isLupoBiancoWin) {
-        Sound.playSuccess();
-      } else {
-        Sound.playGameOver();
+      try {
+        if (isVillageWin) {
+          Sound.playSuccess();
+        } else if (isGiullareWin) {
+          Sound.playImpostorReveal();
+        } else {
+          Sound.playGameOver();
+        }
+      } catch (e) {
+        console.warn("Audio error:", e);
       }
-    } catch (e) {
-      console.warn("Audio error:", e);
-    }
 
-    const cardEl = document.querySelector(".lupus-phase-card");
-    if (cardEl) {
-      cardEl.scrollIntoView({ behavior: "smooth", block: "start" });
+      const cardEl = document.querySelector(".lupus-phase-card");
+      if (cardEl) {
+        cardEl.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
     }
   }
 
@@ -2633,7 +2820,9 @@ class LupusGameController {
       guardTarget: null,
       seerTarget: null,
       witchHeal: false,
-      witchKill: null
+      witchHealTarget: null,
+      witchKill: null,
+      infiltratoRoll: null
     };
     this.nightResolved = false;
     this.preDawnAliveSnapshot = null;
@@ -2670,9 +2859,9 @@ class LupusGameController {
 
     const alive = this.assignments.filter(p => p.isAlive);
     const wolfThreatRoles = ["lupo", "lupo_stregone", "cane_nero", "lupo_bianco"];
-    const aliveWolves = alive.filter(p => wolfThreatRoles.includes(p.roleKey));
-    // User instruction: "Infiltrato vale come non lupo e lupo bianco è ultimo in assoluto"
-    const aliveNonWolves = alive.filter(p => !wolfThreatRoles.includes(p.roleKey));
+    const aliveWolves = alive.filter(p => wolfThreatRoles.includes(p.roleKey) || (p.roleKey === "infiltrato" && p.isTransformed));
+    // Infiltrato non trasformato conta tra i non lupi; da trasformato conta a tutti gli effetti come lupo
+    const aliveNonWolves = alive.filter(p => !wolfThreatRoles.includes(p.roleKey) && !(p.roleKey === "infiltrato" && p.isTransformed));
 
     // 1. Lupo Bianco: ultimo in assoluto (unico superstite di tutta la partita)
     if (alive.length === 1 && alive[0].roleKey === "lupo_bianco") {
@@ -2708,8 +2897,8 @@ class LupusGameController {
       return "villaggio";
     }
 
-    // 3. I Lupi (Branco) vincono quando eguagliano o superano i non-lupi (Infiltrato conta tra i non-lupi ma vince con loro)
-    const packWolves = alive.filter(p => ["lupo", "lupo_stregone", "cane_nero"].includes(p.roleKey));
+    // 3. I Lupi (Branco) vincono quando eguagliano o superano i non-lupi (Infiltrato trasformato è a tutti gli effetti un lupo del branco)
+    const packWolves = alive.filter(p => ["lupo", "lupo_stregone", "cane_nero"].includes(p.roleKey) || (p.roleKey === "infiltrato" && p.isTransformed));
     if (packWolves.length > 0 && aliveWolves.length >= aliveNonWolves.length) {
       if (banner) {
         banner.style.display = "block";
@@ -2734,4 +2923,6 @@ class LupusGameController {
 // Esporta globalmente
 if (typeof window !== "undefined") {
   window.LupusGameController = LupusGameController;
+  window.LUPUS_ROLES = LUPUS_ROLES;
+  window.INFILTRATO_CONFIG = INFILTRATO_CONFIG;
 }

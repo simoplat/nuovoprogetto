@@ -55,10 +55,10 @@ L'obiettivo dei cittadini è smascherare ed eliminare tutti i Lupi Mannari media
 ##### 🐺 Branco dei Lupi & Alleati Oscuri
 L'obiettivo dei Lupi è decimare gli abitanti fino a eguagliare o superare il numero dei superstiti non-lupi.
 
-* **🐺 Lupo Mannaro**: Si sveglia ogni notte con i suoi compagni di branco per scegliere consensualmente una vittima silenziosamente indicata al Narratore. Di giorno, si mimetizza fingendosi un pacifico villico.
+* **🐺 Lupo (Branco)**: Si sveglia ogni notte con i suoi compagni di branco per scegliere consensualmente una vittima silenziosamente indicata al Narratore. Di giorno, si mimetizza fingendosi un pacifico villico.
 * **🐺🔮 Il Lupo Stregone**: Si sveglia e attacca regolarmente con il branco dei Lupi. Subito dopo, si risveglia una seconda volta da solo e scaglia la sua maledizione: indica un giocatore al Narratore; se quel giocatore possiede un potere notturno attivo (*Guardia, Veggente, Strega, Beccamorto*), la sua abilità viene **annullata e bloccata** per tutta la notte corrente!
 * **🐕‍🦺 Il Cane Nero (Lupo Illusionista)**: Lupo mannaro a tutti gli effetti che si risveglia con il branco per scegliere la vittima notturna. Tuttavia, la sua illusione canina inganna le visioni mistiche: al Veggente risulta insospettabilmente come **Non Lupo**.
-* **🕵️ L'Infiltrato (Il Traditore)**: Un essere umano votato alla causa dei Lupi. Vince se i Lupi vincono, ma **non sa chi siano i lupi** e non si sveglia la notte con il branco (dorme con gli umani). Al Veggente risulta innocente (*Non Lupo*). Nel conteggio di equilibrio per la vittoria dei lupi vale come non-lupo (umano), ma trionfa al loro fianco.
+* **🐺🌕 Il Lupo Mannaro (Licantropo Latente)**: Un essere umano affetto dalla maledizione della licantropia. Dorme con gli umani e al Veggente appare *Non Lupo*, ma ogni notte viene lanciato il dado della Luna Piena: se si trasforma, diventa per sempre un Lupo del Branco a tutti gli effetti!
 
 ##### 🃏 Fazione Solitaria (Cani Sciolti)
 Ruoli indipendenti con obiettivi di vittoria propri ed esclusivi.

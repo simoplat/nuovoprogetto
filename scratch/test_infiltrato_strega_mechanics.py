@@ -1,0 +1,190 @@
+import subprocess, time, os
+
+test_html_content = '''<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Test Infiltrato & Strega Mechanics</title>
+</head>
+<body>
+  <div id="test-output">Running...</div>
+  <iframe id="app-frame" src="../index.html" style="width: 1000px; height: 800px;"></iframe>
+
+  <script>
+    const iframe = document.getElementById('app-frame');
+    iframe.onload = () => {
+      try {
+        const win = iframe.contentWindow;
+        const doc = iframe.contentDocument;
+        const lupus = win.App.lupusGame;
+
+        if (!lupus) throw new Error("lupusGame controller not found");
+
+        // 1. Verify INFILTRATO_CONFIG
+        if (!lupus.infiltratoConfig) throw new Error("infiltratoConfig not found on lupus controller");
+        if (lupus.infiltratoConfig.maxChance !== 0.45) throw new Error("maxChance expected 0.45, got " + lupus.infiltratoConfig.maxChance);
+        if (lupus.infiltratoConfig.baseChance !== 0.10) throw new Error("baseChance expected 0.10, got " + lupus.infiltratoConfig.baseChance);
+        if (lupus.infiltratoConfig.chancePerNight !== 0.08) throw new Error("chancePerNight expected 0.08, got " + lupus.infiltratoConfig.chancePerNight);
+
+        // 2. Setup game with specific roles
+        lupus.enabledRoles.infiltrato = true;
+        lupus.enabledRoles.veggente = true;
+        lupus.enabledRoles.donna = true;
+        lupus.enabledRoles.strega = true;
+        lupus.enabledRoles.guardia = true;
+        lupus.enabledRoles.lupo_bianco = false;
+        lupus.enabledRoles.lupo_stregone = false;
+        lupus.enabledRoles.cane_nero = false;
+        lupus.enabledRoles.giullare = false;
+        lupus.enabledRoles.cupido = false;
+        lupus.enabledRoles.beccamorto = false;
+        lupus.enabledRoles.idiota = false;
+
+        lupus.players = ["Alice", "Bob", "Charlie", "Diana", "Elena", "Fabio"];
+        lupus.wolvesCount = 1;
+        lupus.startGame();
+
+        // Overwrite assignments for deterministic testing
+        // Alice: lupo, Bob: infiltrato, Charlie: veggente, Diana: donna, Elena: strega, Fabio: contadino
+        const roles = ["lupo", "infiltrato", "veggente", "donna", "strega", "contadino"];
+        lupus.assignments.forEach((p, idx) => {
+          p.roleKey = roles[idx];
+          p.role = win.LUPUS_ROLES[roles[idx]];
+          p.isAlive = true;
+          p.isTransformed = false;
+        });
+
+        const infiltrato = lupus.assignments.find(p => p.roleKey === "infiltrato");
+        const lupo = lupus.assignments.find(p => p.roleKey === "lupo");
+        const veggente = lupus.assignments.find(p => p.roleKey === "veggente");
+        const donna = lupus.assignments.find(p => p.roleKey === "donna");
+        const strega = lupus.assignments.find(p => p.roleKey === "strega");
+        const contadino = lupus.assignments.find(p => p.roleKey === "contadino");
+
+        // TEST 1: Check Night 1 steps (infiltrato_moon present before lupi)
+        lupus.nightCount = 1;
+        let steps = lupus.getRoundSteps();
+        const moonIdx = steps.findIndex(s => s.stepSubtype === "infiltrato_moon");
+        const lupiIdx = steps.findIndex(s => s.stepSubtype === "lupi");
+        if (moonIdx === -1) throw new Error("infiltrato_moon step missing in Night 1");
+        if (lupiIdx === -1) throw new Error("lupi step missing in Night 1");
+        if (moonIdx >= lupiIdx) throw new Error("infiltrato_moon must come before lupi step");
+
+        // TEST 2: Veggente scrutinizes Infiltrato BEFORE transformation -> NON LUPO
+        lupus.nightActions.seerTarget = infiltrato.id;
+        lupus.renderNightActionWidget("veggente");
+        const seerBox1 = doc.querySelector(".lupus-seer-result-box");
+        if (!seerBox1 || !seerBox1.textContent.includes("NON LUPO")) {
+          throw new Error("Veggente should see untransformed Infiltrato as NON LUPO, got: " + (seerBox1 ? seerBox1.textContent : 'none'));
+        }
+
+        // TEST 3: Donna visits Infiltrato BEFORE transformation -> Donna survives (he is biologically human)
+        lupus.nightActions.donnaTarget = infiltrato.id;
+        lupus.nightActions.wolfTarget = null;
+        lupus.nightActions.witchHealTarget = null;
+        lupus.resolveNight();
+        if (!donna.isAlive) {
+          throw new Error("Donna should survive visiting untransformed Infiltrato");
+        }
+        lupus.nightResolved = false;
+
+        // TEST 4: Victory check BEFORE transformation
+        // aliveWolves should be 1 (Alice), aliveNonWolves should be 5 (includes Infiltrato)
+        const alive = lupus.assignments.filter(p => p.isAlive);
+        const wolfThreatRoles = ["lupo", "lupo_stregone", "cane_nero", "lupo_bianco"];
+        const aliveWolvesBefore = alive.filter(p => wolfThreatRoles.includes(p.roleKey) || (p.roleKey === "infiltrato" && p.isTransformed));
+        const aliveNonWolvesBefore = alive.filter(p => !wolfThreatRoles.includes(p.roleKey) && !(p.roleKey === "infiltrato" && p.isTransformed));
+        if (aliveWolvesBefore.length !== 1) throw new Error("Expected 1 wolf before transform, got " + aliveWolvesBefore.length);
+        if (aliveNonWolvesBefore.length !== 5) throw new Error("Expected 5 non-wolves before transform, got " + aliveNonWolvesBefore.length);
+
+        // TEST 5: Transform Infiltrato
+        infiltrato.isTransformed = true;
+
+        // Verify Veggente now sees LUPO!
+        lupus.nightActions.seerTarget = infiltrato.id;
+        lupus.renderNightActionWidget("veggente");
+        const seerBox2 = doc.querySelector(".lupus-seer-result-box");
+        if (!seerBox2 || !seerBox2.textContent.includes("LUPO!")) {
+          throw new Error("Veggente should see transformed Infiltrato as LUPO!, got: " + (seerBox2 ? seerBox2.textContent : 'none'));
+        }
+
+        // Verify Donna visiting transformed Infiltrato DIES
+        lupus.nightActions.donnaTarget = infiltrato.id;
+        lupus.nightActions.wolfTarget = null;
+        lupus.nightActions.witchHealTarget = null;
+        lupus.resolveNight();
+        if (donna.isAlive) {
+          throw new Error("Donna should die when visiting transformed Infiltrato!");
+        }
+        donna.isAlive = true; // restore for next test
+        lupus.nightResolved = false;
+
+        // Verify Infiltrato counts as wolf in victory check
+        const aliveWolvesAfter = alive.filter(p => wolfThreatRoles.includes(p.roleKey) || (p.roleKey === "infiltrato" && p.isTransformed));
+        const aliveNonWolvesAfter = alive.filter(p => !wolfThreatRoles.includes(p.roleKey) && !(p.roleKey === "infiltrato" && p.isTransformed));
+        if (aliveWolvesAfter.length !== 2) throw new Error("Expected 2 wolves after transform, got " + aliveWolvesAfter.length);
+        if (aliveNonWolvesAfter.length !== 4) throw new Error("Expected 4 non-wolves after transform, got " + aliveNonWolvesAfter.length);
+
+        // Verify that in Night 2, infiltrato_moon step does NOT appear again because he is already transformed
+        lupus.nightCount = 2;
+        steps = lupus.getRoundSteps();
+        const moonStepN2 = steps.find(s => s.stepSubtype === "infiltrato_moon");
+        if (moonStepN2) throw new Error("infiltrato_moon step should NOT appear once transformed!");
+
+        // TEST 6: STREGA LIFE POTION FREEDOM
+        // Test A: Wolves attack Fabio (contadino). Strega uses Life Potion on Charlie (veggente - NOT attacked).
+        lupus.nightActions.wolfTarget = contadino.id;
+        lupus.nightActions.witchHealTarget = veggente.id;
+        lupus.nightActions.witchKill = null;
+        lupus.witchLifeUsed = false;
+        lupus.nightResolved = false;
+
+        lupus.resolveNight();
+
+        if (!lupus.witchLifeUsed) throw new Error("Witch life potion should be consumed when used on any player");
+        if (contadino.isAlive) throw new Error("Fabio was attacked by wolves and not healed; he should be dead!");
+        if (!veggente.isAlive) throw new Error("Charlie was healed; he should be alive!");
+        const healedReport = lupus.dawnReport.find(ev => ev.text.includes("non era in pericolo"));
+        if (!healedReport) throw new Error("Dawn report should record that Witch healed player not in danger");
+
+        // Test B: Strega Life Potion saves wolf victim
+        contadino.isAlive = true;
+        lupus.witchLifeUsed = false;
+        lupus.nightResolved = false;
+        lupus.nightActions.wolfTarget = contadino.id;
+        lupus.nightActions.witchHealTarget = contadino.id; // targeted victim
+
+        lupus.resolveNight();
+        if (!contadino.isAlive) throw new Error("Fabio should be saved when Strega heals the wolf victim!");
+        const savedReport = lupus.dawnReport.find(ev => ev.type === "saved" && ev.text.includes(contadino.name));
+        if (!savedReport) throw new Error("Dawn report should record that Fabio was saved from wolves");
+
+        document.getElementById('test-output').innerText = "ALL_TESTS_SUCCESS: Infiltrato transformation (dice, Seer, Donna, permanent, victory balance) and Strega free Life Potion targeting verified successfully!";
+      } catch (err) {
+        console.error("TEST FAILED:", err);
+        document.getElementById('test-output').innerText = "ERROR: " + err.message + "\\n" + err.stack;
+      }
+    };
+  </script>
+</body>
+</html>
+'''
+
+with open('scratch/test_runner_infiltrato_strega.html', 'w', encoding='utf-8') as f:
+    f.write(test_html_content)
+
+edge_path = r'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe'
+html_path = os.path.abspath('scratch/test_runner_infiltrato_strega.html')
+
+res = subprocess.run([
+    edge_path,
+    '--headless',
+    '--disable-gpu',
+    '--dump-dom',
+    '--allow-file-access-from-files',
+    f'file:///{html_path}'
+], capture_output=True, text=True, timeout=15)
+
+for line in res.stdout.splitlines():
+    if 'ALL_TESTS_SUCCESS' in line or 'ERROR' in line:
+        print(line)

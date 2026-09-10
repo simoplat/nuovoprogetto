@@ -1,96 +1,99 @@
-# Piano di Implementazione: Azioni Notturne Interattive & Risoluzione Automatica all'Alba
+# Piano: Infiltrato Lupo Mannaro (Dado Luna Piena) & Pozione di Vita Strega
 
-## Descrizione dell'Obiettivo
-Attualmente, nella schermata del Narratore di **Lupus in Fabula**, i passaggi notturni forniscono istruzioni testuali e il Narratore doveva ricordare a memoria le scelte e segnare manualmente i morti all'Alba.
-L'obiettivo è rendere **ogni singolo step notturno interattivo con controlli dedicati** (pulsanti/griglie di selezione giocatore, toggle pozioni, indicatore chiaro delle scelte effettuate) e **calcolare automaticamente all'Alba l'esito della notte**:
-1. Chi è stato sbranato dai Lupi
-2. Se la vittima è stata salvata dalla Guardia o dalla Strega
-3. Se la Donna è morta (ha visitato un lupo, o l'ospite è morto, o è stata sbranata mentre era a casa)
-4. Se la Strega ha avvelenato qualcuno
-5. Se il Lupo Bianco ha sbranato un lupo
-6. Morte a catena degli Innamorati (crepacuore) se uno dei due muore
-7. Conteggio e memoria delle pozioni residue della Strega (Vita e Morte) durante tutta la partita.
+## Descrizione delle Modifiche
 
----
+Abbiamo due aggiornamenti alle regole di gioco in `Lupus in Fabula`:
 
-## 1. Dettagli delle Azioni Notturne per Step
+1. **L'Infiltrato diventa Lupo Mannaro Latente**:
+   - Ogni notte (finché è vivo e non si è ancora trasformato) viene eseguito un passaggio notturno dedicato: **Il Richiamo della Luna** (`infiltrato_moon`).
+   - Viene lanciato un dado percentuale (1-100). Se il risultato &le; soglia di Luna Piena, si trasforma.
+   - **Probabilità**: parte bassa e sale con il passare delle notti, con una soglia massima `MAX` facilmente configurabile via costante (`INFILTRATO_CONFIG`):
+     - `baseChance: 0.10` (10% Notte 1)
+     - `chancePerNight: 0.08` (+8% per ogni notte successiva: Notte 2 = 18%, Notte 3 = 26%, ...)
+     - `maxChance: 0.45` (Soglia massima modificabile: 45%)
+   - **Permanenza**: **Non può tornare normale**. Una volta trasformato, resta lupo per tutta la partita e il passaggio del dado della luna non comparirà più.
+   - **Effetti della trasformazione**:
+     - Diventa a tutti gli effetti un Lupo del Branco e conta come Lupo nel bilanciamento vittoria (`aliveWolves` lo include, `aliveNonWolves` non lo include più).
+     - Si sveglia nel passaggio successivo con il Branco dei Lupi per sbranare la vittima.
+     - Al Veggente risulta **LUPO!** (mentre prima appariva Non Lupo).
+     - Se la Donna lo visita da trasformato, muore perché ha visitato un Lupo.
+     - Il Narratore riceve istruzioni chiare a schermo con un pulsante rapido per lanciare il dado ed eventuale override manuale (Forza Trasformazione / Annulla).
 
-### A. Cupido (Notte 1)
-- **Scelta**: Selezione di 2 giocatori tra i vivi da legare come Innamorati.
-- **Effetto**: Imposta `isLover = true` e salva i riferimenti. Se durante il gioco uno dei due muore (notte o rogo), l'altro muore all'istante di crepacuore con notifica al narratore.
-
-### B. La Donna (Ogni notte se viva)
-- **Scelta**: Seleziona il giocatore da visitare questa notte (tra i vivi, escluso se stessa).
-- **Regole ufficiali**:
-  - Se la Donna visita un Lupo (o Lupo Stregone, Lupo Bianco, Cane Nero) $\to$ **La Donna muore sbranata**.
-  - Se il giocatore ospite viene ucciso dai lupi $\to$ **Muoiono sia l'ospite che la Donna** (a meno che non sia salvato da pozione vita).
-  - Se i lupi attaccano la Donna ma lei è via da un ospite innocente $\to$ **La Donna è salva** perché non era a casa!
-  - Se la Donna non visita nessuno o è bloccata $\to$ vulnerabile a casa sua.
-
-### C. Branco dei Lupi (Ogni notte se ci sono lupi vivi)
-- **Scelta**: Seleziona la vittima designata dal branco tra tutti i giocatori vivi non-lupi (o qualsiasi vivo).
-
-### D. Lupo Stregone (Ogni notte se vivo)
-- **Scelta**: Seleziona 1 giocatore da silenziare/bloccare per la notte.
-- **Effetto**: Se quel giocatore è Guardia, Veggente o Strega, il suo potere per questa notte viene annullato!
-
-### E. Lupo Bianco (Notti pari 2, 4, 6... se vivo)
-- **Scelta**: Può scegliere 1 lupo del branco da sbranare alle spalle, oppure "Nessuno (Passa)".
-
-### F. Guardia (Ogni notte se viva)
-- **Scelta**: Seleziona 1 giocatore da proteggere con lo scudo (anche se stessa).
-- **Effetto**: Se quel giocatore è la vittima dei lupi, **sopravvive**.
-
-### G. Veggente (Ogni notte se vivo)
-- **Scelta**: Seleziona 1 giocatore da scrutare.
-- **Feedback istantaneo al Narratore**: Viene mostrato a schermo il cartello chiaro da comunicare:
-  - 🐺 **LUPO!** (se Lupo, Lupo Stregone, Lupo Bianco, o se è l'**Idiota del Villaggio**)
-  - 👤 **NON LUPO** (se Contadino, Guardia, Strega, Cupido, Donna, Beccamorto, o se è l'**Infiltrato** o il **Cane Nero**)
-
-### H. Beccamorto (Notte 2+ se vivo)
-- **Feedback istantaneo al Narratore**: Mostra la carta/ruolo del giocatore eliminato nel turno precedente da rivelare al Beccamorto.
-
-### I. Strega (Ogni notte se viva)
-- **Stato Pozioni**: Indicatore visivo costante:
-  - 🧪 **Pozione di Vita**: [Disponibile / Usata]
-  - ☠️ **Pozione di Morte**: [Disponibile / Usata]
-- **Opzione Salva**: Se la pozione di vita è disponibile e ci sono vittime dei lupi $\to$ Switch "Usa Pozione di Vita su [Nome Vittima]".
-- **Opzione Veleno**: Se la pozione di morte è disponibile $\to$ Può selezionare un giocatore da avvelenare (o "Non usare veleno").
+2. **Pozione di Vita della Strega su Qualsiasi Giocatore**:
+   - La Strega può decidere chi salvare con la pozione di vita tra **tutti i giocatori vivi**, anche su qualcuno che non è stato attaccato dai lupi.
+   - L'interfaccia mostra sia l'indicazione di chi è stato sbranato dai lupi, sia una griglia completa dei giocatori vivi (più "Non Usare").
+   - Se usata:
+     - La pozione viene consumata per la partita.
+     - Se il bersaglio scelto è la vittima dei lupi: viene salvato dai lupi.
+     - Se il bersaglio scelto NON è la vittima dei lupi: il bersaglio riceve la benedizione della pozione (nessun danno) e la pozione è consumata; la vittima dei lupi (se non protetta dalla Guardia o rifugiata) muore normalmente.
 
 ---
 
-## 2. All'Alba: Risoluzione Automatica & Riepilogo Trasparente
+## Modifiche Proposte
 
-Quando si arriva allo step dell'**Alba**:
-1. L'algoritmo di risoluzione notturna analizza tutte le scelte registrate:
-   - Vittime lupi vs Scudo Guardia vs Pozione Vita Strega
-   - Esito visita della Donna
-   - Vittima del Lupo Bianco
-   - Vittima avvelenata dalla Strega
-   - Effetto a catena Innamorati
-2. Viene visualizzato un **Riepilogo Dettagliato della Notte**:
-   - Mostra chi è morto e perché (es. *"Marco è stato sbranato dai lupi"*, *"Sofia (Donna) ha visitato un Lupo ed è morta"*, *"Luca è morto di crepacuore per la perdita dell'innamorato"*).
-   - Se qualcuno è stato salvato, mostra: *"Nessun morto dai lupi: lo scudo della Guardia ha protetto la vittima!"* o *"La Strega ha usato la Pozione di Vita!"*.
-3. Il **Registro Abitanti** viene aggiornato automaticamente impostando `isAlive = false` per tutti i caduti, con verifica istantanea delle condizioni di vittoria (Lupi, Villaggio, Lupo Bianco).
-4. Il Narratore ha comunque la facoltà di correggere manualmente nel registro se necessario.
+### 1. File Principale del Gioco: [lupus_game.js](file:///c:/Users/simop/Documents/GitHub/nuovoprogetto/js/games/lupus_game.js)
+
+#### [MODIFY] [lupus_game.js](file:///c:/Users/simop/Documents/GitHub/nuovoprogetto/js/games/lupus_game.js)
+
+- **Definizione `INFILTRATO_CONFIG`**:
+  ```javascript
+  const INFILTRATO_CONFIG = {
+    baseChance: 0.1, // 10% Notte 1
+    chancePerNight: 0.08, // +8% ogni notte successiva
+    maxChance: 0.45, // Tetto massimo modificabile (45%)
+  };
+  ```
+- **Ruolo Infiltrato**: Aggiornato testo e descrizione di `LUPUS_ROLES.infiltrato` in "L'Infiltrato (Lupo Mannaro)", evidenziando la licantropia latente e la trasformazione irreversibile.
+- **Inizializzazione giocatore**: Nel mapping delle assegnazioni, aggiungere `isTransformed: false`.
+- **Inizializzazione azioni notturne**:
+  - `witchHealTarget: null`
+  - `infiltratoRoll: null`
+- **Passaggi del Round (`getRoundSteps`)**:
+  - Aggiungere lo step `infiltrato_moon` subito prima di `lupi`, attivo se l'infiltrato è vivo e `!isTransformed`.
+  - Aggiornare lo step `lupi` per indicare che se l'infiltrato si è trasformato, apre gli occhi assieme al branco.
+- **Widget Azioni Notturne (`renderNightActionWidget`)**:
+  - Caso `infiltrato_moon`: interfaccia con probabilità calcolata in base alla notte corrente, barra di stato, pulsante `🎲 Lancia Dado Luna Piena`, pulsante di override manuale e istruzioni per il narratore (toccare la spalla del giocatore).
+  - Caso `veggente`: se il bersaglio è l'infiltrato trasformato, risponde `LUPO!`; se non trasformato, `NON LUPO`.
+  - Caso `strega`: la Pozione di Vita offre una griglia con tutti i giocatori vivi + opzione "Non Usare", evidenziando chi è stato bersagliato dai lupi.
+- **Risoluzione della Notte (`resolveNight`)**:
+  - Se `witchHealTarget` è impostato, consuma la pozione di vita (`this.witchLifeUsed = true`).
+  - Se `wolfVictim && wolfVictim.id === witchHealTargetId`, salva la vittima.
+  - Se `witchHealTargetId !== wolfVictim?.id`, segnala nel report dell'alba che la Strega ha somministrato la pozione a un giocatore non ferito, mentre la vittima dei lupi soccombe (salvo guardia/donna).
+  - La Donna muore se visita un infiltrato se e solo se `infiltrato.isTransformed === true`.
+- **Condizioni di Vittoria (`checkVictoryCondition` e `renderGameOverCard`)**:
+  - `aliveWolves` include l'infiltrato se `p.isTransformed`.
+  - `aliveNonWolves` esclude l'infiltrato se `p.isTransformed`.
+  - Nel branco (`packWolves`), l'infiltrato trasformato mantiene in vita la minaccia dei lupi anche se i lupi originari sono caduti.
+
+### 2. Stili CSS: [style.css](file:///c:/Users/simop/Documents/GitHub/nuovoprogetto/css/style.css)
+
+#### [MODIFY] [style.css](file:///c:/Users/simop/Documents/GitHub/nuovoprogetto/css/style.css)
+
+- Aggiungere classi per la carta della Luna Piena: `.lupus-moon-box`, `.lupus-moon-chance-bar`, `.lupus-moon-result-box.transformed`, `.lupus-moon-result-box.dormant`.
+- Aggiungere stati di selezione per la Pozione di Vita: `.lupus-action-card.selected-heal` e contrassegno bersaglio lupi `.lupus-action-card.card-wolf-target`.
 
 ---
 
-## 3. File Interessati
-- [MODIFY] [`index.html`](file:///c:/Users/simop/Documents/GitHub/nuovoprogetto/index.html): Aggiunta del contenitore UI per le azioni notturne dinamiche (`#lupus-step-action-widget`) all'interno di `#lupus-master-step-box`.
-- [MODIFY] [`js/games/lupus_game.js`](file:///c:/Users/simop/Documents/GitHub/nuovoprogetto/js/games/lupus_game.js):
-  - Inizializzazione dello stato notturno (`nightActions = { wolfTarget, guardTarget, witchHeal, witchKill, witchLifeUsed, witchDeathUsed, donnaTarget, loverIds, stregoneTarget, lupoBiancoTarget, seerTarget }`).
-  - Rendering dei widget interattivi di selezione per ciascuno step notturno.
-  - Funzione `resolveNightOutcomes()` invocata all'ingresso dell'Alba che calcola morti, protezioni, pozioni e innamorati.
-- [MODIFY] [`css/style.css`](file:///c:/Users/simop/Documents/GitHub/nuovoprogetto/css/style.css): Stili per le schede di selezione giocatore notturna, badge di stato pozioni della strega, esito chiaroveggenza e banner riassunto dell'Alba.
+## Piano di Verifica
 
----
+### Test Automatizzati Headless Edge (Python)
 
-## 4. Piano di Verifica
-- Test con script headless Edge per simulare:
-  1. Selezione vittima lupi + Guardia che protegge $\to$ all'Alba la vittima si salva e resta viva.
-  2. Strega che usa pozione vita $\to$ vittima salvata, la pozione risulta consumata per le notti successive.
-  3. Strega che usa veleno $\to$ la persona indicata muore all'Alba.
-  4. Donna che visita un lupo $\to$ la Donna muore all'Alba.
-  5. Innamorati legati da Cupido $\to$ la morte di uno provoca la morte dell'altro.
-  6. Veggente che scruta l'Idiota $\to$ cartello "LUPO", e Cane Nero $\to$ cartello "NON LUPO".
+Creare uno script di verifica in `scratch/test_lupus_infiltrato_strega.py` che:
+
+1. Simula una partita con **Infiltrato**:
+   - Notte 1: dado non supera la soglia -> `isTransformed = false`. Il Veggente lo scruta -> riceve `NON LUPO`. Nel conteggio vittoria conta come non-lupo.
+   - Notte 2: dado supera la soglia (o override) -> `isTransformed = true`.
+   - Verifica che:
+     - `isTransformed` resta `true` per sempre ("non può tornare normale").
+     - Nella notte successiva lo step `infiltrato_moon` non si ripete più.
+     - Il Veggente ora riceve `LUPO!`.
+     - Se la Donna visita l'infiltrato trasformato, muore.
+     - Nel calcolo vittoria dei lupi, conta ufficialmente tra i Lupi.
+2. Simula la **Pozione di Vita della Strega**:
+   - Test A: La Strega usa la pozione su un giocatore che NON è la vittima dei lupi.
+     - Verifica che la pozione viene consumata (`witchLifeUsed === true`).
+     - Verifica che la vittima dei lupi muore.
+     - Verifica che il report dell'alba segnala l'uso della pozione sul giocatore non ferito.
+   - Test B: La Strega usa la pozione sulla vittima dei lupi.
+     - Verifica che la vittima si salva.
+3. Esecuzione del test headless Edge e verifica dell'integrità del DOM e della console (0 errori).

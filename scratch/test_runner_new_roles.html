@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Test New Lupus Roles</title>
+</head>
+<body>
+  <div id="test-output">Running...</div>
+  <iframe id="app-frame" src="../index.html" style="width: 900px; height: 700px;"></iframe>
+
+  <script>
+    const iframe = document.getElementById('app-frame');
+    iframe.onload = () => {
+      try {
+        const win = iframe.contentWindow;
+        const doc = iframe.contentDocument;
+        const lupus = win.App.lupusGame;
+
+        if (!lupus) throw new Error("lupusGame controller not found");
+
+        // 1. Enable new roles
+        lupus.enabledRoles.giullare = true;
+        lupus.enabledRoles.lupo_stregone = true;
+        lupus.enabledRoles.lupo_bianco = true;
+        lupus.enabledRoles.beccamorto = true;
+        lupus.enabledRoles.idiota = true;
+        lupus.enabledRoles.cane_nero = true;
+        lupus.enabledRoles.infiltrato = true;
+
+        // Ensure we have enough players
+        lupus.players = [
+          "Player 1", "Player 2", "Player 3", "Player 4", "Player 5",
+          "Player 6", "Player 7", "Player 8", "Player 9", "Player 10",
+          "Player 11", "Player 12", "Player 13", "Player 14"
+        ];
+        lupus.wolvesCount = 1;
+
+        lupus.startGame();
+
+        // Check assigned roles
+        const assignedRoleKeys = lupus.assignments.map(a => a.roleKey);
+        console.log("Assigned roles:", assignedRoleKeys);
+
+        // Verify night steps for Night 1
+        lupus.nightCount = 1;
+        let stepsN1 = lupus.getRoundSteps();
+        const hasStregoneN1 = stepsN1.some(s => s.title.includes("Lupo Stregone"));
+        const hasLupoBiancoN1 = stepsN1.some(s => s.title.includes("Lupo Bianco"));
+        const hasBeccamortoN1 = stepsN1.some(s => s.title.includes("Beccamorto"));
+
+        // In Night 1, Stregone wakes, Lupo Bianco does NOT (even nights), Beccamorto does NOT (night 2+)
+        if (!hasStregoneN1) throw new Error("Lupo Stregone step missing in Night 1");
+        if (hasLupoBiancoN1) throw new Error("Lupo Bianco should not wake on Night 1");
+        if (hasBeccamortoN1) throw new Error("Beccamorto should not wake on Night 1");
+
+        // Verify night steps for Night 2
+        lupus.nightCount = 2;
+        let stepsN2 = lupus.getRoundSteps();
+        const hasLupoBiancoN2 = stepsN2.some(s => s.title.includes("Lupo Bianco"));
+        const hasBeccamortoN2 = stepsN2.some(s => s.title.includes("Beccamorto"));
+
+        if (!hasLupoBiancoN2) throw new Error("Lupo Bianco step missing in Night 2");
+        if (!hasBeccamortoN2) throw new Error("Beccamorto step missing in Night 2");
+
+        // Test Giullare burn victory
+        // Find Giullare player
+        const giullare = lupus.assignments.find(a => a.roleKey === "giullare");
+        if (!giullare) throw new Error("Giullare not found in assignments");
+        
+        lupus.selectedVotePlayerId = giullare.id;
+        lupus.confirmRogoVote();
+
+        const gameoverContent = doc.getElementById("lupus-gameover-content");
+        if (!gameoverContent.innerHTML.includes("TRIONFO DEL GIULLARE")) {
+          throw new Error("Giullare victory screen not displayed when burned at rogo");
+        }
+
+        // Test Lupo Bianco victory condition
+        lupus.assignments.forEach(p => { p.isAlive = false; });
+        const lupoBianco = lupus.assignments.find(a => a.roleKey === "lupo_bianco");
+        lupoBianco.isAlive = true; // Sole survivor
+        const lbWin = lupus.checkVictoryCondition();
+        if (lbWin !== "lupo_bianco") {
+          throw new Error("Lupo Bianco sole survivor victory not detected, got: " + lbWin);
+        }
+
+        document.getElementById('test-output').innerText = "ALL_NEW_ROLES_SUCCESS: Night1, Night2, GiullareWin, LupoBiancoWin verified successfully!";
+      } catch (err) {
+        console.error("TEST FAILED:", err);
+        document.getElementById('test-output').innerText = "ERROR: " + err.message + "\n" + err.stack;
+      }
+    };
+  </script>
+</body>
+</html>
