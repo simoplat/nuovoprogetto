@@ -69,12 +69,14 @@ class P2PGameController {
     }
     this.playerId = storedPlayerId;
 
-    // Stato riconnessione automatica
+    // Stato riconnessione automatica e migrazione Host
     this.isReconnecting = false;
     this.reconnectAttempts = 0;
     this.maxReconnectAttempts = 8;
     this.reconnectTimer = null;
     this.bannerHideTimer = null;
+    this.hostGraceCountdownTimer = null;
+    this.hostGraceRemainingSeconds = 0;
 
     // Hold reveal
     this.isHolding = false;
@@ -374,20 +376,28 @@ class P2PGameController {
   // =========================================================================
   // HOST: Creazione Stanza
   // =========================================================================
-  createRoomAsHost() {
+  createRoomAsHost(customCode = null) {
     const nameInput = document.getElementById("p2p-host-name-input");
-    const name = nameInput ? nameInput.value.trim() : "";
-    if (!name) {
+    const name = nameInput ? nameInput.value.trim() : (this.playerName || "Host");
+    if (!name && !this.playerName) {
       alert("Inserisci il tuo nome!");
       return;
     }
 
     Sound.playClick();
-    this.playerName = name;
-    try { localStorage.setItem("impostore_p2p_name", name); } catch (e) {}
+    this.playerName = name || this.playerName;
+    try { localStorage.setItem("impostore_p2p_name", this.playerName); } catch (e) {}
 
     this.isHost = true;
-    this.roomCode = this.generateRoomCode();
+    this.roomCode = (customCode || this.generateRoomCode()).toUpperCase();
+    try {
+      sessionStorage.setItem("impostore_p2p_host_room", this.roomCode);
+      sessionStorage.setItem("impostore_p2p_host_session", JSON.stringify({
+        roomCode: this.roomCode,
+        playerName: this.playerName,
+        timestamp: Date.now()
+      }));
+    } catch (e) {}
     const fullPeerId = `${this.peerPrefix}${this.roomCode.toLowerCase()}`;
 
     const statusEl = document.getElementById("p2p-create-status");
@@ -803,23 +813,37 @@ class P2PGameController {
 
     this.isReconnecting = true;
     this.reconnectAttempts = 0;
-    this.maxReconnectAttempts = 8;
 
-    this.showReconnectBanner("⚠️ Connessione persa. Riconnessione in corso... (1/8)");
+    // Avvia la finestra di grazia (25 secondi) per la riconnessione dell'Host originale
+    this.startHostGraceCountdown();
     this.attemptClientReconnect();
+  }
+
+  startHostGraceCountdown() {
+    this.stopHostGraceCountdown();
+    this.hostGraceRemainingSeconds = 25;
+    this.showReconnectBanner(`⚠️ Connessione con l'Host persa. In attesa dell'Host (${this.hostGraceRemainingSeconds}s)...`);
+
+    this.hostGraceCountdownTimer = setInterval(() => {
+      this.hostGraceRemainingSeconds--;
+      if (this.hostGraceRemainingSeconds > 0) {
+        this.showReconnectBanner(`⚠️ Connessione con l'Host persa. In attesa dell'Host (${this.hostGraceRemainingSeconds}s)...`);
+      } else {
+        this.stopHostGraceCountdown();
+        this.triggerHostMigration();
+      }
+    }, 1000);
+  }
+
+  stopHostGraceCountdown() {
+    clearInterval(this.hostGraceCountdownTimer);
+    this.hostGraceCountdownTimer = null;
+    this.hostGraceRemainingSeconds = 0;
   }
 
   attemptClientReconnect() {
     if (!this.isReconnecting) return;
     this.reconnectAttempts++;
-
-    if (this.reconnectAttempts > this.maxReconnectAttempts) {
-      this.isReconnecting = false;
-      this.showReconnectBanner("❌ Riconnessione non riuscita. L'Host potrebbe essersi disconnesso.", false, 4000);
-      return;
-    }
-
-    this.showReconnectBanner(`⚠️ Connessione persa. Riconnessione in corso... (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
 
     try {
       if (this.peer && !this.peer.destroyed) {
@@ -844,6 +868,9 @@ class P2PGameController {
 
       this.hostConn.on("open", () => {
         this.isReconnecting = false;
+        this.stopHostGraceCountdown();
+        this.hideReconnectBanner();
+        this.showReconnectBanner("✅ Riconnesso all'Host con successo!", true, 2500);
         this.hostConn.send({
           type: "RECONNECT",
           playerId: this.playerId,
@@ -861,10 +888,74 @@ class P2PGameController {
     });
 
     this.peer.on("error", () => {
-      const delay = Math.min(1800 + (this.reconnectAttempts * 600), 4500);
-      clearTimeout(this.reconnectTimer);
-      this.reconnectTimer = setTimeout(() => this.attemptClientReconnect(), delay);
+      if (this.hostGraceRemainingSeconds > 0) {
+        clearTimeout(this.reconnectTimer);
+        this.reconnectTimer = setTimeout(() => this.attemptClientReconnect(), 3000);
+      }
     });
+  }
+
+  triggerHostMigration() {
+    console.log("[P2P Migration] Host non rientrato entro la finestra di grazia. Avvio migrazione automatica...");
+    clearTimeout(this.reconnectTimer);
+    this.isReconnecting = false;
+
+    // Trova i giocatori online disponibili
+    const eligible = this.players.filter(p => !p.isHost && p.online !== false);
+    if (eligible.length === 0) {
+      this.showReconnectBanner("❌ Nessun partecipante online per la migrazione.", false, 4000);
+      return;
+    }
+
+    // Elezione deterministica: il primo giocatore online successivo all'Host
+    const newHost = eligible[0];
+    const isMe = (newHost.playerId === this.playerId) || (newHost.id === this.myPeerId);
+
+    console.log(`[P2P Migration] Nuovo Host designato: ${newHost.name} (isMe: ${isMe})`);
+
+    if (isMe) {
+      this.showReconnectBanner("👑 Sei il nuovo Host della stanza! Riapertura lobby...", true, 4000);
+      this.promoteSelfToHost();
+    } else {
+      this.showReconnectBanner(`🔄 L'Host ha abbandonato. Stanza migrata a ${newHost.name}. Riconnessione in corso...`);
+      setTimeout(() => {
+        this.initClient(this.roomCode);
+      }, 2000);
+    }
+  }
+
+  promoteSelfToHost() {
+    this.isHost = true;
+    this.isReconnecting = false;
+    clearTimeout(this.reconnectTimer);
+    this.stopHostGraceCountdown();
+
+    if (this.hostConn) {
+      try { this.hostConn.close(); } catch (e) {}
+      this.hostConn = null;
+    }
+
+    // Riorganizza lista giocatori
+    this.players = this.players.map(p => {
+      if (p.isHost) {
+        return { ...p, isHost: false, online: false };
+      }
+      if (p.playerId === this.playerId || p.id === this.myPeerId) {
+        return { ...p, isHost: true, id: "host", online: true };
+      }
+      return p;
+    });
+
+    // Ricrea stanza Host con lo stesso codice PIN
+    this.createRoomAsHost(this.roomCode);
+
+    // Se si era nel mezzo della partita, torna in lobby sincronizzata con tutti i giocatori preservati
+    if (this.status !== "lobby") {
+      this.status = "lobby";
+      window.App.switchView("view-p2p-lobby");
+      this.renderP2PLobby();
+      this.renderP2PLobbyPlayers();
+    }
   }
 
   handleClientIncomingData(data) {
@@ -1971,5 +2062,29 @@ class P2PGameController {
 
     window.App.switchView("view-p2p-lobby");
     this.renderP2PLobbyPlayers();
+  }
+
+  cleanUpHostSession() {
+    try {
+      sessionStorage.removeItem("impostore_p2p_host_room");
+      sessionStorage.removeItem("impostore_p2p_host_session");
+    } catch (e) {}
+  }
+
+  resumeHostSession() {
+    try {
+      const raw = sessionStorage.getItem("impostore_p2p_host_session");
+      if (!raw) return false;
+      const data = JSON.parse(raw);
+      // Se la sessione è di meno di 5 minuti fa, ripristina
+      if (data && data.roomCode && (Date.now() - (data.timestamp || 0)) < 300000) {
+        this.playerName = data.playerName || this.playerName || "Host";
+        this.createRoomAsHost(data.roomCode);
+        return true;
+      }
+    } catch (e) {
+      console.warn("[P2P] Impossibile riprendere sessione Host:", e);
+    }
+    return false;
   }
 }

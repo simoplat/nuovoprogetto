@@ -1275,7 +1275,8 @@ input.custom-select,
    Modale Regole e Dialoghi
    ========================================================================== */
 
-.modal-backdrop {
+.modal-backdrop,
+.modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -1293,7 +1294,8 @@ input.custom-select,
   transition: opacity var(--transition-normal);
 }
 
-.modal-backdrop.open {
+.modal-backdrop.open,
+.modal-overlay.open {
   opacity: 1;
   pointer-events: auto;
 }
@@ -1313,11 +1315,13 @@ input.custom-select,
   transition: transform var(--transition-normal);
 }
 
-.modal-backdrop.open .modal-content {
+.modal-backdrop.open .modal-content,
+.modal-overlay.open .modal-content {
   transform: translateY(0);
 }
 
-.modal-close-btn {
+.modal-close-btn,
+.btn-close-modal {
   position: absolute;
   top: 18px;
   right: 18px;
@@ -1331,7 +1335,8 @@ input.custom-select,
   transition: var(--transition-fast);
 }
 
-.modal-close-btn:hover {
+.modal-close-btn:hover,
+.btn-close-modal:hover {
   color: var(--text-primary);
 }
 
@@ -1551,9 +1556,658 @@ input.custom-select,
   box-shadow: 0 0 16px rgba(168, 85, 247, 0.3);
 }
 
+/* ==========================================================================
+   PARTY GAME HUB - MODULAR GAMES GRID & CARDS
+   ========================================================================== */
+
+.hub-hero-card {
+  border-color: rgba(157, 78, 221, 0.35);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.55), 0 0 32px rgba(157, 78, 221, 0.15);
+  padding: 24px 20px;
+}
+
+.hub-hero-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.25), rgba(0, 242, 254, 0.25));
+  border: 1px solid var(--border-glow);
+  color: var(--accent-cyan);
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  padding: 5px 16px;
+  border-radius: var(--radius-full);
+  margin-bottom: 6px;
+  box-shadow: 0 0 15px rgba(0, 242, 254, 0.2);
+}
+
+.hub-resume-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: linear-gradient(135deg, rgba(0, 242, 254, 0.12), rgba(157, 78, 221, 0.12));
+  border: 1px solid var(--accent-cyan);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  margin: 18px 0 20px;
+  text-align: left;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 16px rgba(0, 242, 254, 0.25);
+  animation: pulseGlow 3s infinite alternate;
+}
+
+.hub-resume-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.hub-resume-icon {
+  font-size: 1.6rem;
+  animation: pulseGlow 1.5s infinite;
+}
+
+.hub-resume-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.hub-games-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 18px;
+  margin-top: 22px;
+  text-align: left;
+}
+
+@media (min-width: 580px) {
+  .hub-games-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.game-card {
+  position: relative;
+  background: rgba(18, 26, 45, 0.85);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 22px 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: all var(--transition-normal);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+.game-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple));
+  opacity: 0.8;
+  transition: opacity var(--transition-fast);
+}
+
+.game-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(0, 242, 254, 0.55);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6), 0 0 28px rgba(0, 242, 254, 0.25);
+}
+
+.game-card:hover::before {
+  opacity: 1;
+}
+
+.game-card.coming-soon {
+  opacity: 0.85;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.game-card.coming-soon::before {
+  background: linear-gradient(90deg, #f59e0b, #ec4899);
+}
+
+.game-card.coming-soon:hover {
+  transform: translateY(-3px);
+  border-color: rgba(245, 158, 11, 0.5);
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.55), 0 0 24px rgba(245, 158, 11, 0.22);
+}
+
+.game-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.game-card-icon {
+  font-size: 2.6rem;
+  line-height: 1;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.45));
+}
+
+.game-card-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  letter-spacing: 0.5px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
+}
+
+.game-card-badge.badge-active {
+  background: rgba(16, 185, 129, 0.18);
+  color: #34d399;
+  border-color: rgba(16, 185, 129, 0.4);
+}
+
+.game-card-badge.badge-soon {
+  background: rgba(245, 158, 11, 0.18);
+  color: #fbbf24;
+  border-color: rgba(245, 158, 11, 0.4);
+}
+
+.game-card-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+  letter-spacing: -0.3px;
+}
+
+.game-card-tagline {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  line-height: 1.45;
+  margin-bottom: 14px;
+  min-height: 38px;
+}
+
+.game-card-modes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+
+.game-mode-pill {
+  font-size: 0.73rem;
+  padding: 4px 9px;
+  border-radius: var(--radius-sm);
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.game-card-footer {
+  margin-top: auto;
+  display: flex;
+  gap: 8px;
+}
+
+.game-card-footer .btn {
+  flex: 1;
+}
+
+.btn-sm {
+  padding: 7px 14px;
+  font-size: 0.82rem;
+}
+
+/* ==========================================================================
+   LUPUS IN FABULA - DESIGN SYSTEM & TAROT CARD STYLES
+   ========================================================================== */
+
+.lupus-roles-toggles-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+@media (min-width: 480px) {
+  .lupus-roles-toggles-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.role-toggle-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(18, 26, 45, 0.7);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  user-select: none;
+}
+
+.role-toggle-card:hover {
+  background: rgba(28, 40, 68, 0.85);
+  border-color: rgba(168, 85, 247, 0.4);
+}
+
+.role-toggle-card input[type="checkbox"] {
+  accent-color: var(--accent-purple);
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.role-toggle-card input[type="checkbox"]:checked ~ .role-toggle-content .role-toggle-name {
+  color: var(--accent-cyan);
+}
+
+.role-toggle-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+}
+
+.role-toggle-icon {
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.role-toggle-name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  transition: color var(--transition-fast);
+}
+
+.role-toggle-desc {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  line-height: 1.2;
+}
+
+.lupus-summary-box {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--border-glow);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  text-align: center;
+  transition: all var(--transition-fast);
+}
+
+.lupus-summary-box.error {
+  border-color: var(--accent-danger);
+  background: rgba(255, 0, 85, 0.08);
+}
+
+/* Tarot Card Display */
+.lupus-tarot-card {
+  position: relative;
+  background: linear-gradient(180deg, rgba(20, 16, 32, 0.95), rgba(10, 12, 22, 0.98));
+  border: 2px solid rgba(212, 175, 55, 0.5);
+  border-radius: var(--radius-lg);
+  padding: 20px 16px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7), 0 0 30px rgba(168, 85, 247, 0.2);
+  margin: 10px auto 16px;
+  max-width: 440px;
+  transition: all var(--transition-normal);
+}
+
+.lupus-tarot-card.theme-lupi {
+  border-color: rgba(255, 0, 85, 0.6);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.75), 0 0 35px rgba(255, 0, 85, 0.35);
+}
+
+.lupus-tarot-card.theme-villaggio {
+  border-color: rgba(212, 175, 55, 0.6);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.75), 0 0 35px rgba(212, 175, 55, 0.25);
+}
+
+.lupus-tarot-img-container {
+  position: relative;
+  width: 100%;
+  max-width: 280px;
+  margin: 0 auto 16px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.lupus-tarot-img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  display: block;
+}
+
+.lupus-faction-badge {
+  display: inline-block;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 5px 14px;
+  border-radius: var(--radius-full);
+  margin-bottom: 8px;
+}
+
+.lupus-faction-badge.faction-lupi {
+  background: rgba(255, 0, 85, 0.18);
+  color: #ff6b8b;
+  border: 1px solid rgba(255, 0, 85, 0.45);
+  box-shadow: 0 0 15px rgba(255, 0, 85, 0.25);
+}
+
+.lupus-faction-badge.faction-villaggio {
+  background: rgba(16, 185, 129, 0.18);
+  color: #6ee7b7;
+  border: 1px solid rgba(16, 185, 129, 0.45);
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.25);
+}
+
+.lupus-card-title {
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: var(--text-primary);
+  margin-bottom: 10px;
+}
+
+.lupus-card-desc {
+  font-size: 0.92rem;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  margin-bottom: 12px;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.lupus-allies-box {
+  background: rgba(255, 0, 85, 0.1);
+  border: 1px dashed rgba(255, 0, 85, 0.4);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  margin-top: 12px;
+}
+
+.lupus-ally-pill {
+  display: inline-block;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 0, 85, 0.35);
+  color: #fca5a5;
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  margin: 3px;
+}
+
+.lupus-ally-pill.solo {
+  color: #fcd34d;
+  border-color: rgba(251, 191, 36, 0.4);
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* Master Guide Styles */
+.lupus-roster-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  max-height: 260px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+@media (min-width: 480px) {
+  .lupus-roster-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.lupus-roster-chip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(18, 26, 45, 0.7);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 8px 12px;
+  transition: all var(--transition-fast);
+}
+
+.lupus-roster-chip.alive {
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.lupus-roster-chip.dead {
+  opacity: 0.55;
+  border-color: rgba(255, 0, 85, 0.35);
+  background: rgba(255, 0, 85, 0.05);
+}
+
+.lupus-roster-chip.dead .roster-chip-name {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+
+.roster-chip-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.roster-chip-icon {
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.roster-chip-name {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.roster-chip-role {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.btn-roster-status {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 8px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-roster-status:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.lupus-phase-card {
+  background: rgba(18, 26, 45, 0.85);
+  border: 1px solid rgba(168, 85, 247, 0.35);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  margin-top: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+}
+
+.phase-badge {
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+}
+
+.phase-badge.badge-night {
+  background: rgba(168, 85, 247, 0.2);
+  color: #c084fc;
+  border: 1px solid rgba(168, 85, 247, 0.4);
+}
+
+.phase-badge.badge-day {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+.lupus-master-step-box {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin-top: 12px;
+}
+
+.lupus-step-counter {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.lupus-step-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.lupus-step-desc {
+  font-size: 0.92rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.lupus-step-controls {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.lupus-victory-banner {
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  text-align: center;
+  margin-bottom: 18px;
+  animation: pulseGlow 2.5s infinite alternate;
+}
+
+.lupus-victory-banner.village-wins {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(0, 242, 254, 0.2));
+  border: 2px solid var(--accent-success);
+  box-shadow: 0 0 30px rgba(16, 185, 129, 0.3);
+}
+
+.lupus-victory-banner.wolves-win {
+  background: linear-gradient(135deg, rgba(255, 0, 85, 0.25), rgba(157, 78, 221, 0.25));
+  border: 2px solid var(--accent-danger);
+  box-shadow: 0 0 35px rgba(255, 0, 85, 0.4);
+}
+
+/* Esito Rogo Box & Avanzamento Automatico */
+.lupus-vote-result-box {
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(251, 191, 36, 0.45);
+  border-radius: var(--radius-lg);
+  padding: 18px 16px;
+  margin-top: 14px;
+  text-align: center;
+  box-shadow: 0 4px 25px rgba(251, 191, 36, 0.15);
+  animation: fadeIn 0.3s ease;
+}
+
+.auto-countdown-badge {
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 0.84rem;
+  color: #e2e8f0;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+/* Card Game Over interna alla scheda Narratore */
+.lupus-gameover-box {
+  border-radius: var(--radius-lg);
+  padding: 22px 18px;
+  text-align: center;
+  animation: fadeIn 0.35s ease;
+}
+
+.lupus-gameover-box.village-wins {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.22), rgba(6, 182, 212, 0.22));
+  border: 2px solid var(--accent-success);
+  box-shadow: 0 0 35px rgba(16, 185, 129, 0.35);
+}
+
+.lupus-gameover-box.wolves-win {
+  background: linear-gradient(135deg, rgba(255, 42, 95, 0.28), rgba(168, 85, 247, 0.28));
+  border: 2px solid var(--accent-danger);
+  box-shadow: 0 0 40px rgba(255, 42, 95, 0.4);
+}
+
+.lupus-gameover-roster {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
+  gap: 8px;
+  margin: 18px 0;
+  text-align: left;
+}
+
+.lupus-gameover-player {
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+}
+
+.lupus-gameover-player.dead {
+  opacity: 0.65;
+  filter: grayscale(0.4);
+}
+
+.lupus-gameover-player .role-badge {
+  margin-left: auto;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
 /* Safe Area Inset for Modern Mobile Browsers */
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
   .app-container {
     padding-bottom: calc(20px + env(safe-area-inset-bottom));
   }
 }
+
+
+

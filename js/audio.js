@@ -235,9 +235,42 @@ class SoundSystem {
       gain.connect(this.ctx.destination);
 
       osc.start(t);
-      osc.stop(t + (idx === delays.length - 1 ? 0.85 : 0.28));
     });
     this.vibrate([80, 50, 80, 50, 200]);
+  }
+
+  playSuccess() {
+    this.playFanfare();
+  }
+
+  playGameOver() {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.ctx) return;
+
+    // Sequenza cupa discendente per eliminazioni e sconfitte
+    const notes = [220, 196, 174.61, 146.83];
+    const delays = [0, 0.2, 0.4, 0.65];
+
+    delays.forEach((delay, idx) => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      const t = this.ctx.currentTime + delay;
+
+      osc.type = "sawtooth";
+      osc.frequency.setValueAtTime(notes[idx], t);
+      osc.frequency.exponentialRampToValueAtTime(notes[idx] * 0.85, t + 0.3);
+
+      gain.gain.setValueAtTime(0.18, t);
+      gain.gain.exponentialRampToValueAtTime(0.005, t + (idx === delays.length - 1 ? 0.7 : 0.28));
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      osc.start(t);
+      osc.stop(t + (idx === delays.length - 1 ? 0.75 : 0.3));
+    });
+    this.vibrate([100, 80, 150]);
   }
 }
 
