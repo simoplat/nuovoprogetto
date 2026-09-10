@@ -525,13 +525,38 @@
     <!-- Voto P2P -->
     <section id="view-p2p-voting" class="app-view" style="display: none;">
       <div class="glass-card">
-        <h2 class="card-title">🗳️ Votazione Finale</h2>
-        <p class="card-subtitle" id="p2p-vote-instruction">Seleziona chi viene accusato:</p>
+        <h2 class="card-title" id="p2p-vote-title">🗳️ Votazione Finale</h2>
+        <p class="card-subtitle" id="p2p-vote-instruction">Seleziona chi ritieni sia l'impostore e conferma il tuo voto:</p>
+
+        <!-- Banner Spareggio Parità -->
+        <div id="p2p-vote-tie-banner" class="reconnect-banner mb-3" style="display: none; background: rgba(255, 170, 0, 0.16); border-color: rgba(255, 170, 0, 0.5); color: #ffbe3b;">
+          <span class="reconnect-icon">⚖️</span>
+          <span id="p2p-vote-tie-text">Parità di voti! Votazione di spareggio in corso...</span>
+        </div>
+
+        <!-- Box Monitoraggio Voti Espressi -->
+        <div id="p2p-vote-status-container" class="seen-status-box mb-3">
+          <div class="flex-between" style="align-items: center; margin-bottom: 6px;">
+            <span class="seen-title">🗳️ Voti registrati:</span>
+            <span class="seen-counter-badge" id="p2p-vote-counter">0 / 0</span>
+          </div>
+          <div class="seen-progress-track">
+            <div class="seen-progress-fill" id="p2p-vote-progress-fill" style="width: 0%;"></div>
+          </div>
+          <div class="seen-missing-container mt-2" id="p2p-vote-missing-container">
+            <span class="missing-label">Mancano al voto:</span>
+            <div class="missing-chips" id="p2p-vote-missing-chips"></div>
+          </div>
+          <div class="seen-all-ready-msg mt-2" id="p2p-vote-all-ready" style="display: none;">
+            ✅ Tutti i giocatori hanno votato! Conteggio del verdetto...
+          </div>
+        </div>
 
         <div id="p2p-vote-grid-container" class="vote-grid"></div>
 
-        <button type="button" class="btn btn-danger btn-block mt-4" id="p2p-confirm-vote-btn" style="display: none;">
-          ⚡ Rivela Verdetto per Tutti
+        <!-- Tasto Conferma Voto per ciascun giocatore -->
+        <button type="button" class="btn btn-primary btn-block mt-4" id="p2p-submit-vote-btn" disabled>
+          🗳️ Seleziona un giocatore
         </button>
       </div>
     </section>
@@ -542,6 +567,12 @@
         <div class="game-over-icon" id="p2p-game-over-icon">🎉</div>
         <h2 class="game-over-title" id="p2p-game-over-title">Verdetto Partita</h2>
         <p class="card-subtitle" id="p2p-game-over-desc">Caricamento...</p>
+
+        <!-- Riepilogo Voti Espressi -->
+        <div id="p2p-game-over-tally-section" style="display: none; margin: 18px 0;">
+          <div class="form-label" style="justify-content: center; margin-bottom: 8px;">🗳️ Esito della Votazione:</div>
+          <div id="p2p-game-over-tally-list" class="vote-tally-list"></div>
+        </div>
 
         <div style="margin: 20px 0;">
           <div class="form-label" style="justify-content: center; margin-bottom: 6px;">Gli Impostori erano:</div>

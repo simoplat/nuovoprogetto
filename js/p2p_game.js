@@ -27,6 +27,13 @@ class P2PGameController {
     this.categoryName = "";
     this.assignments = new Map(); // peerId -> { isImpostor, word, category }
     this.selectedVotePlayerId = null;
+    this.votes = new Map(); // voterKey -> { targetId, voterName, voterPlayerId }
+    this.votingRound = 1;
+    this.isTieBreak = false;
+    this.eligibleCandidateIds = [];
+    this.tieCandidateNames = [];
+    this.myVotedTargetId = null;
+    this.hasSubmittedVote = false;
     this.wordChooserId = null;
     this.wordChooserName = "";
     this.enableClue = false;
@@ -243,10 +250,10 @@ class P2PGameController {
       btnStartVote.addEventListener("click", () => this.hostStartVoting());
     }
 
-    // Host: Conferma Voto
-    const btnConfirmVote = document.getElementById("p2p-confirm-vote-btn");
-    if (btnConfirmVote) {
-      btnConfirmVote.addEventListener("click", () => this.hostExecuteVote());
+    // Conferma Voto (per tutti i partecipanti, Host e Client)
+    const btnSubmitVote = document.getElementById("p2p-submit-vote-btn");
+    if (btnSubmitVote) {
+      btnSubmitVote.addEventListener("click", () => this.submitMyVote());
     }
 
     // Host: Nuova Partita / Rivincita
@@ -573,6 +580,10 @@ class P2PGameController {
       if (this.status === "word_picking" && data.word) {
         this.finalizeWordAndDistributeRoles(data.word, "Parola a Scelta", "");
       }
+    } else if (data.type === "CAST_VOTE") {
+      if (this.status === "voting" && data.targetId) {
+        this.recordVote(conn.peer, data.voterPlayerId, data.targetId);
+      }
     }
   }
 
@@ -605,6 +616,13 @@ class P2PGameController {
     const seenCount = Math.max(0, this.players.length - missingPlayers.length);
     const hasSeenRole = this.seenRolePlayerIds.has(conn.peer) || (existingPlayer.playerId && this.seenRolePlayerIds.has(existingPlayer.playerId));
 
+    const activePlayers = this.players.filter(p => p.online !== false);
+    const missingVoters = activePlayers
+      .filter(p => !this.votes.has(p.id) && !(p.playerId && this.votes.has(p.playerId)))
+      .map(p => p.name);
+    const votesCount = Math.max(0, activePlayers.length - missingVoters.length);
+    const hasVoted = this.votes.has(conn.peer) || (existingPlayer.playerId && this.votes.has(existingPlayer.playerId));
+
     // Invia pacchetto completo di sincronizzazione al client per riprendere la partita
     conn.send({
       type: "RECONNECT_SUCCESS",
@@ -618,7 +636,14 @@ class P2PGameController {
       totalCount: this.players.length,
       missingPlayers: missingPlayers,
       hasSeenRole: hasSeenRole,
-      chooserId: this.wordChooserId
+      chooserId: this.wordChooserId,
+      votingRound: this.votingRound,
+      isTieBreak: this.isTieBreak,
+      eligibleCandidateIds: this.eligibleCandidateIds,
+      tieCandidateNames: this.tieCandidateNames,
+      hasVoted: hasVoted,
+      votesCount: votesCount,
+      missingVoters: missingVoters
     });
 
     this.broadcast({
@@ -897,8 +922,16 @@ class P2PGameController {
         if (starterEl) starterEl.textContent = this.starterName;
         window.App.switchView("view-p2p-discussion");
       } else if (this.status === "voting") {
+        this.votingRound = data.votingRound || 1;
+        this.isTieBreak = !!data.isTieBreak;
+        this.eligibleCandidateIds = data.eligibleCandidateIds || this.players.map(p => p.id);
+        this.tieCandidateNames = data.tieCandidateNames || [];
+        this.hasSubmittedVote = !!data.hasVoted;
         window.App.switchView("view-p2p-voting");
         this.renderP2PVotingCards();
+        if (data.votesCount !== undefined) {
+          this.updateVoteProgressUI(data.votesCount, data.totalCount || this.players.length, data.missingVoters);
+        }
       } else if (this.status === "game_over") {
         window.App.switchView("view-p2p-game-over");
       }
@@ -931,8 +964,31 @@ class P2PGameController {
     } else if (data.type === "START_VOTING") {
       clearInterval(this.timerInterval);
       this.status = "voting";
+      this.votingRound = data.round || 1;
+      this.isTieBreak = false;
+      this.eligibleCandidateIds = data.eligibleCandidateIds || this.players.map(p => p.id);
+      this.tieCandidateNames = [];
+      this.myVotedTargetId = null;
+      this.hasSubmittedVote = false;
+      this.selectedVotePlayerId = null;
       window.App.switchView("view-p2p-voting");
       this.renderP2PVotingCards();
+      this.updateVoteProgressUI(0, data.totalCount || this.players.length, data.missingVoters || this.players.map(p => p.name));
+    } else if (data.type === "VOTE_PROGRESS_UPDATE") {
+      this.updateVoteProgressUI(data.votesCount, data.totalCount, data.missingVoters);
+    } else if (data.type === "TIE_BREAK_VOTE") {
+      Sound.playTimerEnd();
+      this.status = "voting";
+      this.votingRound = data.round || (this.votingRound + 1);
+      this.isTieBreak = true;
+      this.eligibleCandidateIds = data.eligibleCandidateIds || [];
+      this.tieCandidateNames = data.tiedNames || [];
+      this.myVotedTargetId = null;
+      this.hasSubmittedVote = false;
+      this.selectedVotePlayerId = null;
+      window.App.switchView("view-p2p-voting");
+      this.renderP2PVotingCards();
+      this.updateVoteProgressUI(0, data.totalCount || this.players.length, data.missingVoters || this.players.map(p => p.name));
     } else if (data.type === "GAME_OVER") {
       clearInterval(this.timerInterval);
       this.status = "game_over";
@@ -945,6 +1001,14 @@ class P2PGameController {
       this.hasReportedSeen = false;
       this.wordChooserId = null;
       this.wordChooserName = "";
+      this.votes = new Map();
+      this.votingRound = 1;
+      this.isTieBreak = false;
+      this.eligibleCandidateIds = [];
+      this.tieCandidateNames = [];
+      this.myVotedTargetId = null;
+      this.hasSubmittedVote = false;
+      this.selectedVotePlayerId = null;
       window.App.switchView("view-p2p-lobby");
       this.renderP2PLobbyPlayers();
     }
@@ -1481,35 +1545,67 @@ class P2PGameController {
     Sound.playClick();
     clearInterval(this.timerInterval);
     this.status = "voting";
+    this.votingRound = 1;
+    this.isTieBreak = false;
+    this.tieCandidateNames = [];
+    this.eligibleCandidateIds = this.players.map(p => p.id);
+    this.votes.clear();
+    this.myVotedTargetId = null;
+    this.hasSubmittedVote = false;
+    this.selectedVotePlayerId = null;
 
-    this.broadcast({ type: "START_VOTING" });
+    const activePlayers = this.players.filter(p => p.online !== false);
+
+    this.broadcast({
+      type: "START_VOTING",
+      round: 1,
+      isTieBreak: false,
+      eligibleCandidateIds: this.eligibleCandidateIds,
+      tieCandidateNames: [],
+      totalCount: activePlayers.length,
+      missingVoters: activePlayers.map(p => p.name)
+    });
+
     window.App.switchView("view-p2p-voting");
     this.renderP2PVotingCards();
   }
 
   renderP2PVotingCards() {
     const container = document.getElementById("p2p-vote-grid-container");
-    const confirmBtn = document.getElementById("p2p-confirm-vote-btn");
+    const submitBtn = document.getElementById("p2p-submit-vote-btn");
     const instructionEl = document.getElementById("p2p-vote-instruction");
+    const titleEl = document.getElementById("p2p-vote-title");
+    const tieBanner = document.getElementById("p2p-vote-tie-banner");
+    const tieText = document.getElementById("p2p-vote-tie-text");
 
-    if (instructionEl) {
-      instructionEl.textContent = this.isHost
-        ? "Tocca il giocatore che il gruppo accusa di essere l'impostore:"
-        : "L'Host sta selezionando il giocatore accusato dal gruppo...";
+    if (this.isTieBreak) {
+      if (titleEl) titleEl.textContent = `⚖️ Votazione di Spareggio (Round ${this.votingRound})`;
+      if (tieBanner) tieBanner.style.display = "flex";
+      if (tieText) tieText.textContent = `Parità di voti tra ${this.tieCandidateNames.join(" e ")}! Votazione di spareggio: vota chi eliminare tra i pareggiati:`;
+      if (instructionEl) instructionEl.textContent = `Esprimi il tuo voto di spareggio tra ${this.tieCandidateNames.join(" e ")}:`;
+    } else {
+      if (titleEl) titleEl.textContent = "🗳️ Votazione Finale";
+      if (tieBanner) tieBanner.style.display = "none";
+      if (instructionEl) instructionEl.textContent = "Seleziona chi ritieni sia l'impostore e conferma il tuo voto:";
     }
 
-    if (confirmBtn) {
-      confirmBtn.style.display = this.isHost ? "inline-flex" : "none";
-      confirmBtn.disabled = true;
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.classList.remove("pulse-glow");
+      submitBtn.innerHTML = "🗳️ Seleziona un giocatore";
     }
 
     if (!container) return;
     container.innerHTML = "";
     this.selectedVotePlayerId = null;
 
+    const activePlayers = this.players.filter(p => p.online !== false);
+    this.updateVoteProgressUI(0, activePlayers.length, activePlayers.map(p => p.name));
+
     this.players.forEach(p => {
       const card = document.createElement("div");
       card.className = "vote-card";
+      card.dataset.playerId = p.id;
 
       const avatar = document.createElement("div");
       avatar.className = "vote-avatar";
@@ -1517,18 +1613,41 @@ class P2PGameController {
 
       const name = document.createElement("div");
       name.className = "vote-name";
-      name.textContent = p.name;
+      const isMe = (this.isHost && p.isHost) || (!this.isHost && p.id === this.myPeerId);
+      name.textContent = isMe ? `${p.name} (Tu)` : p.name;
 
       card.appendChild(avatar);
       card.appendChild(name);
 
-      if (this.isHost) {
+      const isEligible = this.eligibleCandidateIds.length === 0 || this.eligibleCandidateIds.includes(p.id);
+
+      if (this.isTieBreak) {
+        if (isEligible) {
+          const tieBadge = document.createElement("span");
+          tieBadge.className = "vote-card-badge vote-badge-tie";
+          tieBadge.textContent = "In Spareggio ⚖️";
+          card.appendChild(tieBadge);
+        } else {
+          card.classList.add("excluded");
+          const exBadge = document.createElement("span");
+          exBadge.className = "vote-card-badge vote-badge-excluded";
+          exBadge.textContent = "Escluso";
+          card.appendChild(exBadge);
+        }
+      }
+
+      if (isEligible && !this.hasSubmittedVote) {
         card.addEventListener("click", () => {
           Sound.playClick();
           document.querySelectorAll("#p2p-vote-grid-container .vote-card").forEach(c => c.classList.remove("selected"));
           card.classList.add("selected");
           this.selectedVotePlayerId = p.id;
-          if (confirmBtn) confirmBtn.disabled = false;
+
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.classList.add("pulse-glow");
+            submitBtn.innerHTML = `🗳️ Conferma Voto per ${p.name}`;
+          }
         });
       }
 
@@ -1536,32 +1655,240 @@ class P2PGameController {
     });
   }
 
-  hostExecuteVote() {
-    if (!this.isHost || !this.selectedVotePlayerId) return;
+  submitMyVote() {
+    if (!this.selectedVotePlayerId || this.hasSubmittedVote) return;
     Sound.playClick();
 
-    const target = this.players.find(p => p.id === this.selectedVotePlayerId);
-    if (!target) return;
+    this.hasSubmittedVote = true;
+    this.myVotedTargetId = this.selectedVotePlayerId;
 
-    const assignment = this.assignments.get(target.id);
-    const wasImpostor = assignment ? assignment.isImpostor : false;
-    const impostorsList = this.players
-      .filter(p => this.assignments.get(p.id)?.isImpostor)
+    const submitBtn = document.getElementById("p2p-submit-vote-btn");
+    const votedPlayer = this.players.find(p => p.id === this.myVotedTargetId);
+    const votedName = votedPlayer ? votedPlayer.name : "Giocatore";
+
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.classList.remove("pulse-glow");
+      submitBtn.innerHTML = `✅ Voto Inviato (${votedName})`;
+    }
+
+    // Aggiorna l'aspetto visivo delle card
+    const container = document.getElementById("p2p-vote-grid-container");
+    if (container) {
+      container.querySelectorAll(".vote-card").forEach(c => {
+        c.style.pointerEvents = "none";
+        if (c.dataset.playerId === this.myVotedTargetId) {
+          c.classList.add("voted");
+          let badge = c.querySelector(".vote-badge-voted");
+          if (!badge) {
+            badge = document.createElement("span");
+            badge.className = "vote-card-badge vote-badge-voted";
+            badge.textContent = "Il tuo voto ✓";
+            c.appendChild(badge);
+          }
+        }
+      });
+    }
+
+    if (this.isHost) {
+      const hostPlayer = this.players.find(p => p.isHost);
+      const hostId = hostPlayer ? hostPlayer.id : "host";
+      this.recordVote(hostId, this.playerId, this.myVotedTargetId);
+    } else if (this.hostConn && this.hostConn.open) {
+      this.hostConn.send({
+        type: "CAST_VOTE",
+        voterPlayerId: this.playerId,
+        targetId: this.myVotedTargetId
+      });
+    }
+  }
+
+  recordVote(peerId, voterPlayerId, targetId) {
+    if (!this.isHost || this.status !== "voting") return;
+
+    // Identifica il giocatore che vota
+    const voter = this.players.find(p => p.id === peerId || (voterPlayerId && p.playerId === voterPlayerId));
+    const voterKey = voter ? voter.id : peerId;
+    const voterName = voter ? voter.name : "Giocatore";
+
+    this.votes.set(voterKey, {
+      targetId: targetId,
+      voterName: voterName,
+      voterPlayerId: voterPlayerId || (voter ? voter.playerId : null)
+    });
+
+    const activePlayers = this.players.filter(p => p.online !== false);
+    const missingVoters = activePlayers
+      .filter(p => !this.votes.has(p.id) && !(p.playerId && this.votes.has(p.playerId)))
+      .map(p => p.name);
+    const totalCount = activePlayers.length;
+    const votesCount = Math.max(0, totalCount - missingVoters.length);
+
+    console.log(`[Host] Voto registrato da ${voterName} per target ${targetId}. Progresso: ${votesCount}/${totalCount}`);
+
+    // Notifica tutti i client del progresso voti
+    this.broadcast({
+      type: "VOTE_PROGRESS_UPDATE",
+      votesCount: votesCount,
+      totalCount: totalCount,
+      missingVoters: missingVoters
+    });
+
+    this.updateVoteProgressUI(votesCount, totalCount, missingVoters);
+
+    // Se tutti i partecipanti hanno votato, elabora il risultato finale
+    if (missingVoters.length === 0 && totalCount > 0) {
+      setTimeout(() => {
+        if (this.status === "voting") {
+          this.tallyVotesAndProcessResult();
+        }
+      }, 1200);
+    }
+  }
+
+  updateVoteProgressUI(votesCount, totalCount, missingVoters = []) {
+    const counterEl = document.getElementById("p2p-vote-counter");
+    const progressFill = document.getElementById("p2p-vote-progress-fill");
+    const missingContainer = document.getElementById("p2p-vote-missing-container");
+    const missingChipsEl = document.getElementById("p2p-vote-missing-chips");
+    const allReadyEl = document.getElementById("p2p-vote-all-ready");
+
+    if (counterEl) counterEl.textContent = `${votesCount} / ${totalCount}`;
+
+    if (progressFill) {
+      const pct = totalCount > 0 ? Math.round((votesCount / totalCount) * 100) : 0;
+      progressFill.style.width = `${pct}%`;
+    }
+
+    const allVoted = totalCount > 0 && missingVoters.length === 0 && votesCount >= totalCount;
+
+    if (allVoted) {
+      if (missingContainer) missingContainer.style.display = "none";
+      if (allReadyEl) allReadyEl.style.display = "block";
+    } else {
+      if (missingContainer) missingContainer.style.display = "flex";
+      if (allReadyEl) allReadyEl.style.display = "none";
+
+      if (missingChipsEl) {
+        missingChipsEl.innerHTML = "";
+        missingVoters.forEach(name => {
+          const chip = document.createElement("span");
+          const isMe = name === this.playerName;
+          chip.className = `missing-chip ${isMe ? "is-you" : ""}`;
+          chip.textContent = isMe ? `${name} (Tu)` : name;
+          missingChipsEl.appendChild(chip);
+        });
+      }
+    }
+  }
+
+  tallyVotesAndProcessResult() {
+    if (!this.isHost || this.status !== "voting") return;
+
+    // Conteggio voti per candidato
+    const tally = new Map(); // targetId -> count
+    for (const vote of this.votes.values()) {
+      const current = tally.get(vote.targetId) || 0;
+      tally.set(vote.targetId, current + 1);
+    }
+
+    let maxVotes = 0;
+    for (const count of tally.values()) {
+      if (count > maxVotes) maxVotes = count;
+    }
+
+    // Trova tutti i candidati che hanno ottenuto il massimo dei voti
+    const topCandidateIds = [];
+    for (const [targetId, count] of tally.entries()) {
+      if (count === maxVotes) {
+        topCandidateIds.push(targetId);
+      }
+    }
+
+    // Risultati ordinati per numero di voti decrescente
+    const voteTallySummary = this.players.map(p => ({
+      id: p.id,
+      name: p.name,
+      votes: tally.get(p.id) || 0,
+      isAccused: false
+    })).sort((a, b) => b.votes - a.votes);
+
+    console.log(`[Host] Conteggio voti round ${this.votingRound}:`, voteTallySummary, `Max: ${maxVotes}, Top: ${topCandidateIds}`);
+
+    if (topCandidateIds.length === 1) {
+      // UNICO VINCITORE: accusato trovato!
+      const targetId = topCandidateIds[0];
+      const target = this.players.find(p => p.id === targetId);
+      if (!target) return;
+
+      const assignment = this.assignments.get(target.id) || (target.playerId && this.assignments.get(target.playerId));
+      const wasImpostor = assignment ? assignment.isImpostor : false;
+      const impostorsList = this.players
+        .filter(p => {
+          const a = this.assignments.get(p.id) || (p.playerId && this.assignments.get(p.playerId));
+          return a && a.isImpostor;
+        })
+        .map(p => p.name);
+
+      voteTallySummary.forEach(item => {
+        if (item.id === target.id) item.isAccused = true;
+      });
+
+      const gameOverPayload = {
+        type: "GAME_OVER",
+        votedName: target.name,
+        wasImpostor: wasImpostor,
+        secretWord: this.secretWord,
+        category: this.categoryName,
+        impostors: impostorsList,
+        voteTally: voteTallySummary
+      };
+
+      this.status = "game_over";
+      this.broadcast(gameOverPayload);
+      window.App.switchView("view-p2p-game-over");
+      this.renderP2PGameOver(gameOverPayload);
+
+    } else {
+      // PARITÀ / SPAREGGIO: si ripete a oltranza fino allo spareggio!
+      this.triggerTieBreakVote(topCandidateIds, voteTallySummary);
+    }
+  }
+
+  triggerTieBreakVote(topCandidateIds, voteTallySummary) {
+    this.votingRound++;
+    this.isTieBreak = true;
+    this.votes.clear();
+    this.myVotedTargetId = null;
+    this.hasSubmittedVote = false;
+    this.selectedVotePlayerId = null;
+
+    // I candidati votabili nello spareggio sono quelli che hanno pareggiato per il massimo dei voti
+    this.eligibleCandidateIds = [...topCandidateIds];
+    this.tieCandidateNames = this.players
+      .filter(p => topCandidateIds.includes(p.id))
       .map(p => p.name);
 
-    const gameOverPayload = {
-      type: "GAME_OVER",
-      votedName: target.name,
-      wasImpostor: wasImpostor,
-      secretWord: this.secretWord,
-      category: this.categoryName,
-      impostors: impostorsList
+    console.log(`[Host] Spareggio Round ${this.votingRound} tra:`, this.tieCandidateNames);
+
+    Sound.playTimerEnd();
+
+    const activePlayers = this.players.filter(p => p.online !== false);
+    const tiePayload = {
+      type: "TIE_BREAK_VOTE",
+      round: this.votingRound,
+      tiedNames: this.tieCandidateNames,
+      eligibleCandidateIds: this.eligibleCandidateIds,
+      voteTally: voteTallySummary,
+      totalCount: activePlayers.length,
+      missingVoters: activePlayers.map(p => p.name)
     };
 
-    this.broadcast(gameOverPayload);
-    this.status = "game_over";
-    window.App.switchView("view-p2p-game-over");
-    this.renderP2PGameOver(gameOverPayload);
+    this.broadcast(tiePayload);
+
+    // Aggiorna l'interfaccia dell'Host
+    this.renderP2PVotingCards();
+    this.updateVoteProgressUI(0, tiePayload.totalCount, tiePayload.missingVoters);
   }
 
   renderP2PGameOver(data) {
@@ -1592,6 +1919,23 @@ class P2PGameController {
       if (descEl) descEl.innerHTML = `<strong>${data.votedName}</strong> era innocente! Gli impostori hanno ingannato il gruppo.`;
     }
 
+    // Mostra il riepilogo dei voti espressi
+    const tallySection = document.getElementById("p2p-game-over-tally-section");
+    const tallyListEl = document.getElementById("p2p-game-over-tally-list");
+    if (tallySection && tallyListEl) {
+      if (data.voteTally && Array.isArray(data.voteTally) && data.voteTally.length > 0) {
+        tallySection.style.display = "block";
+        tallyListEl.innerHTML = data.voteTally.map(item => `
+          <div class="vote-tally-item ${item.isAccused ? "is-accused" : ""}">
+            <span>${item.name} ${item.isAccused ? "🎯 (Accusato)" : ""}</span>
+            <span class="vote-tally-badge">${item.votes} ${item.votes === 1 ? "voto" : "voti"}</span>
+          </div>
+        `).join("");
+      } else {
+        tallySection.style.display = "none";
+      }
+    }
+
     if (impostorsListEl && data.impostors) {
       impostorsListEl.innerHTML = data.impostors.map(name => `
         <div class="impostor-pill">🕵️ ${name}</div>
@@ -1614,6 +1958,14 @@ class P2PGameController {
     this.hasReportedSeen = false;
     this.wordChooserId = null;
     this.wordChooserName = "";
+    this.votes.clear();
+    this.votingRound = 1;
+    this.isTieBreak = false;
+    this.eligibleCandidateIds = [];
+    this.tieCandidateNames = [];
+    this.myVotedTargetId = null;
+    this.hasSubmittedVote = false;
+    this.selectedVotePlayerId = null;
 
     this.broadcast({ type: "RESET_LOBBY" });
 
