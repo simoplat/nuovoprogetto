@@ -225,6 +225,28 @@ class LupusGameController {
     this.voteConfirmed = false;
     this.autoNextNightTimer = null;
 
+    // Stato notturno interattivo e pozioni persistenti
+    this.lovers = []; // [id1, id2]
+    this.witchLifeUsed = false;
+    this.witchDeathUsed = false;
+    this.lastRoundDeaths = [];
+    this.nightActions = {
+      cupidoLovers: [],
+      donnaTarget: null,
+      wolfTarget: null,
+      stregoneTarget: null,
+      lupoBiancoTarget: null,
+      guardTarget: null,
+      seerTarget: null,
+      witchHeal: false,
+      witchKill: null
+    };
+    this.nightResolved = false;
+    this.preDawnAliveSnapshot = null;
+    this.preDawnWitchLifeSnapshot = false;
+    this.preDawnWitchDeathSnapshot = false;
+    this.dawnReport = null;
+
     this.bindSetupEvents();
   }
 
@@ -671,6 +693,25 @@ class LupusGameController {
     this.selectedVotePlayerId = null;
     this.voteConfirmed = false;
 
+    this.lovers = [];
+    this.witchLifeUsed = false;
+    this.witchDeathUsed = false;
+    this.lastRoundDeaths = [];
+    this.nightActions = {
+      cupidoLovers: [],
+      donnaTarget: null,
+      wolfTarget: null,
+      stregoneTarget: null,
+      lupoBiancoTarget: null,
+      guardTarget: null,
+      seerTarget: null,
+      witchHeal: false,
+      witchKill: null
+    };
+    this.nightResolved = false;
+    this.preDawnAliveSnapshot = null;
+    this.dawnReport = null;
+
     window.App.switchView("view-lupus-pass");
     this.renderTurnReveal();
   }
@@ -815,19 +856,19 @@ class LupusGameController {
       Sound.playImpostorReveal();
       const otherWolves = this.assignments
         .filter(a => ["lupo", "lupo_bianco", "lupo_stregone", "cane_nero"].includes(a.roleKey) && a.name !== current.name)
-        .map(a => `${a.name} (${a.role.name})`);
+        .map(a => a.name);
 
       if (alliesBox && alliesList) {
         alliesBox.style.display = "block";
         const titleSpan = alliesBox.querySelector(".lupus-allies-title");
         if (titleSpan) {
           titleSpan.textContent = role.id === "lupo_bianco"
-            ? "🐺 Branco con cui fingi alleanza:"
-            : "🐺 Compagni del Branco:";
+            ? "🐺 Branco con cui fingi alleanza (Lupi):"
+            : "🐺 Compagni del Branco (Lupi):";
         }
         if (otherWolves.length > 0) {
           alliesList.innerHTML = otherWolves.map(name => `
-            <span class="lupus-ally-pill">🐺 ${name}</span>
+            <span class="lupus-ally-pill">🐺 ${name} (Lupo)</span>
           `).join(" ");
         } else {
           alliesList.innerHTML = `<span class="lupus-ally-pill solo">Sei l'unico Lupo del branco! 🐺</span>`;
@@ -929,7 +970,7 @@ class LupusGameController {
         <div class="roster-chip-info">
           <span class="roster-chip-icon">${player.role.icon}</span>
           <div>
-            <div class="roster-chip-name">${player.name}</div>
+            <div class="roster-chip-name">${player.name}${player.isLover ? ' <span style="font-size: 0.75rem;" title="Innamorato">❤️</span>' : ''}</div>
             <div class="roster-chip-role">${player.role.name}</div>
           </div>
         </div>
@@ -970,12 +1011,17 @@ class LupusGameController {
    * Genera l'elenco sequenziale completo di tutti i passaggi del round:
    * Chiamate Notturne -> Alba & Risveglio -> Discussione Diurna & Timer -> Votazione Rogo (1 solo giocatore)
    */
+  /**
+   * Genera l'elenco sequenziale completo di tutti i passaggi del round:
+   * Chiamate Notturne -> Alba & Risveglio -> Discussione Diurna & Timer -> Votazione Rogo (1 solo giocatore)
+   */
   getRoundSteps() {
     const steps = [];
 
     // 1. Calano le tenebre
     steps.push({
       type: "night",
+      stepSubtype: "intro",
       phaseBadge: `Notte ${this.nightCount} 🌙`,
       badgeClass: "badge-night",
       title: `🌙 Calano le Tenebre (Notte ${this.nightCount})`,
@@ -986,6 +1032,7 @@ class LupusGameController {
     if (this.enabledRoles.cupido && this.nightCount === 1) {
       steps.push({
         type: "night",
+        stepSubtype: "cupido",
         phaseBadge: `Notte ${this.nightCount} 🌙`,
         badgeClass: "badge-night",
         title: "💘 Risveglio di Cupido",
@@ -998,10 +1045,11 @@ class LupusGameController {
     if (this.enabledRoles.donna && donnaAlive) {
       steps.push({
         type: "night",
+        stepSubtype: "donna",
         phaseBadge: `Notte ${this.nightCount} 🌙`,
         badgeClass: "badge-night",
         title: "💃 Risveglio della Donna",
-        instruction: "Il Narratore dice: <em>'La Donna apre gli occhi e indica con chi trascorrerà la notte.'</em> La Donna indica un giocatore. Il Narratore memorizza la scelta e la fa riaddormentare."
+        instruction: "Il Narratore dice: <em>'La Donna apre gli occhi e indica con chi trascorrerà la notte.'</em> La Donna indica un giocatore. Se sceglie un Lupo o se il suo ospite muore, muore anche lei!"
       });
     }
 
@@ -1011,10 +1059,11 @@ class LupusGameController {
     if (wolvesAlive) {
       steps.push({
         type: "night",
+        stepSubtype: "lupi",
         phaseBadge: `Notte ${this.nightCount} 🌙`,
         badgeClass: "badge-night",
         title: "🐺 Risveglio del Branco dei Lupi",
-        instruction: "Il Narratore dice: <em>'I Lupi Mannari aprano gli occhi, si riconoscano e scelgano silenziosamente la loro vittima.'</em> (Si svegliano tutti i Lupi: normali, Lupo Stregone, Cane Nero e Lupo Bianco. L'Infiltrato NON si sveglia). I lupi concordano una vittima indicandola al Narratore. Il Narratore memorizza la vittima e fa riaddormentare i Lupi."
+        instruction: "Il Narratore dice: <em>'I Lupi Mannari aprano gli occhi, si riconoscano e scelgano silenziosamente la loro vittima.'</em> (Si svegliano tutti i Lupi: normali, Lupo Stregone, Cane Nero e Lupo Bianco. L'Infiltrato NON si sveglia). I lupi concordano una vittima indicandola al Narratore."
       });
     }
 
@@ -1023,10 +1072,11 @@ class LupusGameController {
     if (this.enabledRoles.lupo_stregone && stregoneAlive) {
       steps.push({
         type: "night",
+        stepSubtype: "lupo_stregone",
         phaseBadge: `Notte ${this.nightCount} 🌙`,
         badgeClass: "badge-night",
         title: "🐺🔮 Risveglio del Lupo Stregone",
-        instruction: "Il Narratore dice: <em>'Il Lupo Stregone apra gli occhi.'</em> Il Lupo Stregone indica un giocatore al Narratore per annullarne il potere notturno. Se quel giocatore ha un potere notturno attivo (Guardia, Veggente, Strega, Beccamorto), il suo potere è <strong>bloccato</strong> per questa notte! Poi il Lupo Stregone si riaddormenta."
+        instruction: "Il Narratore dice: <em>'Il Lupo Stregone apra gli occhi.'</em> Il Lupo Stregone indica un giocatore al Narratore per annullarne il potere notturno. Se quel giocatore ha un potere notturno attivo (Guardia, Veggente, Strega, Beccamorto), il suo potere è <strong>bloccato</strong> per questa notte!"
       });
     }
 
@@ -1035,10 +1085,11 @@ class LupusGameController {
     if (this.enabledRoles.lupo_bianco && lupoBiancoAlive && (this.nightCount % 2 === 0)) {
       steps.push({
         type: "night",
+        stepSubtype: "lupo_bianco",
         phaseBadge: `Notte ${this.nightCount} 🌙`,
         badgeClass: "badge-night",
         title: "🐺❄️ Risveglio Solitario del Lupo Bianco",
-        instruction: "A notti alterne (notte pari), il Lupo Bianco si risveglia da solo per tradire il branco! Il Narratore dice: <em>'Il Lupo Bianco apra gli occhi.'</em> Può decidere di sbranare uno degli altri Lupi indicandolo al Narratore, oppure rinunciare (scuotendo la testa). Il Narratore memorizza l'eventuale seconda vittima e fa riaddormentare il Lupo Bianco."
+        instruction: "A notti alterne (notte pari), il Lupo Bianco si risveglia da solo per tradire il branco! Può decidere di sbranare uno degli altri Lupi indicandolo al Narratore, oppure rinunciare."
       });
     }
 
@@ -1047,10 +1098,11 @@ class LupusGameController {
     if (this.enabledRoles.guardia && guardiaAlive) {
       steps.push({
         type: "night",
+        stepSubtype: "guardia",
         phaseBadge: `Notte ${this.nightCount} 🌙`,
         badgeClass: "badge-night",
         title: "🛡️ Risveglio della Guardia",
-        instruction: "Il Narratore dice: <em>'La Guardia apra gli occhi e indichi chi proteggere con il suo scudo.'</em> La Guardia indica un abitante (può proteggere anche se stessa). Il Narratore memorizza la scelta e la fa riaddormentare. <strong>Se i Lupi hanno attaccato quel giocatore, il suo scudo lo salverà e non morirà!</strong>"
+        instruction: "Il Narratore dice: <em>'La Guardia apra gli occhi e indichi chi proteggere con il suo scudo.'</em> La Guardia indica un abitante (può proteggere anche se stessa). Se i Lupi hanno attaccato quel giocatore, il suo scudo lo salverà!"
       });
     }
 
@@ -1059,10 +1111,11 @@ class LupusGameController {
     if (this.enabledRoles.veggente && veggenteAlive) {
       steps.push({
         type: "night",
+        stepSubtype: "veggente",
         phaseBadge: `Notte ${this.nightCount} 🌙`,
         badgeClass: "badge-night",
         title: "🔮 Risveglio del Veggente",
-        instruction: "Il Narratore dice: <em>'Il Veggente apra gli occhi e indichi la persona di cui vuole scoprire l'identità.'</em> Il Veggente indica una persona. Il Narratore annuisce silenziosamente (Lupo) o scuote la testa (Non Lupo). Poi fa riaddormentare il Veggente.<br><span style='font-size: 0.84rem; color: #fbbf24;'>⚠️ Guida risposte Narratore: l'<strong>Idiota del Villaggio</strong> risponde <strong>LUPO</strong>. Il <strong>Cane Nero</strong> e l'<strong>Infiltrato</strong> rispondono <strong>NON LUPO</strong>.</span>"
+        instruction: "Il Narratore dice: <em>'Il Veggente apra gli occhi e indichi la persona di cui vuole scoprire l'identità.'</em> Tocca il giocatore indicato per visualizzare il responso esatto."
       });
     }
 
@@ -1071,10 +1124,11 @@ class LupusGameController {
     if (this.enabledRoles.beccamorto && beccamortoAlive && this.nightCount >= 2) {
       steps.push({
         type: "night",
+        stepSubtype: "beccamorto",
         phaseBadge: `Notte ${this.nightCount} 🌙`,
         badgeClass: "badge-night",
         title: "⚰️ Risveglio del Beccamorto",
-        instruction: "Il Narratore dice: <em>'Il Beccamorto apra gli occhi.'</em> Il Narratore rivela segretamente al Beccamorto (mostrando la carta o mimando il ruolo) l'<strong>esatta identità del giocatore morto nel round precedente</strong> (con 1 giorno di ritardo). Poi fa riaddormentare il Beccamorto."
+        instruction: "Il Narratore dice: <em>'Il Beccamorto apra gli occhi.'</em> Il Narratore rivela segretamente al Beccamorto (mostrando la carta o mimando il ruolo) l'<strong>esatta identità del giocatore morto nel round precedente</strong>."
       });
     }
 
@@ -1083,25 +1137,28 @@ class LupusGameController {
     if (this.enabledRoles.strega && stregaAlive) {
       steps.push({
         type: "night",
+        stepSubtype: "strega",
         phaseBadge: `Notte ${this.nightCount} 🌙`,
         badgeClass: "badge-night",
         title: "🧙‍♀️ Risveglio della Strega",
-        instruction: "Il Narratore dice: <em>'La Strega apra gli occhi.'</em> Il Narratore le indica con un gesto la vittima dei lupi. La Strega decide se usare la pozione di vita (pollice in su) e se usare la pozione di morte su qualcun altro (indica la persona). Poi si riaddormenta."
+        instruction: "Il Narratore dice: <em>'La Strega apra gli occhi.'</em> Il Narratore le indica la vittima dei lupi. La Strega decide se usare la pozione di vita e/o la pozione di morte su qualcun altro."
       });
     }
 
     // 8. Risveglio del Villaggio (Alba)
     steps.push({
       type: "dawn",
+      stepSubtype: "dawn",
       phaseBadge: "Alba 🌅",
       badgeClass: "badge-day",
       title: `☀️ Risveglio del Villaggio (Giorno ${this.nightCount})`,
-      instruction: "Il Narratore annuncia ad alta voce: <em>'Sorge il sole sul villaggio! Tutti gli abitanti aprano gli occhi!'</em> Il Narratore comunica chi è morto nella notte (ricorda: chi è stato protetto dalla Guardia o curato dalla Strega non muore!). Tocca il nome nel <strong>Registro Abitanti</strong> qui sopra per segnarlo come 🔴 Morto."
+      instruction: "Il Narratore annuncia ad alta voce: <em>'Sorge il sole sul villaggio! Tutti gli abitanti aprano gli occhi!'</em> L'esito della notte è calcolato e mostrato di seguito."
     });
 
     // 9. Dibattito & Timer del Villaggio (Giorno)
     steps.push({
       type: "discussion",
+      stepSubtype: "discussion",
       phaseBadge: `Giorno ${this.nightCount} ☀️`,
       badgeClass: "badge-day",
       title: "⏱️ Dibattito & Timer del Villaggio",
@@ -1111,6 +1168,7 @@ class LupusGameController {
     // 10. Votazione del Rogo (Eliminazione di un solo giocatore)
     steps.push({
       type: "voting",
+      stepSubtype: "voting",
       phaseBadge: "Rogo ⚖️",
       badgeClass: "badge-night",
       title: "🔥 Votazione del Rogo",
@@ -1128,6 +1186,8 @@ class LupusGameController {
     const stepCounter = document.getElementById("lupus-step-counter");
     const timerWidget = document.getElementById("lupus-step-timer-widget");
     const votingWidget = document.getElementById("lupus-step-voting-widget");
+    const actionWidget = document.getElementById("lupus-step-action-widget");
+    const dawnWidget = document.getElementById("lupus-dawn-summary-widget");
     const navControls = document.getElementById("lupus-step-nav-controls");
     const prevBtn = document.getElementById("lupus-master-prev-step");
     const nextBtn = document.getElementById("lupus-master-next-step");
@@ -1161,48 +1221,69 @@ class LupusGameController {
     if (prevBtn) prevBtn.disabled = this.masterStepIndex === 0;
 
     // Gestione Widget specifici per ciascun passaggio
-    if (curStep.type === "discussion") {
+    if (curStep.type === "night") {
+      if (timerWidget) timerWidget.style.display = "none";
+      if (votingWidget) votingWidget.style.display = "none";
+      if (dawnWidget) dawnWidget.style.display = "none";
+      if (actionWidget) {
+        actionWidget.style.display = "block";
+        this.renderNightActionWidget(curStep.stepSubtype);
+      }
+      if (navControls) navControls.style.display = "flex";
+      if (nextBtn) {
+        nextBtn.style.display = "inline-flex";
+        nextBtn.textContent = "Avanti ➡️";
+      }
+      this.stopDiscussionTimer();
+    } else if (curStep.type === "dawn") {
+      if (timerWidget) timerWidget.style.display = "none";
+      if (votingWidget) votingWidget.style.display = "none";
+      if (actionWidget) actionWidget.style.display = "none";
+      if (dawnWidget) {
+        dawnWidget.style.display = "block";
+        if (!this.nightResolved) {
+          this.resolveNight();
+        }
+        this.renderDawnSummaryWidget();
+      }
+      if (navControls) navControls.style.display = "flex";
+      if (nextBtn) {
+        nextBtn.style.display = "inline-flex";
+        nextBtn.textContent = "Vai al Dibattito ☀️";
+      }
+      this.stopDiscussionTimer();
+    } else if (curStep.type === "discussion") {
+      if (actionWidget) actionWidget.style.display = "none";
+      if (dawnWidget) dawnWidget.style.display = "none";
       if (timerWidget) timerWidget.style.display = "block";
       if (votingWidget) votingWidget.style.display = "none";
       if (navControls) navControls.style.display = "flex";
-      // Togli 'vai al voto': lascia solo '⚖️ Concludi e Vai al Voto' nel widget timer
       if (nextBtn) nextBtn.style.display = "none";
-      // Avvia automaticamente il timer di discussione
       this.startDiscussionTimerAuto();
     } else if (curStep.type === "voting") {
+      if (actionWidget) actionWidget.style.display = "none";
+      if (dawnWidget) dawnWidget.style.display = "none";
       if (timerWidget) timerWidget.style.display = "none";
       if (votingWidget) votingWidget.style.display = "block";
       this.renderVotingGrid();
 
       if (navControls) navControls.style.display = "flex";
-      // Nello step del voto il tasto Avanti è nascosto per costringere a confermare la votazione o andare indietro
       if (nextBtn) nextBtn.style.display = "none";
-
-      if (this.isDiscussionRunning) {
-        clearInterval(this.discussionTimer);
-        this.discussionTimer = null;
-        this.isDiscussionRunning = false;
-      }
-    } else {
-      if (timerWidget) timerWidget.style.display = "none";
-      if (votingWidget) votingWidget.style.display = "none";
-      if (navControls) navControls.style.display = "flex";
-      if (nextBtn) {
-        nextBtn.style.display = "inline-flex";
-        nextBtn.textContent = (this.masterStepIndex === steps.length - 2) ? "Vai al Dibattito ☀️" : "Avanti ➡️";
-      }
-
-      if (this.isDiscussionRunning) {
-        clearInterval(this.discussionTimer);
-        this.discussionTimer = null;
-        this.isDiscussionRunning = false;
-        const timerBtn = document.getElementById("lupus-timer-toggle-btn");
-        if (timerBtn) timerBtn.textContent = "▶️ Riprendi Timer";
-      }
+      this.stopDiscussionTimer();
     }
 
     // Aggiorna sempre il registro abitanti per riflettere lo stato informativo/interattivo della fase corrente
     this.renderMasterRoster();
+  }
+
+  stopDiscussionTimer() {
+    if (this.isDiscussionRunning) {
+      clearInterval(this.discussionTimer);
+      this.discussionTimer = null;
+      this.isDiscussionRunning = false;
+      const timerBtn = document.getElementById("lupus-timer-toggle-btn");
+      if (timerBtn) timerBtn.textContent = "▶️ Riprendi Timer";
+    }
   }
 
   masterNextStep() {
@@ -1216,10 +1297,839 @@ class LupusGameController {
 
   masterPrevStep() {
     Sound.playClick();
+    const steps = this.getRoundSteps();
+    const curStep = steps[this.masterStepIndex];
     if (this.masterStepIndex > 0) {
+      // Se stiamo tornando indietro dall'Alba o oltre verso un passaggio notturno, ripristina lo stato precedente
+      if (curStep && curStep.type === "dawn" && this.nightResolved && this.preDawnAliveSnapshot) {
+        this.assignments.forEach((p, idx) => {
+          p.isAlive = this.preDawnAliveSnapshot[idx];
+        });
+        this.witchLifeUsed = this.preDawnWitchLifeSnapshot;
+        this.witchDeathUsed = this.preDawnWitchDeathSnapshot;
+        this.nightResolved = false;
+        this.dawnReport = null;
+      }
       this.masterStepIndex--;
       this.renderMasterPhaseGuide();
     }
+  }
+
+  // =========================================================================
+  // WIDGET AZIONI NOTTURNE INTERATTIVE
+  // =========================================================================
+
+  renderNightActionWidget(stepSubtype) {
+    const actionWidget = document.getElementById("lupus-step-action-widget");
+    if (!actionWidget) return;
+
+    if (stepSubtype === "intro") {
+      actionWidget.innerHTML = `
+        <div class="lupus-action-widget" style="text-align: center;">
+          <div style="font-size: 2rem; margin-bottom: 6px;">🌙💤</div>
+          <div style="font-size: 0.95rem; font-weight: 700; color: #fff; margin-bottom: 4px;">Tutti gli abitanti dormono</div>
+          <div style="font-size: 0.85rem; color: #94a3b8;">
+            Tocca <strong>Avanti ➡️</strong> per chiamare i ruoli speciali uno alla volta.
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    if (stepSubtype === "cupido") {
+      const alive = this.assignments.filter(p => p.isAlive);
+      const currentSelected = this.nightActions.cupidoLovers || [];
+      const chipsHtml = alive.map(p => {
+        const isSel = currentSelected.includes(p.id);
+        return `
+          <div class="lupus-action-card ${isSel ? 'selected selected-cupido' : ''}" data-player-id="${p.id}">
+            <div class="action-card-avatar">${isSel ? '❤️' : p.role.icon}</div>
+            <div class="action-card-name">${p.name}</div>
+            <div class="action-card-role">${p.role.name}</div>
+          </div>
+        `;
+      }).join("");
+
+      let statusText = "";
+      if (currentSelected.length === 2) {
+        const p1 = this.assignments.find(p => p.id === currentSelected[0]);
+        const p2 = this.assignments.find(p => p.id === currentSelected[1]);
+        statusText = `💘 Innamorati legati: <strong>${p1?.name}</strong> ❤️ <strong>${p2?.name}</strong> (Se uno muore, muore anche l'altro!)`;
+      } else {
+        statusText = `Tocca 2 giocatori (${currentSelected.length}/2 scelti)`;
+      }
+
+      actionWidget.innerHTML = `
+        <div class="lupus-action-widget">
+          <div class="lupus-action-prompt">💘 Tocca i due giocatori scelti da Cupido come Innamorati:</div>
+          <div class="lupus-action-grid">${chipsHtml}</div>
+          <div class="lupus-action-status">${statusText}</div>
+        </div>
+      `;
+
+      actionWidget.querySelectorAll(".lupus-action-card").forEach(card => {
+        card.addEventListener("click", () => {
+          try { Sound.playClick(); } catch (e) {}
+          const pid = card.dataset.playerId;
+          let lovers = [...(this.nightActions.cupidoLovers || [])];
+          if (lovers.includes(pid)) {
+            lovers = lovers.filter(id => id !== pid);
+          } else {
+            if (lovers.length >= 2) {
+              lovers.shift();
+            }
+            lovers.push(pid);
+          }
+          this.nightActions.cupidoLovers = lovers;
+          this.lovers = lovers;
+          this.assignments.forEach(p => {
+            p.isLover = lovers.includes(p.id);
+          });
+          this.renderNightActionWidget("cupido");
+          this.renderMasterRoster();
+        });
+      });
+      return;
+    }
+
+    if (stepSubtype === "donna") {
+      const donnaPlayer = this.assignments.find(p => p.roleKey === "donna" && p.isAlive);
+      const candidates = this.assignments.filter(p => p.isAlive && p.id !== donnaPlayer?.id);
+      const selectedId = this.nightActions.donnaTarget;
+
+      const isHome = (selectedId === null);
+      const homeCard = `
+        <div class="lupus-action-card action-none ${isHome ? 'selected selected-donna' : ''}" data-player-id="HOME">
+          <div class="action-card-avatar">🏠</div>
+          <div class="action-card-name">A Casa Sua</div>
+          <div class="action-card-role">Nessun rifugio</div>
+        </div>
+      `;
+
+      const candidatesHtml = candidates.map(p => {
+        const isSel = (selectedId === p.id);
+        return `
+          <div class="lupus-action-card ${isSel ? 'selected selected-donna' : ''}" data-player-id="${p.id}">
+            <div class="action-card-avatar">${p.role.icon}</div>
+            <div class="action-card-name">${p.name}</div>
+            <div class="action-card-role">${p.role.name}</div>
+          </div>
+        `;
+      }).join("");
+
+      let statusText = "";
+      if (isHome) {
+        statusText = "🏠 La Donna resta a casa sua stanotte (vulnerabile se attaccata).";
+      } else {
+        const host = this.assignments.find(p => p.id === selectedId);
+        const isHostWolf = host && ["lupo", "lupo_stregone", "cane_nero", "lupo_bianco"].includes(host.roleKey);
+        statusText = `💃 Rifugio: <strong>${host?.name}</strong> ${isHostWolf ? '⚠️ (È un LUPO! La Donna morirà all\'Alba)' : '(Innocente: se attaccata a casa è salva!)'}`;
+      }
+
+      actionWidget.innerHTML = `
+        <div class="lupus-action-widget">
+          <div class="lupus-action-prompt">💃 Tocca la persona da cui la Donna si rifugia stanotte:</div>
+          <div class="lupus-action-grid">${homeCard}${candidatesHtml}</div>
+          <div class="lupus-action-status">${statusText}</div>
+        </div>
+      `;
+
+      actionWidget.querySelectorAll(".lupus-action-card").forEach(card => {
+        card.addEventListener("click", () => {
+          try { Sound.playClick(); } catch (e) {}
+          const pid = card.dataset.playerId;
+          this.nightActions.donnaTarget = (pid === "HOME") ? null : pid;
+          this.renderNightActionWidget("donna");
+        });
+      });
+      return;
+    }
+
+    if (stepSubtype === "lupi") {
+      const candidates = this.assignments.filter(p => p.isAlive);
+      const selectedId = this.nightActions.wolfTarget;
+
+      const cardsHtml = candidates.map(p => {
+        const isSel = (selectedId === p.id);
+        return `
+          <div class="lupus-action-card ${isSel ? 'selected selected-wolf' : ''}" data-player-id="${p.id}">
+            <div class="action-card-avatar">${p.role.icon}</div>
+            <div class="action-card-name">${p.name}</div>
+            <div class="action-card-role">${p.role.name}</div>
+          </div>
+        `;
+      }).join("");
+
+      let statusText = "";
+      if (selectedId) {
+        const victim = this.assignments.find(p => p.id === selectedId);
+        statusText = `🩸 Vittima designata dai Lupi: <strong>${victim?.name}</strong> (${victim?.role.name})`;
+      } else {
+        statusText = "Tocca un giocatore per memorizzare l'attacco del branco.";
+      }
+
+      actionWidget.innerHTML = `
+        <div class="lupus-action-widget">
+          <div class="lupus-action-prompt">🐺 Tocca la vittima che i Lupi indicano di voler sbranare:</div>
+          <div class="lupus-action-grid">${cardsHtml}</div>
+          <div class="lupus-action-status">${statusText}</div>
+        </div>
+      `;
+
+      actionWidget.querySelectorAll(".lupus-action-card").forEach(card => {
+        card.addEventListener("click", () => {
+          try { Sound.playClick(); } catch (e) {}
+          this.nightActions.wolfTarget = card.dataset.playerId;
+          this.renderNightActionWidget("lupi");
+        });
+      });
+      return;
+    }
+
+    if (stepSubtype === "lupo_stregone") {
+      const stregonePlayer = this.assignments.find(p => p.roleKey === "lupo_stregone" && p.isAlive);
+      const candidates = this.assignments.filter(p => p.isAlive && p.id !== stregonePlayer?.id);
+      const selectedId = this.nightActions.stregoneTarget;
+
+      const noneCard = `
+        <div class="lupus-action-card action-none ${selectedId === null ? 'selected selected-stregone' : ''}" data-player-id="NONE">
+          <div class="action-card-avatar">🚫</div>
+          <div class="action-card-name">Nessuno</div>
+          <div class="action-card-role">Non silenzia</div>
+        </div>
+      `;
+
+      const cardsHtml = candidates.map(p => {
+        const isSel = (selectedId === p.id);
+        return `
+          <div class="lupus-action-card ${isSel ? 'selected selected-stregone' : ''}" data-player-id="${p.id}">
+            <div class="action-card-avatar">${p.role.icon}</div>
+            <div class="action-card-name">${p.name}</div>
+            <div class="action-card-role">${p.role.name}</div>
+          </div>
+        `;
+      }).join("");
+
+      let statusText = "";
+      if (selectedId) {
+        const target = this.assignments.find(p => p.id === selectedId);
+        const hasPower = ["guardia", "veggente", "strega", "beccamorto"].includes(target?.roleKey);
+        statusText = `🔮 Giocatore silenziato: <strong>${target?.name}</strong> ${hasPower ? '⛔ (Potere notturno annullato per stanotte!)' : '(Nessun potere notturno bloccabile)'}`;
+      } else {
+        statusText = "🚫 Nessun giocatore silenziato per questa notte.";
+      }
+
+      actionWidget.innerHTML = `
+        <div class="lupus-action-widget">
+          <div class="lupus-action-prompt">🐺🔮 Tocca il giocatore da silenziare/bloccare:</div>
+          <div class="lupus-action-grid">${noneCard}${cardsHtml}</div>
+          <div class="lupus-action-status">${statusText}</div>
+        </div>
+      `;
+
+      actionWidget.querySelectorAll(".lupus-action-card").forEach(card => {
+        card.addEventListener("click", () => {
+          try { Sound.playClick(); } catch (e) {}
+          const pid = card.dataset.playerId;
+          this.nightActions.stregoneTarget = (pid === "NONE") ? null : pid;
+          this.renderNightActionWidget("lupo_stregone");
+        });
+      });
+      return;
+    }
+
+    if (stepSubtype === "lupo_bianco") {
+      const lupoBiancoPlayer = this.assignments.find(p => p.roleKey === "lupo_bianco" && p.isAlive);
+      const packWolves = this.assignments.filter(p => p.isAlive && ["lupo", "lupo_stregone", "cane_nero"].includes(p.roleKey));
+      const selectedId = this.nightActions.lupoBiancoTarget;
+
+      const passCard = `
+        <div class="lupus-action-card action-none ${selectedId === null ? 'selected selected-lupobianco' : ''}" data-player-id="PASS">
+          <div class="action-card-avatar">🚫</div>
+          <div class="action-card-name">Passa (Nessuno)</div>
+          <div class="action-card-role">Rinuncia stanotte</div>
+        </div>
+      `;
+
+      const cardsHtml = packWolves.map(p => {
+        const isSel = (selectedId === p.id);
+        return `
+          <div class="lupus-action-card ${isSel ? 'selected selected-lupobianco' : ''}" data-player-id="${p.id}">
+            <div class="action-card-avatar">${p.role.icon}</div>
+            <div class="action-card-name">${p.name}</div>
+            <div class="action-card-role">${p.role.name}</div>
+          </div>
+        `;
+      }).join("");
+
+      let statusText = "";
+      if (selectedId) {
+        const victim = this.assignments.find(p => p.id === selectedId);
+        statusText = `🐺❄️ Bersaglio Lupo Bianco: <strong>${victim?.name}</strong> (Morirà all'Alba!)`;
+      } else {
+        statusText = "🚫 Il Lupo Bianco non sbrana nessun compagno stanotte.";
+      }
+
+      actionWidget.innerHTML = `
+        <div class="lupus-action-widget">
+          <div class="lupus-action-prompt">🐺❄️ Il Lupo Bianco sceglie se sbranare un compagno lupo alle spalle:</div>
+          <div class="lupus-action-grid">${passCard}${cardsHtml}</div>
+          <div class="lupus-action-status">${statusText}</div>
+        </div>
+      `;
+
+      actionWidget.querySelectorAll(".lupus-action-card").forEach(card => {
+        card.addEventListener("click", () => {
+          try { Sound.playClick(); } catch (e) {}
+          const pid = card.dataset.playerId;
+          this.nightActions.lupoBiancoTarget = (pid === "PASS") ? null : pid;
+          this.renderNightActionWidget("lupo_bianco");
+        });
+      });
+      return;
+    }
+
+    if (stepSubtype === "guardia") {
+      const guardiaPlayer = this.assignments.find(p => p.roleKey === "guardia" && p.isAlive);
+      const isSilenced = guardiaPlayer && (this.nightActions.stregoneTarget === guardiaPlayer.id);
+
+      if (isSilenced) {
+        actionWidget.innerHTML = `
+          <div class="lupus-action-widget">
+            <div class="lupus-silenced-alert">
+              ⛔ <strong>POTERE BLOCCATO DAL LUPO STREGONE!</strong><br>
+              La Guardia è stata silenziata questa notte. Qualsiasi indicazione non avrà effetto: lo scudo non proteggerà nessuno.
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      const candidates = this.assignments.filter(p => p.isAlive);
+      const selectedId = this.nightActions.guardTarget;
+
+      const cardsHtml = candidates.map(p => {
+        const isSel = (selectedId === p.id);
+        return `
+          <div class="lupus-action-card ${isSel ? 'selected selected-guard' : ''}" data-player-id="${p.id}">
+            <div class="action-card-avatar">${p.role.icon}</div>
+            <div class="action-card-name">${p.name}</div>
+            <div class="action-card-role">${p.role.name}</div>
+          </div>
+        `;
+      }).join("");
+
+      let statusText = "";
+      if (selectedId) {
+        const target = this.assignments.find(p => p.id === selectedId);
+        statusText = `🛡️ Protetto dallo Scudo: <strong>${target?.name}</strong> (Sopravvive se attaccato dai Lupi)`;
+      } else {
+        statusText = "Tocca un giocatore da difendere con lo scudo.";
+      }
+
+      actionWidget.innerHTML = `
+        <div class="lupus-action-widget">
+          <div class="lupus-action-prompt">🛡️ La Guardia indica chi proteggere per questa notte:</div>
+          <div class="lupus-action-grid">${cardsHtml}</div>
+          <div class="lupus-action-status">${statusText}</div>
+        </div>
+      `;
+
+      actionWidget.querySelectorAll(".lupus-action-card").forEach(card => {
+        card.addEventListener("click", () => {
+          try { Sound.playClick(); } catch (e) {}
+          this.nightActions.guardTarget = card.dataset.playerId;
+          this.renderNightActionWidget("guardia");
+        });
+      });
+      return;
+    }
+
+    if (stepSubtype === "veggente") {
+      const veggentePlayer = this.assignments.find(p => p.roleKey === "veggente" && p.isAlive);
+      const isSilenced = veggentePlayer && (this.nightActions.stregoneTarget === veggentePlayer.id);
+
+      if (isSilenced) {
+        actionWidget.innerHTML = `
+          <div class="lupus-action-widget">
+            <div class="lupus-silenced-alert">
+              ⛔ <strong>POTERE BLOCCATO DAL LUPO STREGONE!</strong><br>
+              Il Veggente è stato silenziato dal Lupo Stregone. La sua vista mistica è oscurata per questa notte.
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      const candidates = this.assignments.filter(p => p.isAlive && p.id !== veggentePlayer?.id);
+      const selectedId = this.nightActions.seerTarget;
+
+      const cardsHtml = candidates.map(p => {
+        const isSel = (selectedId === p.id);
+        return `
+          <div class="lupus-action-card ${isSel ? 'selected' : ''}" data-player-id="${p.id}">
+            <div class="action-card-avatar">${p.role.icon}</div>
+            <div class="action-card-name">${p.name}</div>
+            <div class="action-card-role">${p.role.name}</div>
+          </div>
+        `;
+      }).join("");
+
+      let resultHtml = "";
+      if (selectedId) {
+        const target = this.assignments.find(p => p.id === selectedId);
+        const isWolfAnswer = target && ["lupo", "lupo_stregone", "lupo_bianco", "idiota"].includes(target.roleKey);
+
+        if (isWolfAnswer) {
+          let note = "";
+          if (target.roleKey === "idiota") {
+            note = `<div style="font-size: 0.8rem; margin-top: 4px; color: #fde68a;">⚠️ È l'<strong>Idiota del Villaggio</strong>! Innocente, ma per le sue follie appare come LUPO.</div>`;
+          }
+          resultHtml = `
+            <div class="lupus-seer-result-box wolf">
+              <div style="font-size: 1.8rem; margin-bottom: 2px;">🐺</div>
+              <div style="font-size: 1.25rem; font-weight: 900; letter-spacing: 0.5px;">RISPOSTA: LUPO!</div>
+              <div style="font-size: 0.88rem; margin-top: 2px; opacity: 0.95;">(Annuisci silenziosamente con la testa)</div>
+              ${note}
+            </div>
+          `;
+        } else {
+          let note = "";
+          if (target.roleKey === "cane_nero") {
+            note = `<div style="font-size: 0.8rem; margin-top: 4px; color: #a7f3d0;">⚠️ È il <strong>Cane Nero</strong>! Lupo Mannaro sotto mentite spoglie: appare NON LUPO.</div>`;
+          } else if (target.roleKey === "infiltrato") {
+            note = `<div style="font-size: 0.8rem; margin-top: 4px; color: #a7f3d0;">⚠️ È l'<strong>Infiltrato</strong>! Alleato dei lupi, ma biologicamente umano: appare NON LUPO.</div>`;
+          }
+          resultHtml = `
+            <div class="lupus-seer-result-box innocent">
+              <div style="font-size: 1.8rem; margin-bottom: 2px;">👤</div>
+              <div style="font-size: 1.25rem; font-weight: 900; letter-spacing: 0.5px;">RISPOSTA: NON LUPO</div>
+              <div style="font-size: 0.88rem; margin-top: 2px; opacity: 0.95;">(Scuoti la testa dicendo NO)</div>
+              ${note}
+            </div>
+          `;
+        }
+      }
+
+      actionWidget.innerHTML = `
+        <div class="lupus-action-widget">
+          <div class="lupus-action-prompt">🔮 Tocca il giocatore indicato dal Veggente per scoprire la risposta:</div>
+          <div class="lupus-action-grid">${cardsHtml}</div>
+          ${resultHtml}
+        </div>
+      `;
+
+      actionWidget.querySelectorAll(".lupus-action-card").forEach(card => {
+        card.addEventListener("click", () => {
+          try { Sound.playClick(); } catch (e) {}
+          this.nightActions.seerTarget = card.dataset.playerId;
+          this.renderNightActionWidget("veggente");
+        });
+      });
+      return;
+    }
+
+    if (stepSubtype === "beccamorto") {
+      const beccamortoPlayer = this.assignments.find(p => p.roleKey === "beccamorto" && p.isAlive);
+      const isSilenced = beccamortoPlayer && (this.nightActions.stregoneTarget === beccamortoPlayer.id);
+
+      if (isSilenced) {
+        actionWidget.innerHTML = `
+          <div class="lupus-action-widget">
+            <div class="lupus-silenced-alert">
+              ⛔ <strong>POTERE BLOCCATO DAL LUPO STREGONE!</strong><br>
+              Il Beccamorto è stato silenziato. I morti tacciono stanotte.
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      const deadPlayers = this.lastRoundDeaths || [];
+      let contentHtml = "";
+
+      if (deadPlayers.length === 0) {
+        contentHtml = `
+          <div style="text-align: center; padding: 12px; color: #94a3b8; font-size: 0.9rem;">
+            ⚰️ Nessun giocatore è morto nel round precedente. Fa' segno che non ci sono nuovi spiriti.
+          </div>
+        `;
+      } else {
+        const cards = deadPlayers.map(p => `
+          <div style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); border-radius: var(--radius-md); padding: 12px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px;">
+            <span style="font-size: 2rem;">${p.role.icon}</span>
+            <div>
+              <div style="font-size: 0.98rem; font-weight: 800; color: #fff;">${p.name}</div>
+              <div style="font-size: 0.85rem; color: #fbbf24; font-weight: 700;">Ruolo Esatto: ${p.role.name} (${p.role.factionLabel})</div>
+            </div>
+          </div>
+        `).join("");
+
+        contentHtml = `
+          <div style="margin: 10px 0;">
+            <div style="font-size: 0.84rem; color: #cbd5e1; margin-bottom: 8px;">
+              🤫 Mostra discretamente lo schermo o mima al Beccamorto l'identità del caduto:
+            </div>
+            ${cards}
+          </div>
+        `;
+      }
+
+      actionWidget.innerHTML = `
+        <div class="lupus-action-widget">
+          <div class="lupus-action-prompt">⚰️ Identità del/i giocatore/i eliminato/i nel round precedente:</div>
+          ${contentHtml}
+        </div>
+      `;
+      return;
+    }
+
+    if (stepSubtype === "strega") {
+      const stregaPlayer = this.assignments.find(p => p.roleKey === "strega" && p.isAlive);
+      const isSilenced = stregaPlayer && (this.nightActions.stregoneTarget === stregaPlayer.id);
+
+      if (isSilenced) {
+        actionWidget.innerHTML = `
+          <div class="lupus-action-widget">
+            <div class="lupus-silenced-alert">
+              ⛔ <strong>POTERE BLOCCATO DAL LUPO STREGONE!</strong><br>
+              La Strega è stata silenziata dal Lupo Stregone e non può usare alcuna pozione questa notte.
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      const wolfVictim = this.nightActions.wolfTarget ? this.assignments.find(p => p.id === this.nightActions.wolfTarget) : null;
+      const isLifeAvailable = !this.witchLifeUsed;
+      const isDeathAvailable = !this.witchDeathUsed;
+      const isHealActive = this.nightActions.witchHeal;
+      const poisonTargetId = this.nightActions.witchKill;
+
+      // Section 1: Life potion
+      let lifeSection = "";
+      if (isLifeAvailable) {
+        if (wolfVictim) {
+          lifeSection = `
+            <div style="font-size: 0.88rem; color: #cbd5e1; margin-bottom: 8px;">
+              I Lupi hanno attaccato: <strong>${wolfVictim.name}</strong> (${wolfVictim.role.name}).
+            </div>
+            <button type="button" class="btn ${isHealActive ? 'btn-success' : 'btn-secondary'} btn-block btn-sm" id="lupus-witch-heal-toggle">
+              ${isHealActive ? `✅ Pozione di Vita ATTIVA (Salva ${wolfVictim.name})` : `🧪 Usa Pozione di Vita per Salvare ${wolfVictim.name}`}
+            </button>
+          `;
+        } else {
+          lifeSection = `
+            <div style="font-size: 0.85rem; color: #94a3b8;">
+              Nessuna vittima indicata dai Lupi questa notte.
+            </div>
+          `;
+        }
+      } else {
+        lifeSection = `
+          <div style="font-size: 0.85rem; color: #f87171;">
+            ❌ Pozione di Vita già consumata in una notte precedente.
+          </div>
+        `;
+      }
+
+      // Section 2: Death potion (poison)
+      let deathSection = "";
+      if (isDeathAvailable) {
+        const candidates = this.assignments.filter(p => p.isAlive && p.id !== stregaPlayer?.id);
+        const noneCard = `
+          <div class="lupus-action-card action-none ${poisonTargetId === null ? 'selected selected-poison' : ''}" data-player-id="NO_POISON">
+            <div class="action-card-avatar">🚫</div>
+            <div class="action-card-name">Non Avvelenare</div>
+            <div class="action-card-role">Conserva pozione</div>
+          </div>
+        `;
+        const poisonCards = candidates.map(p => {
+          const isSel = (poisonTargetId === p.id);
+          return `
+            <div class="lupus-action-card ${isSel ? 'selected selected-poison' : ''}" data-player-id="${p.id}">
+              <div class="action-card-avatar">${p.role.icon}</div>
+              <div class="action-card-name">${p.name}</div>
+              <div class="action-card-role">${p.role.name}</div>
+            </div>
+          `;
+        }).join("");
+
+        let poisonStatus = poisonTargetId
+          ? `☠️ Bersaglio veleno: <strong>${this.assignments.find(p => p.id === poisonTargetId)?.name}</strong> (Morirà all'Alba!)`
+          : "🚫 Nessun veleno usato stanotte.";
+
+        deathSection = `
+          <div style="font-size: 0.85rem; color: #cbd5e1; margin-bottom: 6px;">Tocca chi avvelenare (oppure conserva la pozione):</div>
+          <div class="lupus-action-grid">${noneCard}${poisonCards}</div>
+          <div class="lupus-action-status" style="margin-top: 6px;">${poisonStatus}</div>
+        `;
+      } else {
+        deathSection = `
+          <div style="font-size: 0.85rem; color: #f87171;">
+            ❌ Pozione di Morte già consumata in una notte precedente.
+          </div>
+        `;
+      }
+
+      actionWidget.innerHTML = `
+        <div class="lupus-action-widget">
+          <div class="lupus-action-prompt">🧙‍♀️ Gestione Pozioni della Strega:</div>
+          
+          <div class="witch-potions-box">
+            <!-- Pozione di Vita -->
+            <div class="witch-potion-item">
+              <div class="witch-potion-header">
+                <div class="witch-potion-title">🧪 Pozione di Vita</div>
+                <span class="potion-status-badge ${isLifeAvailable ? 'potion-available' : 'potion-spent'}">
+                  ${isLifeAvailable ? 'Disponibile' : 'Usata'}
+                </span>
+              </div>
+              ${lifeSection}
+            </div>
+
+            <!-- Pozione di Morte -->
+            <div class="witch-potion-item">
+              <div class="witch-potion-header">
+                <div class="witch-potion-title">☠️ Pozione di Morte (Veleno)</div>
+                <span class="potion-status-badge ${isDeathAvailable ? 'potion-available' : 'potion-spent'}">
+                  ${isDeathAvailable ? 'Disponibile' : 'Usata'}
+                </span>
+              </div>
+              ${deathSection}
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Bind heal toggle
+      const healBtn = actionWidget.querySelector("#lupus-witch-heal-toggle");
+      if (healBtn) {
+        healBtn.addEventListener("click", () => {
+          try { Sound.playClick(); } catch (e) {}
+          this.nightActions.witchHeal = !this.nightActions.witchHeal;
+          this.renderNightActionWidget("strega");
+        });
+      }
+
+      // Bind poison cards
+      actionWidget.querySelectorAll(".witch-potion-item:nth-child(2) .lupus-action-card").forEach(card => {
+        card.addEventListener("click", () => {
+          try { Sound.playClick(); } catch (e) {}
+          const pid = card.dataset.playerId;
+          this.nightActions.witchKill = (pid === "NO_POISON") ? null : pid;
+          this.renderNightActionWidget("strega");
+        });
+      });
+      return;
+    }
+  }
+
+  // =========================================================================
+  // RISOLUZIONE AUTOMATICA DELLA NOTTE ALL'ALBA
+  // =========================================================================
+
+  resolveNight() {
+    if (this.nightResolved) return;
+
+    // Snapshot pre-alba per consentire rollback se il Narratore torna indietro
+    this.preDawnAliveSnapshot = this.assignments.map(p => p.isAlive);
+    this.preDawnWitchLifeSnapshot = this.witchLifeUsed;
+    this.preDawnWitchDeathSnapshot = this.witchDeathUsed;
+
+    const stregoneTargetId = this.nightActions.stregoneTarget;
+    const guardiaPlayer = this.assignments.find(p => p.roleKey === "guardia" && p.isAlive);
+    const isGuardSilenced = guardiaPlayer && (stregoneTargetId === guardiaPlayer.id);
+
+    const stregaPlayer = this.assignments.find(p => p.roleKey === "strega" && p.isAlive);
+    const isStregaSilenced = stregaPlayer && (stregoneTargetId === stregaPlayer.id);
+
+    const wolfVictimId = this.nightActions.wolfTarget;
+    const wolfVictim = wolfVictimId ? this.assignments.find(p => p.id === wolfVictimId && p.isAlive) : null;
+
+    const donnaPlayer = this.assignments.find(p => p.roleKey === "donna" && p.isAlive);
+    const donnaTargetId = donnaPlayer ? this.nightActions.donnaTarget : null;
+    const donnaHost = donnaTargetId ? this.assignments.find(p => p.id === donnaTargetId && p.isAlive) : null;
+    const isDonnaVisitingWolf = donnaHost && ["lupo", "lupo_stregone", "cane_nero", "lupo_bianco"].includes(donnaHost.roleKey);
+    const wereWolvesTargetingDonna = wolfVictim && donnaPlayer && (wolfVictim.id === donnaPlayer.id);
+
+    // Protezioni
+    const isProtectedByGuard = !isGuardSilenced && wolfVictim && (this.nightActions.guardTarget === wolfVictim.id);
+    const witchSavedVictim = !isStregaSilenced && !this.witchLifeUsed && this.nightActions.witchHeal && wolfVictim;
+    if (witchSavedVictim) {
+      this.witchLifeUsed = true;
+    }
+
+    const deaths = new Map(); // id -> reason
+    const events = [];
+    const getSfx = (name) => (name.endsWith("a") ? "a" : "o");
+
+    // 1. Risoluzione attacco dei Lupi
+    if (wolfVictim) {
+      if (wereWolvesTargetingDonna && donnaHost && !isDonnaVisitingWolf) {
+        events.push({
+          type: "saved",
+          icon: "💃🛡️",
+          text: `I Lupi hanno attaccato la casa di <strong>${donnaPlayer.name} (La Donna)</strong>, ma lei era rifugiata da ${donnaHost.name} ed è salva!`
+        });
+      } else if (isProtectedByGuard) {
+        events.push({
+          type: "saved",
+          icon: "🛡️",
+          text: `<strong>${wolfVictim.name}</strong> è stat${getSfx(wolfVictim.name)} attaccat${getSfx(wolfVictim.name)} dai Lupi, ma lo <strong>scudo della Guardia</strong> l'ha salvat${getSfx(wolfVictim.name)}!`
+        });
+      } else if (witchSavedVictim) {
+        events.push({
+          type: "saved",
+          icon: "🧪",
+          text: `<strong>${wolfVictim.name}</strong> è stat${getSfx(wolfVictim.name)} attaccat${getSfx(wolfVictim.name)} dai Lupi, ma la <strong>Pozione di Vita della Strega</strong> l'ha salvat${getSfx(wolfVictim.name)}!`
+        });
+      } else {
+        deaths.set(wolfVictim.id, `Sbranat${getSfx(wolfVictim.name)} dai Lupi Mannari`);
+        events.push({
+          type: "death",
+          icon: "🐺",
+          text: `<strong>${wolfVictim.name}</strong> (${wolfVictim.role.name}) è stat${getSfx(wolfVictim.name)} sbranat${getSfx(wolfVictim.name)} dai Lupi Mannari.`
+        });
+
+        // Se la Donna era ospite di questa vittima sbranata, muore anche la Donna!
+        if (donnaPlayer && donnaHost && donnaHost.id === wolfVictim.id) {
+          deaths.set(donnaPlayer.id, "Morta insieme al suo ospite sbranato dai lupi");
+          events.push({
+            type: "death",
+            icon: "💃💔",
+            text: `<strong>${donnaPlayer.name}</strong> (La Donna) era ospite di ${donnaHost.name} ed è morta insieme a lui!`
+          });
+        }
+      }
+    }
+
+    // 2. Risoluzione Donna che visita un Lupo
+    if (donnaPlayer && isDonnaVisitingWolf && !deaths.has(donnaPlayer.id)) {
+      deaths.set(donnaPlayer.id, "Sbranata per essersi rifugiata da un Lupo Mannaro");
+      events.push({
+        type: "death",
+        icon: "💃🐺",
+        text: `<strong>${donnaPlayer.name}</strong> (La Donna) si è rifugiata da <strong>${donnaHost.name}</strong> che era un Lupo ed è morta sbranata!`
+      });
+    }
+
+    // 3. Risoluzione Lupo Bianco
+    const lupoBiancoPlayer = this.assignments.find(p => p.roleKey === "lupo_bianco" && p.isAlive);
+    const lupoBiancoTargetId = lupoBiancoPlayer ? this.nightActions.lupoBiancoTarget : null;
+    const lupoBiancoVictim = lupoBiancoTargetId ? this.assignments.find(p => p.id === lupoBiancoTargetId && p.isAlive) : null;
+    if (lupoBiancoVictim && !deaths.has(lupoBiancoVictim.id)) {
+      deaths.set(lupoBiancoVictim.id, "Sbranato alle spalle dal Lupo Bianco");
+      events.push({
+        type: "death",
+        icon: "🐺❄️",
+        text: `<strong>${lupoBiancoVictim.name}</strong> (${lupoBiancoVictim.role.name}) è stat${getSfx(lupoBiancoVictim.name)} sbranat${getSfx(lupoBiancoVictim.name)} a tradimento dal Lupo Bianco!`
+      });
+    }
+
+    // 4. Risoluzione Pozione di Morte della Strega
+    const witchKillId = (!isStregaSilenced && !this.witchDeathUsed) ? this.nightActions.witchKill : null;
+    const witchVictim = witchKillId ? this.assignments.find(p => p.id === witchKillId && p.isAlive) : null;
+    if (witchVictim && !deaths.has(witchVictim.id)) {
+      this.witchDeathUsed = true;
+      deaths.set(witchVictim.id, "Avvelenato dalla Strega");
+      events.push({
+        type: "death",
+        icon: "☠️",
+        text: `<strong>${witchVictim.name}</strong> (${witchVictim.role.name}) è stat${getSfx(witchVictim.name)} avvelenat${getSfx(witchVictim.name)} dalla Strega con la Pozione di Morte!`
+      });
+    }
+
+    // 5. Risoluzione Innamorati a Catena (Cupido)
+    if (this.lovers && this.lovers.length === 2) {
+      const [lovId1, lovId2] = this.lovers;
+      const lover1 = this.assignments.find(p => p.id === lovId1);
+      const lover2 = this.assignments.find(p => p.id === lovId2);
+
+      if (deaths.has(lovId1) && lover2 && lover2.isAlive && !deaths.has(lovId2)) {
+        deaths.set(lovId2, `Morto di crepacuore per la perdita dell'innamorato (${lover1.name})`);
+        events.push({
+          type: "death",
+          icon: "💔",
+          text: `<strong>${lover2.name}</strong> muore all'istante di crepacuore per la morte del suo amore <strong>${lover1.name}</strong>!`
+        });
+      } else if (deaths.has(lovId2) && lover1 && lover1.isAlive && !deaths.has(lovId1)) {
+        deaths.set(lovId1, `Morto di crepacuore per la perdita dell'innamorato (${lover2.name})`);
+        events.push({
+          type: "death",
+          icon: "💔",
+          text: `<strong>${lover1.name}</strong> muore all'istante di crepacuore per la morte del suo amore <strong>${lover2.name}</strong>!`
+        });
+      }
+    }
+
+    // 6. Notte serena se nessun morto
+    if (deaths.size === 0) {
+      events.push({
+        type: "peaceful",
+        icon: "☀️",
+        text: "<strong>Notte serena:</strong> nessun abitante ha perso la vita stanotte! Il villaggio si risveglia illeso."
+      });
+    }
+
+    // Applica le morti a assignments
+    deaths.forEach((reason, playerId) => {
+      const player = this.assignments.find(p => p.id === playerId);
+      if (player) {
+        player.isAlive = false;
+      }
+    });
+
+    this.lastRoundDeaths = Array.from(deaths.keys()).map(id => this.assignments.find(p => p.id === id)).filter(Boolean);
+    this.nightResolved = true;
+    this.dawnReport = events;
+
+    // Aggiorna registro e verifica vittoria
+    this.renderMasterRoster();
+    const winType = this.checkVictoryCondition();
+    if (winType) {
+      this.renderGameOverCard(null, winType);
+    }
+  }
+
+  renderDawnSummaryWidget() {
+    const dawnWidget = document.getElementById("lupus-dawn-summary-widget");
+    if (!dawnWidget) return;
+    dawnWidget.style.display = "block";
+
+    if (!this.dawnReport || this.dawnReport.length === 0) {
+      dawnWidget.innerHTML = `
+        <div class="lupus-dawn-card">
+          <div class="lupus-dawn-title">🌅 Risoluzione Notte ${this.nightCount}</div>
+          <div class="lupus-dawn-event peaceful">☀️ Calcolo esiti della notte in corso...</div>
+        </div>
+      `;
+      return;
+    }
+
+    const eventsHtml = this.dawnReport.map(ev => `
+      <div class="lupus-dawn-event ${ev.type}">
+        <span style="font-size: 1.25rem; line-height: 1;">${ev.icon}</span>
+        <div>${ev.text}</div>
+      </div>
+    `).join("");
+
+    const deadCount = this.lastRoundDeaths ? this.lastRoundDeaths.length : 0;
+
+    dawnWidget.innerHTML = `
+      <div class="lupus-dawn-card">
+        <div class="lupus-dawn-title">
+          <span>🌅 Esito Ufficiale della Notte ${this.nightCount}</span>
+          <span style="font-size: 0.8rem; margin-left: auto; color: ${deadCount > 0 ? '#fca5a5' : '#6ee7b7'}; font-weight: 700;">
+            ${deadCount === 0 ? 'Nessun Caduto' : `${deadCount} Cadut${deadCount === 1 ? 'o' : 'i'}`}
+          </span>
+        </div>
+        ${eventsHtml}
+        <div style="font-size: 0.82rem; color: #94a3b8; margin-top: 10px; text-align: center; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 8px;">
+          📢 Il Narratore legge a voce alta l'esito. Il Registro Abitanti è stato aggiornato in automatico.
+        </div>
+      </div>
+    `;
   }
 
   // =========================================================================
@@ -1399,6 +2309,22 @@ class LupusGameController {
     condemned.isAlive = false;
     this.voteConfirmed = true;
 
+    // Gestione Innamorati (crepacuore al rogo)
+    let partnerLover = null;
+    if (this.lovers && this.lovers.includes(condemned.id)) {
+      const partnerId = this.lovers.find(id => id !== condemned.id);
+      const partner = this.assignments.find(p => p.id === partnerId);
+      if (partner && partner.isAlive) {
+        partner.isAlive = false;
+        partnerLover = partner;
+        this.lastRoundDeaths = [condemned, partner];
+      } else {
+        this.lastRoundDeaths = [condemned];
+      }
+    } else {
+      this.lastRoundDeaths = [condemned];
+    }
+
     // Aggiorna registro abitanti
     this.renderMasterRoster();
 
@@ -1417,10 +2343,10 @@ class LupusGameController {
     }
 
     // Se la partita non è finita, mostra esito e avanza fluidamente
-    this.renderRoundProceedCard(condemned);
+    this.renderRoundProceedCard(condemned, partnerLover);
   }
 
-  renderRoundProceedCard(condemned) {
+  renderRoundProceedCard(condemned, partnerLover = null) {
     if (this.autoNextNightTimer) {
       clearInterval(this.autoNextNightTimer);
       this.autoNextNightTimer = null;
@@ -1446,7 +2372,7 @@ class LupusGameController {
     if (navControls) navControls.style.display = "none";
 
     const aliveCount = this.assignments.filter(p => p.isAlive).length;
-    const aliveWolves = this.assignments.filter(p => p.isAlive && p.roleKey === "lupo").length;
+    const aliveWolves = this.assignments.filter(p => p.isAlive && ["lupo", "lupo_stregone", "cane_nero", "lupo_bianco"].includes(p.roleKey)).length;
     const sfx = condemned.name.endsWith("a") ? "a" : "o";
 
     if (phaseBadge) {
@@ -1460,15 +2386,25 @@ class LupusGameController {
       stepTitle.textContent = `🔥 ${condemned.name} è stat${sfx} arso sul rogo!`;
     }
     if (stepDesc) {
+      let loverHtml = "";
+      if (partnerLover) {
+        loverHtml = `
+          <div style="margin-top: 10px; color: #f43f5e; font-weight: 700; background: rgba(244, 63, 94, 0.15); border: 1px solid rgba(244, 63, 94, 0.35); padding: 8px 12px; border-radius: var(--radius-sm);">
+            💔 <strong>${partnerLover.name}</strong> (${partnerLover.role.name}) muore all'istante di crepacuore per la perdita dell'innamorato!
+          </div>
+        `;
+      }
       stepDesc.innerHTML = `
         La sentenza del villaggio è compiuta. L'identità di <strong>${condemned.name}</strong> è svelata: era un <strong>${condemned.role.name}</strong> (${condemned.role.factionLabel}).<br>
+        ${loverHtml}
         Il villaggio non è ancora salvo! Restano <strong>${aliveCount}</strong> abitanti vivi (${aliveWolves} lup${aliveWolves === 1 ? 'o' : 'i'}).
       `;
     }
 
     if (resultText) {
+      let loverNote = partnerLover ? `<br><span style="color: #f43f5e; font-weight: 700;">💔 Anche ${partnerLover.name} (${partnerLover.role.name}) muore di crepacuore!</span>` : "";
       resultText.innerHTML = `
-        🔥 <strong>${condemned.name}</strong> (${condemned.role.name}) è fuori dal gioco.<br>
+        🔥 <strong>${condemned.name}</strong> (${condemned.role.name}) è fuori dal gioco.${loverNote}<br>
         <span style="font-size: 0.88rem; color: #94a3b8; font-weight: 500;">
           Tutti gli abitanti chiudono gli occhi. È ora di iniziare il prossimo round notturno.
         </span>
@@ -1687,13 +2623,33 @@ class LupusGameController {
     this.masterStepIndex = 0;
     this.resetDiscussionTimer();
 
-    // Reset visivo dei widget del rogo e del gameover
+    // Reset azioni notturne transitorie
+    this.nightActions = {
+      cupidoLovers: [...(this.lovers || [])],
+      donnaTarget: null,
+      wolfTarget: null,
+      stregoneTarget: null,
+      lupoBiancoTarget: null,
+      guardTarget: null,
+      seerTarget: null,
+      witchHeal: false,
+      witchKill: null
+    };
+    this.nightResolved = false;
+    this.preDawnAliveSnapshot = null;
+    this.dawnReport = null;
+
+    // Reset visivo dei widget del rogo, gameover, alba e azioni
     const resultBox = document.getElementById("lupus-vote-result-box");
     if (resultBox) resultBox.style.display = "none";
     const gameoverWidget = document.getElementById("lupus-step-gameover-widget");
     if (gameoverWidget) gameoverWidget.style.display = "none";
     const votingPrompt = document.getElementById("lupus-voting-prompt");
     if (votingPrompt) votingPrompt.style.display = "block";
+    const dawnWidget = document.getElementById("lupus-dawn-summary-widget");
+    if (dawnWidget) dawnWidget.style.display = "none";
+    const actionWidget = document.getElementById("lupus-step-action-widget");
+    if (actionWidget) actionWidget.style.display = "none";
 
     this.renderMasterPhaseGuide();
     this.renderMasterRoster();

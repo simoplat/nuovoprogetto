@@ -2430,5 +2430,278 @@ input.custom-select,
   }
 }
 
+/* ==========================================================================
+   LUPUS IN FABULA - AZIONI NOTTURNE INTERATTIVE & RISOLUZIONE ALL'ALBA
+   ========================================================================== */
+.lupus-action-widget {
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-lg);
+  padding: 14px;
+  animation: fadeIn 0.25s ease;
+}
+
+.lupus-action-prompt {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  text-align: center;
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+.lupus-action-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 8px;
+  margin: 10px 0;
+}
+
+@media (max-width: 480px) {
+  .lupus-action-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.lupus-action-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-md);
+  padding: 10px 8px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.lupus-action-card:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+.lupus-action-card.selected {
+  border-color: var(--accent-cyan);
+  background: rgba(0, 242, 254, 0.16);
+  box-shadow: 0 0 14px rgba(0, 242, 254, 0.35);
+}
+
+.lupus-action-card.selected-wolf {
+  border-color: #ef4444;
+  background: rgba(239, 68, 68, 0.2);
+  box-shadow: 0 0 14px rgba(239, 68, 68, 0.4);
+}
+
+.lupus-action-card.selected-guard {
+  border-color: #3b82f6;
+  background: rgba(59, 130, 246, 0.2);
+  box-shadow: 0 0 14px rgba(59, 130, 246, 0.4);
+}
+
+.lupus-action-card.selected-donna {
+  border-color: #e11d48;
+  background: rgba(225, 29, 72, 0.2);
+  box-shadow: 0 0 14px rgba(225, 29, 72, 0.4);
+}
+
+.lupus-action-card.selected-cupido {
+  border-color: #f43f5e;
+  background: rgba(244, 63, 94, 0.2);
+  box-shadow: 0 0 14px rgba(244, 63, 94, 0.4);
+}
+
+.lupus-action-card.selected-stregone {
+  border-color: #9333ea;
+  background: rgba(147, 51, 234, 0.2);
+  box-shadow: 0 0 14px rgba(147, 51, 234, 0.4);
+}
+
+.lupus-action-card.selected-poison {
+  border-color: #10b981;
+  background: rgba(16, 185, 129, 0.2);
+  box-shadow: 0 0 14px rgba(16, 185, 129, 0.4);
+}
+
+.lupus-action-card.selected-lupobianco {
+  border-color: #38bdf8;
+  background: rgba(56, 189, 248, 0.2);
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.4);
+}
+
+.lupus-action-card.action-none {
+  border-style: dashed;
+  opacity: 0.85;
+}
+
+.lupus-action-card .action-card-avatar {
+  font-size: 1.4rem;
+  line-height: 1.1;
+}
+
+.lupus-action-card .action-card-name {
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.lupus-action-card .action-card-role {
+  font-size: 0.72rem;
+  color: #94a3b8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.lupus-action-status {
+  font-size: 0.88rem;
+  font-weight: 700;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.07);
+  margin-top: 10px;
+  text-align: center;
+  color: #f1f5f9;
+}
+
+.lupus-silenced-alert {
+  background: rgba(147, 51, 234, 0.16);
+  border: 1px solid rgba(147, 51, 234, 0.45);
+  color: #d8b4fe;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  margin: 10px 0;
+  text-align: center;
+  font-size: 0.88rem;
+  line-height: 1.4;
+}
+
+.lupus-seer-result-box {
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  margin-top: 12px;
+  text-align: center;
+  animation: fadeIn 0.3s ease;
+}
+
+.lupus-seer-result-box.wolf {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.28), rgba(15, 23, 42, 0.9));
+  border: 2px solid #ef4444;
+  color: #fca5a5;
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.35);
+}
+
+.lupus-seer-result-box.innocent {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(15, 23, 42, 0.9));
+  border: 2px solid #10b981;
+  color: #6ee7b7;
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.35);
+}
+
+.witch-potions-box {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.witch-potion-item {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-md);
+  padding: 12px;
+}
+
+.witch-potion-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.witch-potion-title {
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: #f8fafc;
+}
+
+.potion-status-badge {
+  display: inline-block;
+  font-size: 0.74rem;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 999px;
+}
+
+.potion-available {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+}
+
+.potion-spent {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+/* Riepilogo dell'Alba */
+.lupus-dawn-card {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(15, 23, 42, 0.95));
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  animation: fadeIn 0.3s ease;
+  margin-top: 12px;
+}
+
+.lupus-dawn-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #fbbf24;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.lupus-dawn-event {
+  padding: 9px 12px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 8px;
+  font-size: 0.88rem;
+  line-height: 1.4;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.lupus-dawn-event.death {
+  background: rgba(239, 68, 68, 0.18);
+  border-left: 3px solid #ef4444;
+  color: #fca5a5;
+}
+
+.lupus-dawn-event.saved {
+  background: rgba(16, 185, 129, 0.18);
+  border-left: 3px solid #10b981;
+  color: #6ee7b7;
+}
+
+.lupus-dawn-event.peaceful {
+  background: rgba(245, 158, 11, 0.18);
+  border-left: 3px solid #f59e0b;
+  color: #fde68a;
+}
+
+
 
 
