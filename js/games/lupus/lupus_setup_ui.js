@@ -65,6 +65,20 @@ class LupusSetupUI {
         toggle.addEventListener("change", (e) => {
           game.enabledRoles[roleKey] = e.target.checked;
           Sound.playClick();
+
+          // Se si attiva un lupo speciale con abilità, assicurati che wolvesCount sia sufficiente
+          const specialWolfKeys = ["lupo_stregone", "cane_nero", "infiltrato", "lupo_bianco"];
+          if (specialWolfKeys.includes(roleKey) && e.target.checked) {
+            const activeSpecialCount = specialWolfKeys.filter(k => game.enabledRoles[k]).length;
+            if (activeSpecialCount > game.wolvesCount) {
+              const maxWolves = Math.max(1, Math.floor((game.players.length - 1) / 2));
+              if (game.wolvesCount < maxWolves) {
+                game.wolvesCount = Math.min(activeSpecialCount, maxWolves);
+                this.updateWolvesDisplay();
+              }
+            }
+          }
+
           this.validateRolesAndRenderSummary();
         });
       }
@@ -319,30 +333,49 @@ class LupusSetupUI {
     const total = this.game.players.length;
     const wolves = this.game.wolvesCount;
 
-    let specials = 0;
-    const activeSpecialNames = [];
-    if (this.game.enabledRoles.veggente) { specials++; activeSpecialNames.push("1 Veggente 🔮"); }
-    if (this.game.enabledRoles.guardia) { specials++; activeSpecialNames.push("1 Guardia 🛡️"); }
-    if (this.game.enabledRoles.strega) { specials++; activeSpecialNames.push("1 Strega 🧙‍♀️"); }
-    if (this.game.enabledRoles.cupido) { specials++; activeSpecialNames.push("1 Cupido 💘"); }
-    if (this.game.enabledRoles.donna) { specials++; activeSpecialNames.push("1 Donna 💃"); }
-    if (this.game.enabledRoles.beccamorto) { specials++; activeSpecialNames.push("1 Beccamorto ⚰️"); }
-    if (this.game.enabledRoles.idiota) { specials++; activeSpecialNames.push("1 Idiota 🤡"); }
-    if (this.game.enabledRoles.lupo_stregone) { specials++; activeSpecialNames.push("1 Lupo Stregone 🐺🔮"); }
-    if (this.game.enabledRoles.cane_nero) { specials++; activeSpecialNames.push("1 Cane Nero 🐕‍🦺"); }
-    if (this.game.enabledRoles.infiltrato) { specials++; activeSpecialNames.push("1 Lupo Mannaro 🐺🌕"); }
-    if (this.game.enabledRoles.giullare) { specials++; activeSpecialNames.push("1 Giullare 🃏"); }
-    if (this.game.enabledRoles.lupo_bianco) { specials++; activeSpecialNames.push("1 Lupo Bianco 🐺❄️"); }
-    if (this.game.enabledRoles.necromante) { specials++; activeSpecialNames.push("1 Necromante 🕯️💀"); }
+    // 1. Ruoli speciali dei Lupi (con abilità) che rientrano nel conteggio dei lupi
+    const activeSpecialWolves = [];
+    if (this.game.enabledRoles.lupo_stregone) activeSpecialWolves.push("1 Lupo Stregone 🐺🔮");
+    if (this.game.enabledRoles.cane_nero) activeSpecialWolves.push("1 Cane Nero 🐕‍🦺");
+    if (this.game.enabledRoles.infiltrato) activeSpecialWolves.push("1 Lupo Mannaro 🐺🌕");
+    if (this.game.enabledRoles.lupo_bianco) activeSpecialWolves.push("1 Lupo Bianco 🐺❄️");
 
-    const peasants = total - (wolves + specials);
+    const specialWolvesCount = activeSpecialWolves.length;
+    const normalWolves = wolves - specialWolvesCount;
+
+    if (normalWolves < 0) {
+      summaryBox.className = "lupus-summary-box error";
+      summaryBox.innerHTML = `
+        <div style="color: var(--accent-danger); font-weight: 700;">⚠️ Troppi Lupi Speciali selezionati!</div>
+        <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">
+          Hai attivato <strong>${specialWolvesCount}</strong> lupi con poteri speciali, ma il totale lupi è impostato a <strong>${wolves}</strong>. Aumenta il numero di lupi o disattiva un lupo speciale per continuare.
+        </div>
+      `;
+      if (startBtn) startBtn.disabled = true;
+      return;
+    }
+
+    // 2. Ruoli speciali del Villaggio e Solitari (esclusi i lupi)
+    const activeVillageSpecials = [];
+    if (this.game.enabledRoles.veggente) activeVillageSpecials.push("1 Veggente 🔮");
+    if (this.game.enabledRoles.guardia) activeVillageSpecials.push("1 Guardia 🛡️");
+    if (this.game.enabledRoles.strega) activeVillageSpecials.push("1 Strega 🧙‍♀️");
+    if (this.game.enabledRoles.cupido) activeVillageSpecials.push("1 Cupido 💘");
+    if (this.game.enabledRoles.donna) activeVillageSpecials.push("1 Donna 💃");
+    if (this.game.enabledRoles.beccamorto) activeVillageSpecials.push("1 Beccamorto ⚰️");
+    if (this.game.enabledRoles.idiota) activeVillageSpecials.push("1 Idiota 🤡");
+    if (this.game.enabledRoles.necromante) activeVillageSpecials.push("1 Necromante 🕯️💀");
+    if (this.game.enabledRoles.giullare) activeVillageSpecials.push("1 Giullare 🃏");
+
+    const villageSpecialsCount = activeVillageSpecials.length;
+    const peasants = (total - wolves) - villageSpecialsCount;
 
     if (peasants < 0) {
       summaryBox.className = "lupus-summary-box error";
       summaryBox.innerHTML = `
-        <div style="color: var(--accent-danger); font-weight: 700;">⚠️ Troppi ruoli speciali selezionati!</div>
+        <div style="color: var(--accent-danger); font-weight: 700;">⚠️ Troppi ruoli speciali per il Villaggio!</div>
         <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">
-          Con ${total} giocatori e ${wolves} lupi base, puoi attivare al massimo ${Math.max(0, total - wolves)} figure speciali. Disattivane qualcuna per procedere.
+          Con ${total} giocatori e ${wolves} lupi in totale, puoi attivare al massimo ${Math.max(0, total - wolves)} figure speciali non-lupo. Disattivane qualcuna per procedere.
         </div>
       `;
       if (startBtn) startBtn.disabled = true;
@@ -352,10 +385,24 @@ class LupusSetupUI {
     if (startBtn) startBtn.disabled = false;
     summaryBox.className = "lupus-summary-box";
 
-    const parts = [`<strong>${wolves}</strong> Lup${wolves === 1 ? "o" : "i"} Base 🐺`];
-    if (activeSpecialNames.length > 0) {
-      parts.push(activeSpecialNames.join(", "));
+    const parts = [];
+
+    // Composizione Branco dei Lupi
+    const wolfBreakdown = [];
+    if (normalWolves > 0) {
+      wolfBreakdown.push(`<strong>${normalWolves}</strong> Lup${normalWolves === 1 ? "o" : "i"} Normal${normalWolves === 1 ? "e" : "i"} 🐺`);
     }
+    if (activeSpecialWolves.length > 0) {
+      wolfBreakdown.push(activeSpecialWolves.join(", "));
+    }
+    parts.push(`Branco Lupi (${wolves}): ${wolfBreakdown.join(", ")}`);
+
+    // Figure Speciali Villaggio
+    if (activeVillageSpecials.length > 0) {
+      parts.push(activeVillageSpecials.join(", "));
+    }
+
+    // Contadini
     if (peasants > 0) {
       parts.push(`<strong>${peasants}</strong> Contadin${peasants === 1 ? "o" : "i"} 👨‍🌾`);
     } else {
@@ -363,8 +410,8 @@ class LupusSetupUI {
     }
 
     summaryBox.innerHTML = `
-      <div style="font-size: 0.82rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px;">Composizione Villaggio (${total} Giocatori):</div>
-      <div style="font-size: 0.95rem; margin-top: 5px; line-height: 1.5; color: var(--text-primary);">${parts.join(" • ")}</div>
+      <div style="font-size: 0.82rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px;">Composizione Villaggio (${total} Giocatori • ${wolves} Lupi Totali):</div>
+      <div style="font-size: 0.95rem; margin-top: 5px; line-height: 1.5; color: var(--text-primary);">${parts.join(" &bull; ")}</div>
     `;
   }
 

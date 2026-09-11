@@ -171,12 +171,20 @@ class LupusGameController {
     const wolves = this.wolvesCount;
     const roleDeck = [];
 
-    // 1. Inserisci Lupi base
-    for (let i = 0; i < wolves; i++) {
+    // 1. Inserisci ruoli speciali dei Lupi attivi (rientrano nel conteggio totale dei lupi)
+    let specialWolvesCount = 0;
+    if (this.enabledRoles.lupo_stregone) { roleDeck.push("lupo_stregone"); specialWolvesCount++; }
+    if (this.enabledRoles.cane_nero) { roleDeck.push("cane_nero"); specialWolvesCount++; }
+    if (this.enabledRoles.infiltrato) { roleDeck.push("infiltrato"); specialWolvesCount++; }
+    if (this.enabledRoles.lupo_bianco) { roleDeck.push("lupo_bianco"); specialWolvesCount++; }
+
+    // 2. Inserisci i restanti Lupi normali per completare la quota di lupi impostata
+    const normalWolves = Math.max(0, wolves - specialWolvesCount);
+    for (let i = 0; i < normalWolves; i++) {
       roleDeck.push("lupo");
     }
 
-    // 2. Inserisci ruoli speciali attivi
+    // 3. Inserisci ruoli speciali del Villaggio e Solitari attivi
     if (this.enabledRoles.veggente) roleDeck.push("veggente");
     if (this.enabledRoles.guardia) roleDeck.push("guardia");
     if (this.enabledRoles.strega) roleDeck.push("strega");
@@ -184,14 +192,10 @@ class LupusGameController {
     if (this.enabledRoles.donna) roleDeck.push("donna");
     if (this.enabledRoles.beccamorto) roleDeck.push("beccamorto");
     if (this.enabledRoles.idiota) roleDeck.push("idiota");
-    if (this.enabledRoles.lupo_stregone) roleDeck.push("lupo_stregone");
-    if (this.enabledRoles.cane_nero) roleDeck.push("cane_nero");
-    if (this.enabledRoles.infiltrato) roleDeck.push("infiltrato");
-    if (this.enabledRoles.giullare) roleDeck.push("giullare");
-    if (this.enabledRoles.lupo_bianco) roleDeck.push("lupo_bianco");
     if (this.enabledRoles.necromante) roleDeck.push("necromante");
+    if (this.enabledRoles.giullare) roleDeck.push("giullare");
 
-    // 3. I restanti sono Contadini
+    // 4. I restanti sono Contadini
     while (roleDeck.length < total) {
       roleDeck.push("contadino");
     }
