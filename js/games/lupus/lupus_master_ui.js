@@ -172,10 +172,17 @@ class LupusMasterUI {
     }
 
     if (subtype === "beccamorto") {
-      const complete = !!game.nightActions.beccamortoSeen;
+      const beccamortoPlayer = game.assignments.find(p => p.roleKey === "beccamorto" && p.isAlive);
+      const isSilenced = beccamortoPlayer && (game.nightActions.stregoneTarget === beccamortoPlayer.id);
+      if (isSilenced) return { complete: true, message: "" };
+
+      const deadPlayers = game.assignments.filter(p => !game.isPlayerAliveInRound(p));
+      if (deadPlayers.length === 0) return { complete: true, message: "" };
+
+      const complete = !!game.nightActions.beccamortoSeen && !!game.nightActions.beccamortoTarget;
       return {
         complete,
-        message: complete ? "" : "Tocca 'Ho mostrato l'identità al Beccamorto' per poter premere Avanti"
+        message: complete ? "" : "Seleziona il defunto da consultare e tocca 'Ho mostrato l\'identità' per poter premere Avanti"
       };
     }
 

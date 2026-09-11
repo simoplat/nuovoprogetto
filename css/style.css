@@ -2732,6 +2732,18 @@ input.custom-select,
   transform: scale(1.08);
 }
 
+.lupus-action-card.selected-beccamorto {
+  border-color: #94a3b8;
+  background: rgba(148, 163, 184, 0.22);
+  box-shadow: 0 0 14px rgba(148, 163, 184, 0.45);
+}
+
+.lupus-action-card.selected-beccamorto .action-card-avatar {
+  background: rgba(148, 163, 184, 0.28);
+  border-color: rgba(148, 163, 184, 0.6);
+  transform: scale(1.08);
+}
+
 .lupus-action-card.card-wolf-target {
   border-color: rgba(239, 68, 68, 0.65);
   background: rgba(239, 68, 68, 0.14);

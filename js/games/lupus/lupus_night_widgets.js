@@ -603,63 +603,148 @@ class LupusNightWidgets {
         return;
       }
 
-      const deadPlayers = game.lastRoundDeaths || [];
-      let contentHtml = "";
+      // Tutti i giocatori morti prima dell'inizio di questo round notturno
+      const deadPlayers = game.assignments.filter(p => !game.isPlayerAliveInRound(p));
+      const revealedIds = game.beccamortoRevealed || [];
 
       if (deadPlayers.length === 0) {
-        contentHtml = `
-          <div style="text-align: center; padding: 12px; color: #94a3b8; font-size: 0.9rem;">
-            ⚰️ Nessun giocatore è morto nel round precedente. Fa' segno che non ci sono nuovi spiriti.
+        game.nightActions.beccamortoSeen = true;
+        actionWidget.innerHTML = `
+          <div class="lupus-action-widget">
+            <div style="text-align: center; padding: 14px; color: #94a3b8; font-size: 0.95rem;">
+              ⚰️ Nessun abitante è ancora morto nel villaggio. Il Beccamorto richiude gli occhi senza visioni.
+            </div>
+            <div class="lupus-action-status" style="margin-top: 8px;">
+              <span style="color: #6ee7b7;">✅ Nessun defunto da consultare - Puoi premere Avanti</span>
+            </div>
           </div>
         `;
-      } else {
-        const cards = deadPlayers.map(p => `
-          <div style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); border-radius: var(--radius-md); padding: 12px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px;">
-            <span style="font-size: 2rem;">${p.role.icon}</span>
-            <div>
-              <div style="font-size: 0.98rem; font-weight: 800; color: #fff;">${p.name}</div>
-              <div style="font-size: 0.85rem; color: #fbbf24; font-weight: 700;">Ruolo Esatto: ${p.role.name} (${p.role.factionLabel})</div>
+        return;
+      }
+
+      // Se c'è un solo morto in tutto il cimitero e non è ancora selezionato, autoselezionalo
+      if (deadPlayers.length === 1 && !game.nightActions.beccamortoTarget) {
+        game.nightActions.beccamortoTarget = deadPlayers[0].id;
+      }
+
+      const selectedId = game.nightActions.beccamortoTarget;
+      const isConfirmed = !!game.nightActions.beccamortoSeen;
+      const selectedPlayer = selectedId ? game.assignments.find(p => p.id === selectedId) : null;
+
+      // Griglia di selezione defunti (mostra solo il nome e l'avatar generico ⚰️ per non spoilerare i ruoli)
+      const candidateCards = deadPlayers.map(p => {
+        const isSel = (selectedId === p.id);
+        const wasRevealed = revealedIds.includes(p.id);
+        const isRecent = (game.lastRoundDeaths || []).some(d => d.id === p.id);
+
+        let badge = "";
+        if (wasRevealed) {
+          badge = '<span style="font-size: 0.72rem; color: #94a3b8; background: rgba(255,255,255,0.08); padding: 2px 6px; border-radius: 4px; margin-top: 4px; display: inline-block;">Già consultato 📜</span>';
+        } else if (isRecent) {
+          badge = '<span style="font-size: 0.72rem; color: #fca5a5; background: rgba(239,68,68,0.15); padding: 2px 6px; border-radius: 4px; margin-top: 4px; display: inline-block;">Caduto recente 💀</span>';
+        }
+
+        return `
+          <div class="lupus-action-card ${isSel ? 'selected selected-beccamorto' : ''}" data-player-id="${p.id}">
+            <div class="action-card-avatar">⚰️</div>
+            <div class="action-card-name">${p.name}</div>
+            <div class="action-card-role">${badge || 'Defunto nel cimitero'}</div>
+          </div>
+        `;
+      }).join("");
+
+      // Scheda rivelazione segreta dell'UNICO morto scelto
+      let revelationHtml = "";
+      if (selectedPlayer) {
+        const isLatentInfiltrato = (selectedPlayer.roleKey === "infiltrato" && !selectedPlayer.isTransformed);
+
+        const displayIcon = isLatentInfiltrato ? "👨‍🌾" : selectedPlayer.role.icon;
+        const displayName = isLatentInfiltrato ? "Contadino" : (selectedPlayer.roleKey === "infiltrato" ? "Lupo Mannaro (Trasformato)" : selectedPlayer.role.name);
+        const displayFaction = isLatentInfiltrato ? "Villaggio 👨‍🌾" : selectedPlayer.role.factionLabel;
+        const displayColor = isLatentInfiltrato ? "#eab308" : (selectedPlayer.role.color || "#38bdf8");
+        const displayDesc = isLatentInfiltrato
+          ? "Non ha poteri notturni speciali. È un semplice abitante del villaggio."
+          : (selectedPlayer.role.description ? selectedPlayer.role.description.slice(0, 85) + '...' : '');
+
+        const secretNarratorNote = isLatentInfiltrato
+          ? `<div style="font-size: 0.78rem; color: #fde68a; margin-top: 6px; background: rgba(0,0,0,0.25); padding: 5px 8px; border-radius: 4px; border: 1px dashed rgba(254, 240, 138, 0.4);">
+               🤫 <strong>Nota Narratore:</strong> In realtà era il <strong>Lupo Mannaro</strong> latente! Poiché è morto prima della trasformazione con la Luna Piena, al Beccamorto appare con la <strong>copertura da Contadino</strong>.
+             </div>`
+          : '';
+
+        revelationHtml = `
+          <div style="background: rgba(100, 116, 139, 0.18); border: 1.5px solid #64748b; border-radius: var(--radius-md); padding: 14px; margin: 14px 0; display: flex; align-items: center; gap: 14px; box-shadow: 0 4px 16px rgba(0,0,0,0.35);">
+            <span style="font-size: 2.3rem; line-height: 1;">${displayIcon}</span>
+            <div style="flex: 1;">
+              <div style="font-size: 1.05rem; font-weight: 800; color: #fff;">${selectedPlayer.name}</div>
+              <div style="font-size: 0.92rem; color: #cbd5e1; font-weight: 700; margin-top: 2px;">
+                Ruolo Rivelato: <span style="color: ${displayColor}; font-weight: 900;">${displayName}</span> (${displayFaction})
+              </div>
+              <div style="font-size: 0.8rem; color: #94a3b8; margin-top: 3px;">
+                ${displayDesc}
+              </div>
+              ${secretNarratorNote}
             </div>
           </div>
-        `).join("");
 
-        contentHtml = `
-          <div style="margin: 10px 0;">
-            <div style="font-size: 0.84rem; color: #cbd5e1; margin-bottom: 8px;">
-              🤫 Mostra discretamente lo schermo o mima al Beccamorto l'identità del caduto:
-            </div>
-            ${cards}
+          <div style="font-size: 0.84rem; color: #cbd5e1; text-align: center; margin-bottom: 10px;">
+            🤫 <em>Mostra discretamente lo schermo o mima al Beccamorto l'identità di <strong>${selectedPlayer.name}</strong>.</em>
+          </div>
+
+          <div style="text-align: center; margin-top: 8px;">
+            <button type="button" class="btn ${isConfirmed ? 'btn-secondary' : 'btn-primary'} btn-sm" id="lupus-btn-confirm-beccamorto">
+              ${isConfirmed ? `✅ Identità di ${selectedPlayer.name} Mostrata` : `👁️ Ho mostrato l'identità di ${selectedPlayer.name} al Beccamorto`}
+            </button>
           </div>
         `;
       }
 
-      const isConfirmed = !!game.nightActions.beccamortoSeen;
-      const confirmBtnHtml = `
-        <div style="text-align: center; margin-top: 14px;">
-          <button type="button" class="btn ${isConfirmed ? 'btn-secondary' : 'btn-primary'} btn-sm" id="lupus-btn-confirm-beccamorto">
-            ${isConfirmed ? '✅ Identità Mostrata al Beccamorto' : '👁️ Ho mostrato l\'identità al Beccamorto'}
-          </button>
-        </div>
-      `;
-
-      let statusMsg = isConfirmed
-        ? `<div class="lupus-action-status" style="margin-top: 8px;"><span style="color: #6ee7b7;">✅ Confermato - Puoi premere Avanti</span></div>`
-        : `<div class="lupus-action-status" style="margin-top: 8px;"><span style="color: #fca5a5;">⚠️ Tocca il pulsante di presa visione per poter premere Avanti</span></div>`;
+      let statusMsg = "";
+      if (!selectedId) {
+        statusMsg = `<div class="lupus-action-status" style="margin-top: 10px;"><span style="color: #fca5a5;">⚠️ Il Beccamorto deve indicare quale singolo morto consultare stanotte (1 solo per round)</span></div>`;
+      } else if (!isConfirmed) {
+        statusMsg = `<div class="lupus-action-status" style="margin-top: 10px;"><span style="color: #fca5a5;">⚠️ Tocca "Ho mostrato l'identità" per poter premere Avanti</span></div>`;
+      } else {
+        statusMsg = `<div class="lupus-action-status" style="margin-top: 10px;"><span style="color: #6ee7b7;">✅ Identità comunicata al Beccamorto per questo round - Puoi premere Avanti</span></div>`;
+      }
 
       actionWidget.innerHTML = `
         <div class="lupus-action-widget">
-          <div class="lupus-action-prompt">⚰️ Identità del/i giocatore/i eliminato/i nel round precedente:</div>
-          ${contentHtml}
-          ${confirmBtnHtml}
+          <div class="lupus-action-prompt">
+            ⚰️ Il Beccamorto indica <strong>un solo morto</strong> di cui scoprire l'identità:
+            <div style="font-size: 0.8rem; color: #cbd5e1; font-weight: normal; margin-top: 3px;">
+              Regola: il Beccamorto può conoscere al massimo <strong>1 sola identità per round</strong>.
+            </div>
+          </div>
+          <div class="lupus-action-grid">${candidateCards}</div>
+          ${revelationHtml}
           ${statusMsg}
         </div>
       `;
 
+      // Event listener sui defunti
+      actionWidget.querySelectorAll(".lupus-action-card").forEach(card => {
+        card.addEventListener("click", () => {
+          try { Sound.playClick(); } catch (e) {}
+          const pid = card.dataset.playerId;
+          if (game.nightActions.beccamortoTarget !== pid) {
+            game.nightActions.beccamortoTarget = pid;
+            game.nightActions.beccamortoSeen = false;
+            this.renderNightActionWidget("beccamorto");
+          }
+        });
+      });
+
+      // Event listener conferma
       const confirmBtn = actionWidget.querySelector("#lupus-btn-confirm-beccamorto");
       if (confirmBtn) {
         confirmBtn.addEventListener("click", () => {
           try { Sound.playClick(); } catch (e) {}
           game.nightActions.beccamortoSeen = true;
+          if (selectedId && !revealedIds.includes(selectedId)) {
+            revealedIds.push(selectedId);
+            game.beccamortoRevealed = revealedIds;
+          }
           this.renderNightActionWidget("beccamorto");
         });
       }

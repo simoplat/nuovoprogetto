@@ -85,8 +85,10 @@ class LupusGameController {
       witchHealTarget: undefined,
       witchKill: undefined,
       infiltratoRoll: null,
+      beccamortoTarget: undefined,
       beccamortoSeen: false
     };
+    this.beccamortoRevealed = [];
     this.nightResolved = false;
     this.preDawnAliveSnapshot = null;
     this.preDawnWitchLifeSnapshot = false;
@@ -237,8 +239,10 @@ class LupusGameController {
       witchHealTarget: undefined,
       witchKill: undefined,
       infiltratoRoll: null,
+      beccamortoTarget: undefined,
       beccamortoSeen: false
     };
+    this.beccamortoRevealed = [];
     this.nightResolved = false;
     this.preDawnAliveSnapshot = null;
     this.dawnReport = null;
@@ -403,7 +407,7 @@ class LupusGameController {
         phaseBadge: `Notte ${this.nightCount} 🌙`,
         badgeClass: "badge-night",
         title: "⚰️ Risveglio del Beccamorto",
-        instruction: "Il Narratore dice: <em>'Il Beccamorto apra gli occhi.'</em> Il Narratore rivela segretamente al Beccamorto (mostrando la carta o mimando il ruolo) l'<strong>esatta identità del giocatore morto nel round precedente</strong>."
+        instruction: "Il Narratore dice: <em>'Il Beccamorto apra gli occhi.'</em> Il Beccamorto indica <strong>un solo defunto</strong> di cui desidera conoscere l'identità (massimo 1 a round). Il Narratore gli mostra la carta o mima il ruolo del prescelto."
       });
     }
 
@@ -541,6 +545,7 @@ class LupusGameController {
       witchHealTarget: undefined,
       witchKill: undefined,
       infiltratoRoll: null,
+      beccamortoTarget: undefined,
       beccamortoSeen: false
     };
     this.nightResolved = false;

@@ -105,7 +105,7 @@ const LUPUS_ROLES = {
     icon: "🐺🌕",
     image: "img/lupus/lupo_mannaro.jpg",
     color: "#ef4444",
-    description: "Umano affetto da licantropia latente! Dormi con gli umani e al Veggente appari Non Lupo, ma ogni notte il dado della Luna Piena può trasformarti definitivamente in un vero Lupo del branco! Una volta trasformato, ti sveglierai con i lupi e conterai a tutti gli effetti come lupo.",
+    description: "Umano affetto da licantropia latente! Dormi con gli umani: al Veggente appari Non Lupo e, se muori prima di trasformarti, anche al Beccamorto appari con copertura da Contadino! Ma ogni notte il dado della Luna Piena può trasformarti per sempre in un vero Lupo del branco.",
     nightAction: "Ogni notte viene lanciato il dado della Luna Piena: se si trasforma, diventa per sempre un Lupo a tutti gli effetti (non può più tornare umano)."
   },
   lupo_bianco: {
@@ -138,8 +138,8 @@ const LUPUS_ROLES = {
     icon: "⚰️",
     image: "img/lupus/beccamorto.jpg",
     color: "#64748b",
-    description: "I morti ti parlano nel silenzio del cimitero. Dalla Notte 2 in poi, ogni notte il Narratore ti sveglia e ti rivela segretamente il ruolo esatto del giocatore morto nel round precedente (con 1 giorno di ritardo).",
-    nightAction: "Dalla Notte 2 in poi, il Beccamorto apre gli occhi. Il Narratore gli mostra la carta o mima il ruolo del morto del round precedente."
+    description: "I morti ti parlano nel silenzio del cimitero. Dalla Notte 2 in poi, ogni notte il Narratore ti sveglia e puoi scoprire l'identità di un solo morto alla volta. Vede il ruolo reale del caduto, tranne per l'Infiltrato non trasformato che mantiene la copertura da Contadino!",
+    nightAction: "Dalla Notte 2 in poi, il Beccamorto apre gli occhi e indica un solo morto del cimitero. Il Narratore gli mostra la carta o mima il ruolo del prescelto (massimo 1 a notte)."
   },
   idiota: {
     id: "idiota",
