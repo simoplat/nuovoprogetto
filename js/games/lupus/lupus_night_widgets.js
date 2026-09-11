@@ -691,6 +691,9 @@ class LupusNightWidgets {
       const healTargetId = game.nightActions.witchHealTarget;
       const poisonTargetId = game.nightActions.witchKill;
 
+      const isLifeChosen = (typeof healTargetId === "string" && healTargetId.length > 0);
+      const isPoisonChosen = (typeof poisonTargetId === "string" && poisonTargetId.length > 0);
+
       // Section 1: Life potion
       let lifeSection = "";
       if (isLifeAvailable) {
@@ -720,7 +723,9 @@ class LupusNightWidgets {
 
         const chosenHealPlayer = healTargetId ? game.assignments.find(p => p.id === healTargetId) : null;
         let healStatus = "";
-        if (healTargetId === undefined) {
+        if (isPoisonChosen) {
+          healStatus = `<span style="color: #94a3b8;">🔒 Pozione di Vita disattivata: hai selezionato la Pozione di Morte (massimo 1 pozione per notte).</span>`;
+        } else if (healTargetId === undefined) {
           healStatus = `<span style="color: #fca5a5;">⚠️ Fai una scelta per la Pozione di Vita (o seleziona "Non Usare")</span>`;
         } else if (chosenHealPlayer) {
           if (wolfVictim && chosenHealPlayer.id === wolfVictim.id) {
@@ -732,9 +737,13 @@ class LupusNightWidgets {
           healStatus = "🚫 Nessuna Pozione di Vita usata stanotte.";
         }
 
+        const promptText = isPoisonChosen
+          ? `<div style="font-size: 0.82rem; color: #94a3b8; margin-bottom: 6px;"><em>(Tocca un giocatore se preferisci usare la Pozione di Vita al posto del Veleno):</em></div>`
+          : `<div style="font-size: 0.84rem; color: #cbd5e1; margin-bottom: 6px;">Tocca chi salvare/benedire con la Pozione di Vita (anche chi non è attaccato):</div>`;
+
         lifeSection = `
           ${wolfInfo}
-          <div style="font-size: 0.84rem; color: #cbd5e1; margin-bottom: 6px;">Tocca chi salvare/benedire con la Pozione di Vita (anche chi non è attaccato):</div>
+          ${promptText}
           <div class="lupus-action-grid">${noneHealCard}${healCards}</div>
           <div class="lupus-action-status" style="margin-top: 6px;">${healStatus}</div>
         `;
@@ -769,7 +778,9 @@ class LupusNightWidgets {
         }).join("");
 
         let poisonStatus = "";
-        if (poisonTargetId === undefined) {
+        if (isLifeChosen) {
+          poisonStatus = `<span style="color: #94a3b8;">🔒 Pozione di Morte disattivata: hai selezionato la Pozione di Vita (massimo 1 pozione per notte).</span>`;
+        } else if (poisonTargetId === undefined) {
           poisonStatus = `<span style="color: #fca5a5;">⚠️ Fai una scelta per la Pozione di Morte (o seleziona "Non Avvelenare")</span>`;
         } else if (poisonTargetId) {
           poisonStatus = `☠️ Bersaglio veleno: <strong>${game.assignments.find(p => p.id === poisonTargetId)?.name}</strong> (Morirà all'Alba!)`;
@@ -777,8 +788,12 @@ class LupusNightWidgets {
           poisonStatus = "🚫 Nessun veleno usato stanotte.";
         }
 
+        const promptText = isLifeChosen
+          ? `<div style="font-size: 0.82rem; color: #94a3b8; margin-bottom: 6px;"><em>(Tocca un giocatore se preferisci usare la Pozione di Morte al posto della Pozione di Vita):</em></div>`
+          : `<div style="font-size: 0.85rem; color: #cbd5e1; margin-bottom: 6px;">Tocca chi avvelenare (oppure conserva la pozione):</div>`;
+
         deathSection = `
-          <div style="font-size: 0.85rem; color: #cbd5e1; margin-bottom: 6px;">Tocca chi avvelenare (oppure conserva la pozione):</div>
+          ${promptText}
           <div class="lupus-action-grid">${noneCard}${poisonCards}</div>
           <div class="lupus-action-status" style="margin-top: 6px;">${poisonStatus}</div>
         `;
@@ -792,7 +807,12 @@ class LupusNightWidgets {
 
       actionWidget.innerHTML = `
         <div class="lupus-action-widget">
-          <div class="lupus-action-prompt">🧙‍♀️ Gestione Pozioni della Strega:</div>
+          <div class="lupus-action-prompt">
+            🧙‍♀️ Gestione Pozioni della Strega:
+            <div style="font-size: 0.82rem; color: #cbd5e1; font-weight: normal; margin-top: 4px;">
+              ⚖️ <em>Regola: la Strega può usare <strong>al massimo 1 sola pozione per notte</strong> (Vita o Morte).</em>
+            </div>
+          </div>
           
           <div class="witch-potions-box">
             <!-- Pozione di Vita -->
@@ -817,16 +837,41 @@ class LupusNightWidgets {
               ${deathSection}
             </div>
           </div>
+
+          <div style="text-align: center; margin-top: 10px;">
+            <button type="button" class="btn btn-secondary btn-sm" id="lupus-strega-skip-both">
+              🚫 Non Usare Nessuna Pozione Stanotte
+            </button>
+          </div>
         </div>
       `;
+
+      // Button: Skip both
+      const skipBothBtn = actionWidget.querySelector("#lupus-strega-skip-both");
+      if (skipBothBtn) {
+        skipBothBtn.addEventListener("click", () => {
+          try { Sound.playClick(); } catch (e) {}
+          game.nightActions.witchHealTarget = null;
+          game.nightActions.witchHeal = false;
+          game.nightActions.witchKill = null;
+          this.renderNightActionWidget("strega");
+        });
+      }
 
       // Bind heal cards
       actionWidget.querySelectorAll('.lupus-action-card[data-action="heal"]').forEach(card => {
         card.addEventListener("click", () => {
           try { Sound.playClick(); } catch (e) {}
           const pid = card.dataset.playerId;
-          game.nightActions.witchHealTarget = (pid === "NO_HEAL") ? null : pid;
-          game.nightActions.witchHeal = (pid !== "NO_HEAL" && pid === (wolfVictim ? wolfVictim.id : null));
+          if (pid === "NO_HEAL") {
+            game.nightActions.witchHealTarget = null;
+            game.nightActions.witchHeal = false;
+          } else {
+            game.nightActions.witchHealTarget = pid;
+            game.nightActions.witchHeal = (pid === (wolfVictim ? wolfVictim.id : null));
+            // Regola: massimo 1 pozione a notte -> disattiva veleno
+            game.nightActions.witchKill = null;
+          }
           this.renderNightActionWidget("strega");
         });
       });
@@ -836,7 +881,14 @@ class LupusNightWidgets {
         card.addEventListener("click", () => {
           try { Sound.playClick(); } catch (e) {}
           const pid = card.dataset.playerId;
-          game.nightActions.witchKill = (pid === "NO_POISON") ? null : pid;
+          if (pid === "NO_POISON") {
+            game.nightActions.witchKill = null;
+          } else {
+            game.nightActions.witchKill = pid;
+            // Regola: massimo 1 pozione a notte -> disattiva vita
+            game.nightActions.witchHealTarget = null;
+            game.nightActions.witchHeal = false;
+          }
           this.renderNightActionWidget("strega");
         });
       });

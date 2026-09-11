@@ -377,7 +377,7 @@ class LupusGameController {
         phaseBadge: `Notte ${this.nightCount} 🌙`,
         badgeClass: "badge-night",
         title: "🛡️ Risveglio della Guardia",
-        instruction: "Il Narratore dice: <em>'La Guardia apra gli occhi e indichi chi proteggere con il suo scudo.'</em> La Guardia indica un abitante (può proteggere anche se stessa). Se i Lupi hanno attaccato quel giocatore, il suo scudo lo salverà!"
+        instruction: "Il Narratore dice: <em>'La Guardia apra gli occhi e indichi chi proteggere con il suo scudo.'</em> La Guardia indica un abitante (può proteggere anche se stessa). Lo scudo salverà il prescelto da qualsiasi attacco dei Lupi (compreso il Lupo Bianco)!"
       });
     }
 
@@ -416,7 +416,7 @@ class LupusGameController {
         phaseBadge: `Notte ${this.nightCount} 🌙`,
         badgeClass: "badge-night",
         title: "🧙‍♀️ Risveglio della Strega",
-        instruction: "Il Narratore dice: <em>'La Strega apra gli occhi.'</em> Il Narratore le indica la vittima dei lupi. La Strega decide se usare la pozione di vita e/o la pozione di morte su qualcun altro."
+        instruction: "Il Narratore dice: <em>'La Strega apra gli occhi.'</em> Il Narratore le mostra la vittima dei lupi. La Strega decide se usare la pozione di vita oppure la pozione di morte (al massimo 1 sola pozione a notte)."
       });
     }
 

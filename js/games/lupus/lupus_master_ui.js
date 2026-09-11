@@ -180,12 +180,16 @@ class LupusMasterUI {
     }
 
     if (subtype === "strega") {
-      const lifeReady = game.witchLifeUsed || game.nightActions.witchHealTarget !== undefined;
-      const deathReady = game.witchDeathUsed || game.nightActions.witchKill !== undefined;
-      const complete = lifeReady && deathReady;
+      const healTargetId = game.nightActions.witchHealTarget;
+      const poisonTargetId = game.nightActions.witchKill;
+      const hasChosenLife = (typeof healTargetId === "string" && healTargetId.length > 0);
+      const hasChosenPoison = (typeof poisonTargetId === "string" && poisonTargetId.length > 0);
+      const lifeDone = game.witchLifeUsed || healTargetId !== undefined;
+      const deathDone = game.witchDeathUsed || poisonTargetId !== undefined;
+      const complete = hasChosenLife || hasChosenPoison || (lifeDone && deathDone);
       return {
         complete,
-        message: complete ? "" : "Fai una scelta per ciascuna pozione disponibile (o seleziona Non Usare) per poter premere Avanti"
+        message: complete ? "" : "Fai una scelta per la Strega (puoi usare al massimo 1 pozione a notte o nessuna) per poter premere Avanti"
       };
     }
 

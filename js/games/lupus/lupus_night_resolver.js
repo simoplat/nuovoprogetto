@@ -112,33 +112,36 @@ class LupusNightResolver {
     const lupoBiancoTargetId = lupoBiancoPlayer ? game.nightActions.lupoBiancoTarget : null;
     const lupoBiancoVictim = lupoBiancoTargetId ? game.assignments.find(p => p.id === lupoBiancoTargetId && p.isAlive) : null;
     if (lupoBiancoVictim && !deaths.has(lupoBiancoVictim.id)) {
-      deaths.set(lupoBiancoVictim.id, "Sbranato alle spalle dal Lupo Bianco");
-      events.push({
-        type: "death",
-        icon: "🐺❄️",
-        text: `<strong>${lupoBiancoVictim.name}</strong> (${lupoBiancoVictim.role.name}) è stat${getSfx(lupoBiancoVictim.name)} sbranat${getSfx(lupoBiancoVictim.name)} a tradimento dal Lupo Bianco!`
-      });
+      const isLupoBiancoProtectedByGuard = !isGuardSilenced && (game.nightActions.guardTarget === lupoBiancoVictim.id);
+      if (isLupoBiancoProtectedByGuard) {
+        events.push({
+          type: "saved",
+          icon: "🛡️",
+          text: `Il Lupo Bianco ha tentato di sbranare alle spalle <strong>${lupoBiancoVictim.name}</strong>, ma lo <strong>scudo della Guardia</strong> l'ha salvat${getSfx(lupoBiancoVictim.name)}!`
+        });
+      } else {
+        deaths.set(lupoBiancoVictim.id, "Sbranato alle spalle dal Lupo Bianco");
+        events.push({
+          type: "death",
+          icon: "🐺❄️",
+          text: `<strong>${lupoBiancoVictim.name}</strong> (${lupoBiancoVictim.role.name}) è stat${getSfx(lupoBiancoVictim.name)} sbranat${getSfx(lupoBiancoVictim.name)} a tradimento dal Lupo Bianco!`
+        });
+      }
     }
 
     // 4. Risoluzione Pozione di Morte della Strega
-    const witchKillId = (!isStregaSilenced && !game.witchDeathUsed) ? game.nightActions.witchKill : null;
+    // Regola: La Strega può usare al massimo 1 pozione per turno (Vita O Morte, mai entrambe nello stesso turno).
+    const healUsedThisTurn = !!healTargetPlayer;
+    const witchKillId = (!isStregaSilenced && !game.witchDeathUsed && !healUsedThisTurn) ? game.nightActions.witchKill : null;
     const witchVictim = witchKillId ? game.assignments.find(p => p.id === witchKillId && p.isAlive) : null;
     if (witchVictim && !deaths.has(witchVictim.id)) {
       game.witchDeathUsed = true;
-      if (healTargetPlayer && healTargetPlayer.id === witchVictim.id) {
-        events.push({
-          type: "saved",
-          icon: "🧪☠️",
-          text: `La Strega ha somministrato sia la Pozione di Morte che la Pozione di Vita a <strong>${witchVictim.name}</strong>: l'antidoto ha neutralizzato il veleno!`
-        });
-      } else {
-        deaths.set(witchVictim.id, "Avvelenato dalla Strega");
-        events.push({
-          type: "death",
-          icon: "☠️",
-          text: `<strong>${witchVictim.name}</strong> (${witchVictim.role.name}) è stat${getSfx(witchVictim.name)} avvelenat${getSfx(witchVictim.name)} dalla Strega con la Pozione di Morte!`
-        });
-      }
+      deaths.set(witchVictim.id, "Avvelenato dalla Strega");
+      events.push({
+        type: "death",
+        icon: "☠️",
+        text: `<strong>${witchVictim.name}</strong> (${witchVictim.role.name}) è stat${getSfx(witchVictim.name)} avvelenat${getSfx(witchVictim.name)} dalla Strega con la Pozione di Morte!`
+      });
     }
 
     // 5. Risoluzione Innamorati a Catena (Cupido)

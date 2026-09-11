@@ -39,8 +39,8 @@ const LUPUS_ROLES = {
     icon: "🛡️",
     image: "img/lupus/guardia.jpg",
     color: "#3b82f6",
-    description: "Ogni notte indichi un giocatore (puoi scegliere anche te stesso) per proteggerlo con il suo scudo. Se i Lupi lo attaccano, sopravviverà!",
-    nightAction: "La Guardia apre gli occhi e indica chi proteggere per la notte."
+    description: "Ogni notte indichi un giocatore (puoi scegliere anche te stesso) per proteggerlo con il suo scudo. Se i Lupi (incluso il Lupo Bianco) lo attaccano, sopravviverà!",
+    nightAction: "La Guardia apre gli occhi e indica chi proteggere per la notte. Lo scudo difende da tutti gli attacchi dei lupi."
   },
   strega: {
     id: "strega",
@@ -50,8 +50,8 @@ const LUPUS_ROLES = {
     icon: "🧙‍♀️",
     image: "img/lupus/strega.jpg",
     color: "#10b981",
-    description: "Possiedi 2 potenti pozioni utilizzabili una sola volta per partita: la Pozione di Vita per salvare chiunque tu scelga, e la Pozione di Morte per avvelenare un sospettato.",
-    nightAction: "La Strega può decidere chi salvare con la Pozione di Vita (anche su chi non è attaccato) e chi eliminare con la Pozione di Morte."
+    description: "Possiedi 2 potenti pozioni monouso per partita: la Pozione di Vita per salvare chiunque tu scelga, e la Pozione di Morte per avvelenare un sospettato. Puoi usare al massimo 1 sola pozione a notte!",
+    nightAction: "La Strega decide se usare la Pozione di Vita oppure la Pozione di Morte (massimo 1 pozione a notte)."
   },
   cupido: {
     id: "cupido",
