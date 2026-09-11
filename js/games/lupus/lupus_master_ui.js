@@ -665,6 +665,7 @@ class LupusMasterUI {
       winType = (aliveWolves.length === 0) ? "villaggio" : "lupi";
     }
 
+    const isNessunoWin = (winType === "nessuno");
     const isVillageWin = (winType === "villaggio");
     const isGiullareWin = (winType === "giullare");
     const isLupoBiancoWin = (winType === "lupo_bianco");
@@ -672,7 +673,7 @@ class LupusMasterUI {
 
     if (phaseTitle) phaseTitle.textContent = `Round ${game.nightCount} - Epilogo 🏆`;
     if (phaseBadge) {
-      phaseBadge.textContent = "🏆 Fine Partita";
+      phaseBadge.textContent = isNessunoWin ? "🪦 Fine Partita" : "🏆 Fine Partita";
       phaseBadge.className = "phase-badge " + (isVillageWin ? "badge-day" : (isGiullareWin || isLupoBiancoWin) ? "badge-solitario" : "badge-night");
     }
 
@@ -716,7 +717,13 @@ class LupusMasterUI {
       let boxThemeClass = "village-wins";
       let victoryDesc = "Tutti i Lupi Mannari sono stati eliminati. Il villaggio è finalmente al sicuro!";
 
-      if (isGiullareWin) {
+      if (isNessunoWin) {
+        headline = "NESSUN VINCITORE! (ESTINZIONE TOTALE)";
+        headlineColor = "#94a3b8";
+        victoryEmoji = "🪦💀🌫️";
+        boxThemeClass = "wolves-win";
+        victoryDesc = "Tutti gli abitanti del villaggio e i lupi sono caduti. Non è rimasto alcun superstite in vita: nessuno vince la partita!";
+      } else if (isGiullareWin) {
         headline = "TRIONFO DEL GIULLARE!";
         headlineColor = "#f59e0b";
         victoryEmoji = "🃏🎭👑";

@@ -575,6 +575,23 @@ class LupusGameController {
     const aliveWolves = alive.filter(p => wolfThreatRoles.includes(p.roleKey) || (p.roleKey === "infiltrato" && p.isTransformed));
     const aliveNonWolves = alive.filter(p => !wolfThreatRoles.includes(p.roleKey) && !(p.roleKey === "infiltrato" && p.isTransformed));
 
+    // 0. Estinzione Totale: nessun superstite rimasto in vita
+    if (alive.length === 0) {
+      if (banner) {
+        banner.style.display = "block";
+        banner.className = "lupus-victory-banner wolves-win";
+        banner.innerHTML = `
+          <div style="font-size: 2.2rem; margin-bottom: 6px;">🪦💀</div>
+          <h3 style="font-size: 1.4rem; color: #94a3b8; font-weight: 900;">NESSUN VINCITORE! (ESTINZIONE TOTALE)</h3>
+          <p style="font-size: 0.9rem; color: var(--text-secondary); margin-top: 4px;">
+            Tutti gli abitanti del villaggio e i lupi sono caduti. Non ci sono superstiti, nessuno ha vinto la partita!
+          </p>
+        `;
+      }
+      try { Sound.playGameOver(); } catch (e) {}
+      return "nessuno";
+    }
+
     // 1. Lupo Bianco: ultimo in assoluto (unico superstite di tutta la partita)
     if (alive.length === 1 && alive[0].roleKey === "lupo_bianco") {
       if (banner) {

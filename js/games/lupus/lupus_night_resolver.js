@@ -88,15 +88,6 @@ class LupusNightResolver {
       }
     }
 
-    // Se la Strega ha usato la Pozione di Vita su qualcuno non attaccato dai Lupi
-    if (healTargetPlayer && (!wolfVictim || healTargetPlayer.id !== wolfVictim.id)) {
-      events.push({
-        type: "saved",
-        icon: "🧪",
-        text: `La Strega ha somministrato la sua <strong>Pozione di Vita</strong> su <strong>${healTargetPlayer.name}</strong> (${healTargetPlayer.role.name}), che non era in pericolo mortale dai Lupi. La pozione è stata consumata!`
-      });
-    }
-
     // 2. Risoluzione Donna che visita un Lupo
     if (donnaPlayer && isDonnaVisitingWolf && !deaths.has(donnaPlayer.id)) {
       deaths.set(donnaPlayer.id, "Sbranata per essersi rifugiata da un Lupo Mannaro");
@@ -113,11 +104,18 @@ class LupusNightResolver {
     const lupoBiancoVictim = lupoBiancoTargetId ? game.assignments.find(p => p.id === lupoBiancoTargetId && p.isAlive) : null;
     if (lupoBiancoVictim && !deaths.has(lupoBiancoVictim.id)) {
       const isLupoBiancoProtectedByGuard = !isGuardSilenced && (game.nightActions.guardTarget === lupoBiancoVictim.id);
+      const isLupoBiancoHealedByWitch = healTargetPlayer && (healTargetPlayer.id === lupoBiancoVictim.id);
       if (isLupoBiancoProtectedByGuard) {
         events.push({
           type: "saved",
           icon: "🛡️",
           text: `Il Lupo Bianco ha tentato di sbranare alle spalle <strong>${lupoBiancoVictim.name}</strong>, ma lo <strong>scudo della Guardia</strong> l'ha salvat${getSfx(lupoBiancoVictim.name)}!`
+        });
+      } else if (isLupoBiancoHealedByWitch) {
+        events.push({
+          type: "saved",
+          icon: "🧪",
+          text: `Il Lupo Bianco ha tentato di sbranare alle spalle <strong>${lupoBiancoVictim.name}</strong>, ma la <strong>Pozione di Vita della Strega</strong> l'ha salvat${getSfx(lupoBiancoVictim.name)}!`
         });
       } else {
         deaths.set(lupoBiancoVictim.id, "Sbranato alle spalle dal Lupo Bianco");
@@ -127,6 +125,16 @@ class LupusNightResolver {
           text: `<strong>${lupoBiancoVictim.name}</strong> (${lupoBiancoVictim.role.name}) è stat${getSfx(lupoBiancoVictim.name)} sbranat${getSfx(lupoBiancoVictim.name)} a tradimento dal Lupo Bianco!`
         });
       }
+    }
+
+    // Se la Strega ha usato la Pozione di Vita su qualcuno non attaccato dai Lupi né dal Lupo Bianco
+    const wasHealTargetAttacked = (wolfVictim && healTargetPlayer && healTargetPlayer.id === wolfVictim.id) || (lupoBiancoVictim && healTargetPlayer && healTargetPlayer.id === lupoBiancoVictim.id);
+    if (healTargetPlayer && !wasHealTargetAttacked) {
+      events.push({
+        type: "saved",
+        icon: "🧪",
+        text: `La Strega ha somministrato la sua <strong>Pozione di Vita</strong> su <strong>${healTargetPlayer.name}</strong> (${healTargetPlayer.role.name}), che non era in pericolo mortale dai Lupi. La pozione è stata consumata!`
+      });
     }
 
     // 4. Risoluzione Pozione di Morte della Strega
