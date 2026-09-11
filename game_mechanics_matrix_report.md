@@ -52,6 +52,7 @@ Questo documento costituisce il registro ufficiale, esaustivo e definitivo di tu
   * **Benedizione a vuoto:** Usare la Pozione di Vita su chi non è sotto attacco consuma la pozione senza effetti.
   * **Precedenza Scudo:** Se sia la Guardia che la Strega proteggono la stessa vittima, lo scudo para per primo ma la pozione viene comunque consumata.
   * **Silenziamento:** Se silenziata dal Lupo Stregone, entrambe le pozioni sono bloccate per la notte.
+  * **Overkill con i Lupi (Pozione di Morte):** Se la Strega avvelena un giocatore che nella stessa notte viene anche sbranato dai lupi, la pozione viene comunque consumata per sempre (spreco per eccesso di danno).
 
 ### 5. 💘 Cupido
 * **Fazione:** Villaggio 💘 (`faction: "villaggio"`, Colore: `#f43f5e`)
@@ -326,6 +327,7 @@ flowchart TD
 | **Strega (Vita) vs Crepacuore** | Pozione Vita | Crepacuore | **Crepacuore** 💔 | L'innamorato **Muore**. La pozione non risana il cuore spezzato. |
 | **Strega (Vita) su bersaglio incolume**| Pozione Vita | Nessun Attacco | **Spreco** 💨 | Pozione **consumata a vuoto** per il resto della partita. |
 | **Strega (Vita) vs Strega (Morte)** | Pozione Vita | Pozione Morte | **Mutua Esclusione** ⚖️ | **Impossibile nello stesso turno** (massimo 1 pozione a notte). |
+| **Strega (Morte) vs Lupi su stessa vittima** | Pozione Morte | Attacco Lupi | **Overkill** ☠️🐺 | Bersaglio **Muore sbranato e avvelenato**. Pozione di Morte consumata. |
 | **Guardia vs Lupi del Branco** | Scudo Guardia | Attacco Branco | **Guardia** 🛡️ | Bersaglio **Salvo**. Nessun caduto tra i contadini. |
 | **Guardia protegge se stessa** | Scudo Guardia | Attacco Branco | **Guardia** 🛡️ | Guardia **Salva**. L'autoprotezione è consentita. |
 | **Guardia vs Lupo Bianco** | Scudo Guardia | Morso alle Spalle | **Guardia** 🛡️ | **Salvo!** Lo scudo difende il compagno lupo dal tradimento. |

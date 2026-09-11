@@ -146,14 +146,22 @@ class LupusNightResolver {
     const healUsedThisTurn = !!healTargetPlayer;
     const witchKillId = (!isStregaSilenced && !game.witchDeathUsed && !healUsedThisTurn) ? game.nightActions.witchKill : null;
     const witchVictim = witchKillId ? game.assignments.find(p => p.id === witchKillId && p.isAlive) : null;
-    if (witchVictim && !deaths.has(witchVictim.id)) {
+    if (witchVictim) {
       game.witchDeathUsed = true;
-      deaths.set(witchVictim.id, "Avvelenato dalla Strega");
-      events.push({
-        type: "death",
-        icon: "☠️",
-        text: `<strong>${witchVictim.name}</strong> (${witchVictim.role.name}) è stat${getSfx(witchVictim.name)} avvelenat${getSfx(witchVictim.name)} dalla Strega con la Pozione di Morte!`
-      });
+      if (!deaths.has(witchVictim.id)) {
+        deaths.set(witchVictim.id, "Avvelenato dalla Strega");
+        events.push({
+          type: "death",
+          icon: "☠️",
+          text: `<strong>${witchVictim.name}</strong> (${witchVictim.role.name}) è stat${getSfx(witchVictim.name)} avvelenat${getSfx(witchVictim.name)} dalla Strega con la Pozione di Morte!`
+        });
+      } else {
+        events.push({
+          type: "death",
+          icon: "☠️🐺",
+          text: `La Strega ha versato la sua <strong>Pozione di Morte</strong> su <strong>${witchVictim.name}</strong> (${witchVictim.role.name}), che era già stat${getSfx(witchVictim.name)} sbranat${getSfx(witchVictim.name)} dai lupi stanotte. La pozione è stata consumata!`
+        });
+      }
     }
 
     // 5. Risoluzione Innamorati a Catena (Cupido)
