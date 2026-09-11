@@ -127,7 +127,7 @@ const LUPUS_ROLES = {
     icon: "🐺🔮",
     image: "img/lupus/lupo_stregone.jpg",
     color: "#9333ea",
-    description: "Ti svegli con il branco dei Lupi ogni notte. Subito dopo, ti svegli da solo e puoi scagliare la tua maledizione: indica un abitante al Narratore. Se quel giocatore ha un potere notturno attivo (Guardia, Veggente, Strega, Beccamorto), il suo potere sarà bloccato per questa notte!",
+    description: "Ti svegli con il branco dei Lupi ogni notte. Subito dopo, ti svegli da solo e puoi scagliare la tua maledizione: indica un abitante al Narratore. Se quel giocatore ha un potere notturno attivo (Guardia, Veggente, Strega, Beccamorto, Necromante), il suo potere sarà bloccato per questa notte!",
     nightAction: "Si sveglia con i lupi. Subito dopo apre gli occhi da solo e indica un giocatore per bloccarne il potere notturno se attivo."
   },
   beccamorto: {
@@ -162,6 +162,17 @@ const LUPUS_ROLES = {
     color: "#dc2626",
     description: "Sei un feroce Lupo Mannaro sotto le sembianze di un fedele segugio nero. Ti svegli ogni notte con il branco per scegliere la vittima. La tua abilità illusoria: al Veggente risulti insospettabile come 'NON Lupo'!",
     nightAction: "Si sveglia con il branco dei lupi ogni notte. Se il Veggente lo scruta, il Narratore risponde che è 'Non Lupo'."
+  },
+  necromante: {
+    id: "necromante",
+    name: "Il Necromante",
+    faction: "villaggio",
+    factionLabel: "Villaggio 🕯️💀",
+    icon: "🕯️💀",
+    image: "img/lupus/necromante.jpg",
+    color: "#8b5cf6",
+    description: "Padrone dei misteri della morte, fedele al Villaggio. Una sola volta in tutta la partita, a partire dalla Notte 2, puoi richiamare dall'oltretomba un qualsiasi defunto del cimitero per farlo risorgere all'alba tra i vivi! Attento: se resusciti un Lupo per sbaglio, tornerà a sbranare col branco.",
+    nightAction: "Dalla Notte 2 in poi, il Necromante apre gli occhi ed ha 1 sola opportunità per partita di indicare un defunto del cimitero e farlo resuscitare."
   }
 };
 

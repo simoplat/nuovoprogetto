@@ -148,6 +148,18 @@ Questo documento costituisce il registro ufficiale, esaustivo e definitivo di tu
   * **Verità al Beccamorto:** Quando muore, il Beccamorto scopre la sua vera natura di Cane Nero del Branco dei Lupi.
   * **Conteggio di Fazione:** Conta a tutti gli effetti come Lupo per le condizioni di vittoria del Villaggio o dei Lupi.
 
+### 15. 🕯️💀 Il Necromante
+* **Fazione:** Villaggio 🕯️💀 (`faction: "villaggio"`, Colore: `#8b5cf6`)
+* **Descrizione & Azione Notturna:** Padrone delle arti occulte fedele al Villaggio. **1 sola volta per tutta la partita**, a partire dalla **Notte 2** in poi, può svegliarsi e indicare un qualsiasi defunto presente nel Cimitero per riportarlo permanentemente in vita tra i vivi all'Alba!
+* **Meccanica nel Motore:** Registrato in `nightActions.necromanteTarget`. All'Alba, il defunto prescelto viene ripristinato a `isAlive = true`, esce dal cimitero e la carica del Necromante viene segnata come consumata per sempre (`necromanteUsed = true`).
+* **Condizioni Particolari & Casi Limite:**
+  * **Rischio Resurrezione Lupo:** Se il Necromante resuscita per sbaglio un Lupo bruciato al rogo, il Lupo torna in vita a tutti gli effetti e si sveglierà col branco la notte successiva!
+  * **Silenziamento (Carica Salva):** Se silenziato dal Lupo Stregone, il rito è interrotto per quella notte ma la carica **NON viene consumata**: potrà riprovare nei round successivi.
+  * **Innamorati:** Se resuscita un innamorato morto di crepacuore, **rinasce solo il prescelto**; il partner rimane nel cimitero e il vincolo d'amore è considerato estinto.
+  * **Infiltrato Risorto:** Se era morto prima di trasformarsi, rinasce umano latente; se era morto già trasformato, rinasce come Lupo del branco.
+  * **Strega Risorta:** Rinasce mantenendo lo stato delle pozioni (le pozioni già usate rimangono esaurite).
+  * **Interazione col Beccamorto:** Il risorto esce dal cimitero; se il Beccamorto non l'aveva ancora consultato, non potrà più farlo.
+
 ---
 
 ## 2. Regolamento Ufficiale delle Condizioni Particolari & Paradossi
@@ -184,16 +196,24 @@ Questo documento costituisce il registro ufficiale, esaustivo e definitivo di tu
 * Se ucciso di notte, muore ed è eliminato senza vincere.
 * Se è innamorato e il villaggio brucia il suo partner, il Giullare muore di crepacuore e **NON vince**.
 
-### 6. Paradosso della Coppia Mista rimasta sola (Lupo + Cittadino) ⏳
+### 7. Il Necromante: Resurrezione Unica, Regole sul Cimitero & Interazioni 🕯️💀
+* **1 Sola Carica per Partita:** A partire dalla Notte 2, il Necromante può risvegliarsi e scegliere se utilizzare la sua unica resurrezione oppure passare.
+* **Cimitero dei Turni Precedenti:** Il Necromante agisce sui defunti già sepolti (morti ai roghi o sbranati nei round passati). Non interferisce con la vittima della notte in corso (la cui salvezza immediata compete alla Strega).
+* **Silenziamento (Carica Protetta):** Se il Lupo Stregone silenzia il Necromante, il potere fallisce per quella notte ma la carica non viene consumata.
+* **Resurrezione di un Lupo:** Se il Necromante resuscita per errore un Lupo morto al rogo, il Lupo torna vivo a tutti gli effetti e si risveglia con il branco la notte successiva.
+* **Innamorati:** Se risorge un innamorato morto di crepacuore, risorge solo lui; il partner resta morto e il legame d'amore è estinto.
+* **Strega Risorta:** Rinasce mantenendo lo stato delle pozioni (quelle usate rimangono consumate).
+
+### 8. Paradosso della Coppia Mista rimasta sola (Lupo + Cittadino) ⏳
 * Non esiste condizione di vittoria esclusiva della coppia.
 * Se rimangono vivi solo 1 Lupo e 1 Cittadino innamorati, per formula numerica ($Lupi \ge NonLupi$) scatta la vittoria della **Fazione Lupi**.
 
-### 7. Estinzione Totale (0 Superstiti): Scenario "Nessuno Vince" 🪦
+### 9. Estinzione Totale (0 Superstiti): Scenario "Nessuno Vince" 🪦
 * Se all'Alba o al Rogo (es. 2 innamorati rimasti soli di cui uno viene bruciato e l'altro muore di crepacuore) non resta alcun giocatore vivo ($N_{vivi} = 0$), non c'è vittoria del Villaggio né dei Lupi.
 * Viene proclamato ufficialmente: **Nessun Vincitore (Estinzione Totale)**.
 
-### 8. Registro Completo delle Azioni (Cronistoria Segreta Post-Partita) 📜
-* **Funzionamento:** Durante la partita, il motore di gioco traccia silenziosamente in background ogni singola scelta notturna di tutti i personaggi (accoppiamento di Cupido, rifugio della Donna, dado della Luna Piena, vittima dei lupi, silenziamento dello Stregone, tradimento del Lupo Bianco, scudo della Guardia, indagine e responso del Veggente, morto e carta rivelata al Beccamorto, uso o conservazione delle pozioni della Strega) insieme all'esito dell'Alba e alla sentenza del Rogo diurno.
+### 10. Registro Completo delle Azioni (Cronistoria Segreta Post-Partita) 📜
+* **Funzionamento:** Durante la partita, il motore di gioco traccia silenziosamente in background ogni singola scelta notturna di tutti i personaggi (accoppiamento di Cupido, rifugio della Donna, dado della Luna Piena, vittima dei lupi, silenziamento dello Stregone, tradimento del Lupo Bianco, scudo della Guardia, indagine e responso del Veggente, morto e carta rivelata al Beccamorto, uso o conservazione delle pozioni della Strega, evocazione del Necromante) insieme all'esito dell'Alba e alla sentenza del Rogo diurno.
 * **Segretezza in Partita:** Durante i round, il Report dell'Alba e il Registro Abitanti mostrano unicamente chi vive e chi muore, senza mai spoilerare le scelte investigative o di protezione.
 * **Consultazione a Fine Partita:** Nella schermata finale di Epilogo/Game Over compare il pulsante dedicato **"📜 Visualizza Registro Completo delle Azioni (Cronistoria Segreta)"**. Toccandolo, si apre una schermata modale dettagliata che permette al Narratore e ai giocatori di ripercorrere l'intera partita notte per notte.
 
@@ -213,7 +233,8 @@ Questo documento costituisce il registro ufficiale, esaustivo e definitivo di tu
 9. **Il Veggente:** Indica chi scrutare (se silenziato, vista oscurata).
 10. **Il Beccamorto (Dalla Notte 2 in poi):** Sceglie un solo defunto da interrogare (se silenziato, i morti tacciono).
 11. **La Strega:** Vede la vittima dei lupi e sceglie se usare Pozione di Vita o di Morte (max 1 pozione per notte; disabilitata se silenziata).
-12. **Alba (Risveglio del Villaggio):** Il motore esegue il calcolo algoritmico gerarchico.
+12. **Il Necromante (Dalla Notte 2 in poi):** Sceglie se usare la sua unica resurrezione della partita su un defunto del cimitero, oppure passare.
+13. **Alba (Risveglio del Villaggio):** Il motore esegue il calcolo algoritmico gerarchico.
 
 ---
 
@@ -223,8 +244,8 @@ Questo documento costituisce il registro ufficiale, esaustivo e definitivo di tu
 flowchart TD
     subgraph P0["Grado 0: Silenziamento Preventivo"]
         S0["Lupo Stregone lancia il Maleficio"]
-        S1{"Bersaglio è Guardia, Strega, Veggente o Beccamorto?"}
-        S1 -- Sì --> S_Block["POTERE ANNULLATO PER LA NOTTE"]
+        S1{"Bersaglio è Guardia, Strega, Veggente, Beccamorto o Necromante?"}
+        S1 -- Sì --> S_Block["POTERE ANNULLATO PER LA NOTTE (Carica Necromante Salva)"]
         S1 -- No --> S_Ignore["Nessun effetto su Donna, Cupido, Lupi o altri"]
     end
 
@@ -266,6 +287,12 @@ flowchart TD
         Cp -- Sì e partner ancora vivo --> Cp_Dead["Partner muore di Crepacuore 💔 (Ignora Scudo e Pozione)"]
     end
 
+    subgraph P6b["Grado 6b: Resurrezione dell'Oltretomba (Necromante)"]
+        Nec{"Necromante ha scelto un defunto (non silenziato)?"}
+        Nec -- Sì --> Nec_Revive["Defunto Torna in Vita (isAlive = true) 🕯️✨ (Carica Consumata)"]
+        Nec -- No / Passa --> Nec_None["Nessuna resurrezione stanotte"]
+    end
+
     subgraph P7["Grado 7: Verifica Epilogo & Vittoria"]
         V0{"Superstiti totali == 0?"}
         V0 -- Sì --> Win_None["NESSUN VINCITORE (Estinzione Totale) 🪦"]
@@ -277,7 +304,7 @@ flowchart TD
         V3 -- Sì --> Win_Wolf["Trionfo dei Lupi Mannari 🐺🩸"]
     end
 
-    P0 --> P1 --> P2 --> P3 --> P4 --> P5 --> P6 --> P7
+    P0 --> P1 --> P2 --> P3 --> P4 --> P5 --> P6 --> P6b --> P7
 ```
 
 ---
@@ -315,9 +342,13 @@ flowchart TD
 | **Donna visita il proprio Innamorato Lupo** | Rifugio Donna | Crepacuore Lupo | **Doppia Morte** 💃💔 | Donna sbranata nel covo; il Lupo muore di crepacuore all'Alba. |
 | **Lupo Stregone vs Guardia / Strega** | Silenziamento | Scudo / Pozioni | **Lupo Stregone** 🔮 | Potere **bloccato** per l'intera notte. Difese e veleni annullati. |
 | **Lupo Stregone vs Veggente / Beccamorto**| Silenziamento | Visione / Spiriti | **Lupo Stregone** 🔮 | Vista e consulto **oscurati** per quella notte. |
+| **Lupo Stregone vs Necromante** | Silenziamento | Rito Resurrezione | **Lupo Stregone (Carica Salva)** 🔮 | Rito **interrotto** per la notte, ma l'unica carica del Necromante **NON va persa**. |
 | **Lupo Stregone vs Lupo Bianco** | Silenziamento | Morso Traditore | **Lupo Bianco** 🐺❄️ | Nessun effetto. Il Lupo Bianco è **immune** al silenzio. |
 | **Lupo Stregone vs Donna / Cupido** | Silenziamento | Rifugio / Frecce | **Innocenti** 💃💘 | Nessun effetto. Non hanno poteri bloccabili dallo Stregone. |
 | **Lupo Stregone silenzia Guardia/Strega sotto attacco** | Silenziamento + Lupi | Difesa Personale | **Lupi** 🐺 | Bersaglio **Sbranato**: non può proteggere se stesso. |
+| **Necromante resuscita un Lupo** | Resurrezione | Lupo Morto al Rogo | **Lupo Risorto** 🐺 | Il Lupo **torna in vita** ed è reintegrato nel Branco dei Lupi. |
+| **Necromante resuscita un Innamorato** | Resurrezione | Partner Deceduto | **Solo il Prescelto** 🕯️ | Risorge solo il prescelto; il partner resta morto e il legame è estinto. |
+| **Necromante vs Beccamorto** | Resurrezione | Consulto Defunto | **Esce dal Cimitero** ⚰️ | Il risorto non è più un defunto e non può più essere consultato. |
 | **Beccamorto con morti multiple** | Consulto Spiriti | Cimitero Multiplo | **1 Sola Identità** ⚰️ | Il Beccamorto sceglie e apprende **un solo ruolo a notte**. |
 | **Beccamorto vs Lupo Mannaro Latente** | Consulto Spiriti | Mannaro Non Trasformato | **Copertura** 👨‍🌾 | Rivelato come **Contadino (Villaggio)**: licantropia non ancora attiva. |
 | **Beccamorto vs Lupo Mannaro Trasformato**| Consulto Spiriti | Mannaro Sveglio | **Vero Ruolo** 🐺🌕 | Rivelato come **Lupo Mannaro (Branco dei Lupi)**. |
@@ -349,6 +380,7 @@ flowchart TD
 | **Cupido** | Villaggio | **NON LUPO 👤** | Messaggero d'amore |
 | **La Donna (Meretrice)** | Villaggio | **NON LUPO 👤** | Cittadina innocente |
 | **Il Beccamorto** | Villaggio | **NON LUPO 👤** | Custode del cimitero |
+| **Il Necromante** | Villaggio | **NON LUPO 👤** | Occultista alleato del villaggio |
 | **Il Giullare** | Solitario | **NON LUPO 👤** | Abitante neutrale e caotico |
 | **Veggente stesso** | Villaggio | *Non Selezionabile* | L'interfaccia esclude l'auto-scrutinio |
 
@@ -372,6 +404,7 @@ Il Beccamorto consulta gli spiriti dei defunti (massimo 1 a round dalla Notte 2 
 | **La Strega** | Qualsiasi | **Strega (Villaggio 🧙‍♀️)** | Ruolo reale svelato |
 | **Cupido** | Qualsiasi | **Cupido (Villaggio 💘)** | Ruolo reale svelato |
 | **La Donna (Meretrice)** | Qualsiasi | **La Donna (Villaggio 💃)** | Ruolo reale svelato |
+| **Il Necromante** | Qualsiasi | **Necromante (Villaggio 🕯️💀)** | Ruolo reale svelato |
 | **Il Giullare** | Qualsiasi | **Il Giullare (Fazione Solitaria 🃏)** | Ruolo reale svelato |
 
 ---

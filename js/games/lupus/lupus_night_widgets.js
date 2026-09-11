@@ -322,7 +322,7 @@ class LupusNightWidgets {
         statusText = `<span style="color: #fca5a5;">⚠️ Seleziona chi silenziare o "Nessuno" per poter premere Avanti</span>`;
       } else if (selectedId) {
         const target = game.assignments.find(p => p.id === selectedId);
-        const hasPower = ["guardia", "veggente", "strega", "beccamorto"].includes(target?.roleKey);
+        const hasPower = ["guardia", "veggente", "strega", "beccamorto", "necromante"].includes(target?.roleKey);
         statusText = `🔮 Giocatore silenziato: <strong>${target?.name}</strong> ${hasPower ? '⛔ (Potere notturno annullato per stanotte!)' : '(Nessun potere notturno)'} - Puoi premere Avanti.`;
       } else {
         statusText = "🚫 Nessun giocatore silenziato per questa notte - Puoi premere Avanti.";
@@ -975,6 +975,90 @@ class LupusNightWidgets {
             game.nightActions.witchHeal = false;
           }
           this.renderNightActionWidget("strega");
+        });
+      });
+      return;
+    }
+
+    if (stepSubtype === "necromante") {
+      const necromantePlayer = game.assignments.find(p => p.roleKey === "necromante" && p.isAlive);
+      const isSilenced = necromantePlayer && (game.nightActions.stregoneTarget === necromantePlayer.id);
+
+      if (isSilenced) {
+        actionWidget.innerHTML = `
+          <div class="lupus-action-widget">
+            <div class="lupus-silenced-alert">
+              ⛔ <strong>POTERE BLOCCATO DAL LUPO STREGONE!</strong><br>
+              Il Necromante è stato silenziato dal Lupo Stregone. I suoi riti oscuri sono interrotti per questa notte, ma la sua unica carica di resurrezione è <strong>SALVA</strong> per una notte futura!
+            </div>
+            <div class="lupus-action-status"><span style="color: #6ee7b7;">✅ Puoi premere Avanti.</span></div>
+          </div>
+        `;
+        return;
+      }
+
+      const deadPlayers = game.assignments.filter(p => !game.isPlayerAliveInRound(p));
+      const selectedId = game.nightActions.necromanteTarget;
+      const isChosen = (selectedId !== undefined);
+
+      if (deadPlayers.length === 0) {
+        actionWidget.innerHTML = `
+          <div class="lupus-action-widget">
+            <div style="text-align: center; padding: 14px; color: #94a3b8; font-size: 0.95rem;">
+              ⚰️ Nessun abitante è ancora sepolto nel cimitero. Il Necromante conserva la sua carica per i prossimi round.
+            </div>
+            <div class="lupus-action-status" style="margin-top: 8px;">
+              <span style="color: #6ee7b7;">✅ Nessun defunto nel cimitero - Puoi premere Avanti</span>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      const passCard = `
+        <div class="lupus-action-card action-none ${selectedId === null ? 'selected selected-necromante' : ''}" data-player-id="PASS">
+          <div class="action-card-avatar">⏳</div>
+          <div class="action-card-name">Passa il turno</div>
+          <div class="action-card-role">Conserva il potere</div>
+        </div>
+      `;
+
+      const cardsHtml = deadPlayers.map(p => {
+        const isSel = (selectedId === p.id);
+        const isRecent = (game.lastRoundDeaths || []).some(d => d.id === p.id);
+        return `
+          <div class="lupus-action-card ${isSel ? 'selected selected-necromante' : ''}" data-player-id="${p.id}">
+            <div class="action-card-avatar">⚰️</div>
+            <div class="action-card-name">${p.name}</div>
+            <div class="action-card-role">${isRecent ? 'Caduto recente 💀' : 'Defunto nel cimitero'}</div>
+          </div>
+        `;
+      }).join("");
+
+      let statusText = "";
+      if (!isChosen) {
+        statusText = `<span style="color: #fca5a5;">⚠️ Scegli se resuscitare un defunto oppure passare per conservare il potere</span>`;
+      } else if (selectedId) {
+        const chosen = game.assignments.find(p => p.id === selectedId);
+        statusText = `🕯️✨ <strong>${chosen?.name}</strong> verrà riportato in vita all'Alba! (Consuma l'unica carica per la partita) - Puoi premere Avanti.`;
+      } else {
+        statusText = `⏳ Il Necromante ha deciso di <strong>passare</strong> stanotte (carica conservata) - Puoi premere Avanti.`;
+      }
+
+      actionWidget.innerHTML = `
+        <div class="lupus-action-widget">
+          <div class="lupus-action-prompt">🕯️💀 Il Necromante indica chi resuscitare dall'Oltretomba (1 sola volta a partita) o passa:</div>
+          <div class="lupus-action-grid">${passCard}${cardsHtml}</div>
+          <div class="lupus-action-status">${statusText}</div>
+        </div>
+      `;
+
+      actionWidget.querySelectorAll(".lupus-action-card").forEach(card => {
+        card.addEventListener("click", () => {
+          try { Sound.playClick(); } catch (e) {}
+          const pid = card.dataset.playerId;
+          game.nightActions.necromanteTarget = (pid === "PASS") ? null : pid;
+          this.renderNightActionWidget("necromante");
         });
       });
       return;

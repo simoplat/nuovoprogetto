@@ -45,7 +45,8 @@ class LupusGameController {
       lupo_stregone: false,
       beccamorto: false,
       idiota: false,
-      cane_nero: false
+      cane_nero: false,
+      necromante: false
     };
 
     // Stato partita
@@ -86,14 +87,17 @@ class LupusGameController {
       witchKill: undefined,
       infiltratoRoll: null,
       beccamortoTarget: undefined,
-      beccamortoSeen: false
+      beccamortoSeen: false,
+      necromanteTarget: undefined
     };
     this.beccamortoRevealed = [];
+    this.necromanteUsed = false;
     this.matchLog = [];
     this.nightResolved = false;
     this.preDawnAliveSnapshot = null;
     this.preDawnWitchLifeSnapshot = false;
     this.preDawnWitchDeathSnapshot = false;
+    this.preDawnNecromanteSnapshot = false;
     this.dawnReport = null;
 
     this.bindSetupEvents();
@@ -185,6 +189,7 @@ class LupusGameController {
     if (this.enabledRoles.infiltrato) roleDeck.push("infiltrato");
     if (this.enabledRoles.giullare) roleDeck.push("giullare");
     if (this.enabledRoles.lupo_bianco) roleDeck.push("lupo_bianco");
+    if (this.enabledRoles.necromante) roleDeck.push("necromante");
 
     // 3. I restanti sono Contadini
     while (roleDeck.length < total) {
@@ -241,9 +246,11 @@ class LupusGameController {
       witchKill: undefined,
       infiltratoRoll: null,
       beccamortoTarget: undefined,
-      beccamortoSeen: false
+      beccamortoSeen: false,
+      necromanteTarget: undefined
     };
     this.beccamortoRevealed = [];
+    this.necromanteUsed = false;
     this.matchLog = [];
     this.nightResolved = false;
     this.preDawnAliveSnapshot = null;
@@ -357,7 +364,7 @@ class LupusGameController {
         phaseBadge: `Notte ${this.nightCount} 🌙`,
         badgeClass: "badge-night",
         title: "🐺🔮 Risveglio del Lupo Stregone",
-        instruction: "Il Narratore dice: <em class=\"narrator-speech\">'Il Lupo Stregone apra gli occhi.'</em> Il Lupo Stregone indica un giocatore al Narratore per annullarne il potere notturno (Guardia, Veggente, Strega, Beccamorto). Poi: <em class=\"narrator-speech\">'Il Lupo Stregone richiuda gli occhi.'</em>"
+        instruction: "Il Narratore dice: <em class=\"narrator-speech\">'Il Lupo Stregone apra gli occhi.'</em> Il Lupo Stregone indica un giocatore al Narratore per annullarne il potere notturno (Guardia, Veggente, Strega, Beccamorto, Necromante). Poi: <em class=\"narrator-speech\">'Il Lupo Stregone richiuda gli occhi.'</em>"
       });
     }
 
@@ -423,6 +430,19 @@ class LupusGameController {
         badgeClass: "badge-night",
         title: "🧙‍♀️ Risveglio della Strega",
         instruction: "Il Narratore dice: <em class=\"narrator-speech\">'La Strega apra gli occhi.'</em> Il Narratore le mostra silenziosamente la vittima dei lupi. La Strega decide se usare la pozione di vita oppure la pozione di morte (al massimo 1 sola pozione a notte). Poi: <em class=\"narrator-speech\">'La Strega richiuda gli occhi.'</em>"
+      });
+    }
+
+    // 7b. Il Necromante (dalla Notte 2 in poi, se abilitato, vivo e non ha ancora usato il suo unico potere)
+    const necromanteAlive = this.assignments.some(p => p.roleKey === "necromante" && this.isPlayerAliveInRound(p));
+    if (this.enabledRoles.necromante && necromanteAlive && !this.necromanteUsed && this.nightCount >= 2) {
+      steps.push({
+        type: "night",
+        stepSubtype: "necromante",
+        phaseBadge: `Notte ${this.nightCount} 🌙`,
+        badgeClass: "badge-night",
+        title: "🕯️ Risveglio del Necromante",
+        instruction: "Il Narratore dice: <em class=\"narrator-speech\">'Il Necromante apra gli occhi.'</em> Il Necromante ha a disposizione <strong>1 sola resurrezione</strong> per l'intera partita: può indicare un defunto del cimitero per riportarlo in vita, oppure passare per conservare il potere. Poi: <em class=\"narrator-speech\">'Il Necromante richiuda gli occhi.'</em>"
       });
     }
 
@@ -507,6 +527,7 @@ class LupusGameController {
         });
         this.witchLifeUsed = this.preDawnWitchLifeSnapshot;
         this.witchDeathUsed = this.preDawnWitchDeathSnapshot;
+        this.necromanteUsed = this.preDawnNecromanteSnapshot;
         this.nightResolved = false;
         this.dawnReport = null;
         this.roundStartAliveSnapshot = new Map(this.assignments.map(p => [p.id, p.isAlive]));
@@ -551,7 +572,8 @@ class LupusGameController {
       witchKill: undefined,
       infiltratoRoll: null,
       beccamortoTarget: undefined,
-      beccamortoSeen: false
+      beccamortoSeen: false,
+      necromanteTarget: undefined
     };
     this.nightResolved = false;
     this.preDawnAliveSnapshot = null;

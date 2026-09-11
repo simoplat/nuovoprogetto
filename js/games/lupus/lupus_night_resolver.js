@@ -15,6 +15,7 @@ class LupusNightResolver {
     game.preDawnAliveSnapshot = game.assignments.map(p => p.isAlive);
     game.preDawnWitchLifeSnapshot = game.witchLifeUsed;
     game.preDawnWitchDeathSnapshot = game.witchDeathUsed;
+    game.preDawnNecromanteSnapshot = game.necromanteUsed;
 
     const stregoneTargetId = game.nightActions.stregoneTarget;
     const guardiaPlayer = game.assignments.find(p => p.roleKey === "guardia" && p.isAlive);
@@ -22,6 +23,9 @@ class LupusNightResolver {
 
     const stregaPlayer = game.assignments.find(p => p.roleKey === "strega" && p.isAlive);
     const isStregaSilenced = stregaPlayer && (stregoneTargetId === stregaPlayer.id);
+
+    const necromantePlayer = game.assignments.find(p => p.roleKey === "necromante" && p.isAlive);
+    const isNecromanteSilenced = necromantePlayer && (stregoneTargetId === necromantePlayer.id);
 
     const wolfVictimId = game.nightActions.wolfTarget;
     const wolfVictim = wolfVictimId ? game.assignments.find(p => p.id === wolfVictimId && p.isAlive) : null;
@@ -175,7 +179,26 @@ class LupusNightResolver {
       }
     }
 
-    // 6. Notte serena se nessun morto
+    // 6. Risoluzione Resurrezione del Necromante
+    const necroTargetId = (!isNecromanteSilenced && !game.necromanteUsed) ? game.nightActions.necromanteTarget : null;
+    let revivedPlayer = null;
+    if (necroTargetId) {
+      revivedPlayer = game.assignments.find(p => p.id === necroTargetId && !game.isPlayerAliveInRound(p));
+      if (revivedPlayer) {
+        game.necromanteUsed = true;
+        revivedPlayer.isAlive = true;
+        if (deaths.has(revivedPlayer.id)) {
+          deaths.delete(revivedPlayer.id);
+        }
+        events.push({
+          type: "saved",
+          icon: "🕯️✨",
+          text: `<strong>Miracolo dell'Oltretomba!</strong> Il Necromante ha spezzato le catene della morte: <strong>${revivedPlayer.name}</strong> (${revivedPlayer.role.name}) è risort${getSfx(revivedPlayer.name)} ed è tornat${getSfx(revivedPlayer.name)} in vita tra gli abitanti!`
+        });
+      }
+    }
+
+    // 7. Notte serena se nessun morto
     if (deaths.size === 0) {
       events.push({
         type: "peaceful",
@@ -292,7 +315,7 @@ class LupusNightResolver {
         detail = `Non ha silenziato nessuno`;
       } else if (stregoneTargetId) {
         const target = game.assignments.find(p => p.id === stregoneTargetId);
-        const hasPower = ["guardia", "veggente", "strega", "beccamorto"].includes(target?.roleKey);
+        const hasPower = ["guardia", "veggente", "strega", "beccamorto", "necromante"].includes(target?.roleKey);
         detail = `Ha silenziato <strong>${target?.name}</strong> (${target?.role.name}) ${hasPower ? '⛔ (Potere notturno annullato!)' : '(Nessun potere bloccabile)'}`;
       }
       actions.push({
@@ -420,6 +443,29 @@ class LupusNightResolver {
         roleKey: "strega",
         icon: "🧙‍♀️",
         title: "La Strega",
+        detail
+      });
+    }
+
+    // 11. Il Necromante
+    const necromantePlayer = game.assignments.find(p => p.roleKey === "necromante" && game.isPlayerAliveInRound(p));
+    if (game.enabledRoles.necromante && necromantePlayer && nightNum >= 2) {
+      const isSilenced = stregonePlayer && (stregoneTargetId === necromantePlayer.id);
+      let detail = "";
+      if (isSilenced) {
+        detail = `⛔ <strong>Silenziato dal Lupo Stregone!</strong> (Rito interrotto, carica preservata)`;
+      } else if (game.nightActions.necromanteTarget) {
+        const target = game.assignments.find(p => p.id === game.nightActions.necromanteTarget);
+        detail = `Ha richiamato dall'oltretomba <strong>${target?.name}</strong> (${target?.role.name}) &rarr; <strong>RISORTO DAI MORTI! 🕯️✨</strong>`;
+      } else if (game.necromanteUsed) {
+        detail = `Potere di resurrezione già consumato nei round precedenti`;
+      } else {
+        detail = `Ha passato il turno (carica unica conservata per le notti successive)`;
+      }
+      actions.push({
+        roleKey: "necromante",
+        icon: "🕯️💀",
+        title: "Il Necromante",
         detail
       });
     }

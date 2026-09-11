@@ -58,7 +58,7 @@ class LupusSetupUI {
     // Tasti Ruoli Speciali (Checkbox/Toggles)
     [
       "veggente", "guardia", "strega", "cupido", "donna",
-      "giullare", "infiltrato", "lupo_bianco", "lupo_stregone", "beccamorto", "idiota", "cane_nero"
+      "giullare", "infiltrato", "lupo_bianco", "lupo_stregone", "beccamorto", "idiota", "cane_nero", "necromante"
     ].forEach(roleKey => {
       const toggle = document.getElementById(`lupus-toggle-${roleKey}`);
       if (toggle) {
@@ -333,6 +333,7 @@ class LupusSetupUI {
     if (this.game.enabledRoles.infiltrato) { specials++; activeSpecialNames.push("1 Lupo Mannaro 🐺🌕"); }
     if (this.game.enabledRoles.giullare) { specials++; activeSpecialNames.push("1 Giullare 🃏"); }
     if (this.game.enabledRoles.lupo_bianco) { specials++; activeSpecialNames.push("1 Lupo Bianco 🐺❄️"); }
+    if (this.game.enabledRoles.necromante) { specials++; activeSpecialNames.push("1 Necromante 🕯️💀"); }
 
     const peasants = total - (wolves + specials);
 

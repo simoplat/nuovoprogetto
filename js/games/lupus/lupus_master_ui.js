@@ -200,6 +200,21 @@ class LupusMasterUI {
       };
     }
 
+    if (subtype === "necromante") {
+      const necromantePlayer = game.assignments.find(p => p.roleKey === "necromante" && p.isAlive);
+      const isSilenced = necromantePlayer && (game.nightActions.stregoneTarget === necromantePlayer.id);
+      if (isSilenced) return { complete: true, message: "" };
+
+      const deadPlayers = game.assignments.filter(p => !game.isPlayerAliveInRound(p));
+      if (deadPlayers.length === 0) return { complete: true, message: "" };
+
+      const complete = game.nightActions.necromanteTarget !== undefined;
+      return {
+        complete,
+        message: complete ? "" : "Seleziona chi resuscitare o 'Passa il turno' per poter premere Avanti"
+      };
+    }
+
     return { complete: true, message: "" };
   }
 
