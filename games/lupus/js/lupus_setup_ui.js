@@ -532,6 +532,13 @@ class LupusSetupUI {
     if (imgEl) {
       imgEl.src = role.image;
       imgEl.alt = role.name;
+      imgEl.onerror = () => {
+        if (imgEl.src.includes("img/lupus/")) {
+          imgEl.src = role.image.replace("img/lupus/", "img/");
+        } else if (!imgEl.src.includes("img/lupus/")) {
+          imgEl.src = role.image.replace("img/", "img/lupus/");
+        }
+      };
     }
     if (titleEl) titleEl.textContent = role.name;
     if (factionEl) {

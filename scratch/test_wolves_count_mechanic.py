@@ -1,8 +1,12 @@
+import os
+
 def test_wolves_count():
-    with open('js/games/lupus_game.js', 'r', encoding='utf-8') as f:
+    js_dir = "games/lupus/js" if os.path.exists("games/lupus/js") else "js/games/lupus"
+    game_file = os.path.join(js_dir, "lupus_game.js") if os.path.exists(os.path.join(js_dir, "lupus_game.js")) else "js/games/lupus_game.js"
+    with open(game_file, 'r', encoding='utf-8') as f:
         game_js = f.read()
 
-    with open('js/games/lupus/lupus_setup_ui.js', 'r', encoding='utf-8') as f:
+    with open(os.path.join(js_dir, 'lupus_setup_ui.js'), 'r', encoding='utf-8') as f:
         setup_js = f.read()
 
     with open('index.html', 'r', encoding='utf-8') as f:

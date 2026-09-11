@@ -1,0 +1,1902 @@
+/* ==========================================================================
+   LUPUS IN FABULA - DARK FANTASY MINIMAL THEME
+   File: css/lupus-dark-fantasy.css (Standalone & Scoped Theme)
+   Style: Minimal Dark Fantasy (Gothic / Grimoire / Grim-Dark)
+   Aesthetic: Deep Charcoal, Wrought Iron, Dried Blood, Aged Brass, Moonlight Silver
+   NO NEON LIGHTS • NO SYNTH GLOWS • MATTE & CHISELED TEXTURES
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   0. GOOGLE FONTS (Cinzel per intestazioni epiche, Crimson Pro per lore/lettura)
+   -------------------------------------------------------------------------- */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Crimson+Pro:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap');
+
+/* --------------------------------------------------------------------------
+   1. DARK FANTASY DESIGN TOKENS
+   -------------------------------------------------------------------------- */
+:root {
+  /* Tonalità Fondale: Ossidiana, Carbone, Cenere di Focolare */
+  --df-bg-black: #06070a;
+  --df-bg-base: #0a0c10;
+  --df-bg-surface: #10131a;
+  --df-bg-card: rgba(16, 19, 26, 0.96);
+  --df-bg-card-hover: rgba(24, 28, 38, 0.98);
+  --df-bg-elevated: #161a24;
+  --df-bg-overlay: rgba(4, 5, 8, 0.94);
+
+  /* Tonalità Bordi & Cornici Metalliche Opache (Niente neon, solo ferro battuto e ottone antico) */
+  --df-border-subtle: #1e222d;
+  --df-border-iron: #303644;
+  --df-border-iron-light: #444c5f;
+  --df-border-brass: #614f32;
+  --df-border-gold: #856d45;
+  --df-border-blood: #541616;
+
+  /* Tipografia: Pergamena e Pietra */
+  --df-text-bone: #ede9e1;
+  --df-text-parchment: #c8c2b3;
+  --df-text-ash: #808695;
+  --df-text-dim: #545a68;
+
+  /* Fazione Lupi (Sangue coagulato, granato scuro, cenere - No neon magenta) */
+  --df-wolf-bg: rgba(54, 14, 14, 0.45);
+  --df-wolf-border: #6e1e1e;
+  --df-wolf-border-active: #9c2a2a;
+  --df-wolf-text: #df8585;
+  --df-wolf-accent: #912222;
+
+  /* Fazione Villaggio (Ottone antico, terra, salvia sbiadita - No neon verde/ciano) */
+  --df-village-bg: rgba(40, 35, 26, 0.45);
+  --df-village-border: #665233;
+  --df-village-border-active: #91764b;
+  --df-village-text: #dcbaa6;
+  --df-village-accent: #ab8c58;
+
+  /* Fazione Solitari / Luna (Argento lunare freddo, ardesia, nebbia - No neon giallo) */
+  --df-solo-bg: rgba(30, 35, 46, 0.45);
+  --df-solo-border: #464f64;
+  --df-solo-border-active: #6e7a96;
+  --df-solo-text: #c2cad9;
+  --df-solo-accent: #828fa8;
+
+  /* Narratore / Lume di Candela (Ambra tenue, pergamena sacra) */
+  --df-candle-bg: rgba(60, 44, 20, 0.28);
+  --df-candle-border: #745b2e;
+  --df-candle-text: #dfc694;
+
+  /* Ombre Chiaroscuro Naturali (Zero aloni neon) */
+  --df-shadow-deep: 0 16px 45px rgba(0, 0, 0, 0.9);
+  --df-shadow-card: 0 8px 25px rgba(0, 0, 0, 0.7);
+  --df-shadow-chip: 0 3px 10px rgba(0, 0, 0, 0.55);
+
+  /* Font Families */
+  --df-font-serif: 'Cinzel', 'Trajan Pro', Georgia, 'Times New Roman', serif;
+  --df-font-body: 'Crimson Pro', 'Plus Jakarta Sans', system-ui, -apple-system, serif;
+}
+
+/* --------------------------------------------------------------------------
+   2. RESET & STRUTTURA BASE DELLA PAGINA
+   -------------------------------------------------------------------------- */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  background-color: var(--df-bg-black);
+  background-image: radial-gradient(circle at 50% 0%, #151924 0%, #07080c 75%);
+  background-attachment: fixed;
+  color: var(--df-text-parchment);
+  font-family: var(--df-font-body);
+  font-size: 16px;
+  line-height: 1.5;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.app-container {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 16px 14px 40px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* --------------------------------------------------------------------------
+   3. HEADER ARALDICO DARK FANTASY (Senza Neon)
+   -------------------------------------------------------------------------- */
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 14px;
+  background: rgba(13, 16, 23, 0.95);
+  border: 1px solid var(--df-border-iron);
+  border-radius: 10px;
+  margin-bottom: 18px;
+  box-shadow: var(--df-shadow-card);
+  position: relative;
+}
+
+.app-header::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--df-border-brass), transparent);
+  opacity: 0.8;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.brand-icon {
+  font-size: 1.8rem;
+  line-height: 1;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.8));
+}
+
+.brand-title {
+  font-family: var(--df-font-serif);
+  font-size: 1.12rem;
+  font-weight: 800;
+  color: var(--df-text-bone);
+  letter-spacing: 0.08em;
+  line-height: 1.2;
+}
+
+.brand-subtitle {
+  font-size: 0.7rem;
+  color: var(--df-text-ash);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.icon-btn {
+  background: #151822;
+  border: 1px solid var(--df-border-iron);
+  color: var(--df-text-parchment);
+  width: 38px;
+  height: 38px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.icon-btn:hover {
+  background: #202534;
+  border-color: var(--df-border-brass);
+}
+
+.icon-btn.active {
+  color: var(--df-village-text);
+  border-color: var(--df-border-gold);
+  background: #1d212e;
+}
+
+/* --------------------------------------------------------------------------
+   4. UTILITY & LAYOUT ESSENZIALI
+   -------------------------------------------------------------------------- */
+.text-center { text-align: center; }
+.flex-between { display: flex; justify-content: space-between; align-items: center; }
+.justify-center { justify-content: center; }
+.mb-2 { margin-bottom: 8px; }
+.mb-3 { margin-bottom: 14px; }
+.mb-4 { margin-bottom: 20px; }
+.mt-2 { margin-top: 8px; }
+.mt-3 { margin-top: 14px; }
+.mt-4 { margin-top: 20px; }
+.w-full { width: 100%; }
+
+/* Card Principali in Basalto & Ferro Antico */
+.glass-card {
+  background: var(--df-bg-card);
+  border: 1px solid var(--df-border-iron);
+  border-radius: 12px;
+  padding: 20px 16px;
+  box-shadow: var(--df-shadow-deep);
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.glass-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--df-border-brass), transparent);
+  opacity: 0.7;
+}
+
+/* Tipografia Dark Fantasy */
+h1, h2, h3, h4,
+.card-title,
+.lupus-card-title,
+.chronicle-main-title,
+.lupus-step-title {
+  font-family: var(--df-font-serif);
+  color: var(--df-text-bone);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1.3;
+}
+
+.card-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-subtitle {
+  font-family: var(--df-font-body);
+  font-size: 0.95rem;
+  color: var(--df-text-ash);
+  line-height: 1.45;
+  margin-top: 4px;
+}
+
+/* --------------------------------------------------------------------------
+   5. PULSANTI DARK FANTASY (Matte Chiseled Stone, Antique Iron & Crimson)
+   -------------------------------------------------------------------------- */
+.btn {
+  font-family: var(--df-font-serif);
+  font-size: 0.88rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-radius: 6px;
+  padding: 12px 18px;
+  cursor: pointer;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-decoration: none;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-block {
+  width: 100%;
+}
+
+.btn-sm {
+  padding: 8px 14px;
+  font-size: 0.8rem;
+}
+
+/* Pulsante Primario (Ferro brunito & intarsio bronzo scuro, niente cyan) */
+.btn-primary {
+  background: linear-gradient(180deg, #2a251e 0%, #191612 100%);
+  color: #dfd3bc;
+  border: 1px solid var(--df-border-gold);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: linear-gradient(180deg, #373026 0%, #201b15 100%);
+  border-color: #b59560;
+  color: #f7ede0;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.85);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+}
+
+/* Pulsante Secondario (Pietra scura e ferro battuto) */
+.btn-secondary {
+  background: linear-gradient(180deg, #191c24 0%, #11141a 100%);
+  color: var(--df-text-parchment);
+  border: 1px solid var(--df-border-iron);
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.5);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: linear-gradient(180deg, #222631 0%, #161921 100%);
+  border-color: var(--df-border-iron-light);
+  color: var(--df-text-bone);
+  transform: translateY(-1px);
+}
+
+/* Pulsante Pericolo / Rogo (Rosso sangue e brace spenta, niente magenta neon) */
+.btn-danger,
+#lupus-confirm-vote-btn {
+  background: linear-gradient(180deg, #4d1515 0%, #2b0b0b 100%);
+  color: #f0caca;
+  border: 1px solid var(--df-wolf-border);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.7);
+}
+
+.btn-danger:hover:not(:disabled),
+#lupus-confirm-vote-btn:hover:not(:disabled) {
+  background: linear-gradient(180deg, #611b1b 0%, #350e0e 100%);
+  border-color: var(--df-wolf-border-active);
+  color: #ffe0e0;
+  transform: translateY(-1px);
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  border-color: var(--df-border-subtle) !important;
+  background: #14171e !important;
+  color: var(--df-text-dim) !important;
+  box-shadow: none !important;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* --------------------------------------------------------------------------
+   6. SETUP SCREEN: RUOLI & OPZIONI (#view-lupus-setup)
+   -------------------------------------------------------------------------- */
+.hub-hero-badge {
+  display: inline-block;
+  background: linear-gradient(180deg, #2b1c19 0%, #171110 100%) !important;
+  border: 1px solid var(--df-wolf-border) !important;
+  color: #d69898 !important;
+  font-family: var(--df-font-serif);
+  letter-spacing: 0.12em;
+  font-size: 0.76rem;
+  padding: 5px 14px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.6);
+}
+
+.form-group {
+  margin-bottom: 18px;
+}
+
+.form-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--df-text-bone);
+  margin-bottom: 8px;
+}
+
+.label-hint {
+  font-size: 0.76rem;
+  color: var(--df-text-ash);
+  font-weight: 400;
+}
+
+/* Stepper Contatore Lupi & Tempo */
+.stepper-control {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #0b0d12;
+  border: 1px solid var(--df-border-iron);
+  border-radius: 8px;
+  padding: 4px 8px;
+}
+
+.stepper-btn {
+  background: #171a22;
+  border: 1px solid var(--df-border-iron);
+  color: var(--df-text-bone);
+  border-radius: 5px;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.stepper-btn:hover:not(:disabled) {
+  background: #232734;
+  border-color: var(--df-border-brass);
+}
+
+.stepper-val {
+  font-family: var(--df-font-serif);
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--df-village-accent);
+}
+
+.stepper-val.danger {
+  color: var(--df-wolf-text);
+}
+
+/* Griglia Ruoli Speciali Toggles */
+.lupus-roles-toggles-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+@media (min-width: 480px) {
+  .lupus-roles-toggles-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.lupus-toggle-category-title {
+  grid-column: 1 / -1;
+  font-family: var(--df-font-serif);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--df-text-bone);
+  margin-top: 14px;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.lupus-toggle-category-title::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--df-border-iron), transparent);
+}
+
+.role-toggle-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #11141b;
+  border: 1px solid var(--df-border-subtle);
+  border-radius: 8px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+  box-shadow: var(--df-shadow-chip);
+  user-select: none;
+}
+
+.role-toggle-card:hover {
+  background: #171b25;
+  border-color: var(--df-border-iron-light);
+}
+
+.role-toggle-card input[type="checkbox"] {
+  accent-color: var(--df-border-gold);
+  width: 17px;
+  height: 17px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.role-toggle-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.role-toggle-icon {
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.role-toggle-name {
+  font-family: var(--df-font-serif);
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--df-text-bone);
+}
+
+.role-toggle-card input[type="checkbox"]:checked ~ .role-toggle-content .role-toggle-name {
+  color: var(--df-village-text) !important;
+}
+
+.role-toggle-desc {
+  font-family: var(--df-font-body);
+  font-size: 0.78rem;
+  color: var(--df-text-ash);
+  line-height: 1.25;
+}
+
+/* Nomi Giocatori */
+.player-tag-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 240px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.player-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #0d1016;
+  border: 1px solid var(--df-border-subtle);
+  border-radius: 6px;
+  padding: 6px 10px;
+  transition: border-color 0.15s ease;
+}
+
+.player-row:focus-within {
+  border-color: var(--df-border-brass);
+  background: #121620;
+}
+
+.player-num {
+  font-family: var(--df-font-serif);
+  font-size: 0.8rem;
+  color: var(--df-text-dim);
+  width: 22px;
+}
+
+.player-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: var(--df-font-body);
+  font-size: 0.95rem;
+  color: var(--df-text-bone);
+  font-weight: 600;
+}
+
+.player-delete-btn {
+  background: transparent;
+  border: none;
+  color: var(--df-text-dim);
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 2px 6px;
+}
+
+.preset-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.preset-chip {
+  background: #141720;
+  border: 1px solid var(--df-border-iron);
+  color: var(--df-text-parchment);
+  border-radius: 5px;
+  font-family: var(--df-font-serif);
+  font-size: 0.76rem;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.preset-chip:hover {
+  background: #1c212e;
+  border-color: var(--df-border-brass);
+  color: var(--df-text-bone);
+}
+
+.lupus-summary-box {
+  background: #0b0d13;
+  border: 1px solid var(--df-border-iron);
+  border-radius: 8px;
+  padding: 12px 14px;
+  text-align: center;
+  color: var(--df-text-parchment);
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.6);
+}
+
+.lupus-summary-box.error {
+  background: rgba(60, 16, 16, 0.35);
+  border-color: var(--df-wolf-border-active);
+  color: var(--df-wolf-text);
+}
+
+/* --------------------------------------------------------------------------
+   7. PASSA IL TELEFONO & RIVELAZIONE TAROCCHI (#view-lupus-pass)
+   -------------------------------------------------------------------------- */
+.pass-phone-container {
+  text-align: center;
+}
+
+.turn-indicator,
+#lupus-pass-progress-chip {
+  display: inline-block;
+  background: #151822;
+  border: 1px solid var(--df-border-iron);
+  color: var(--df-text-parchment);
+  font-family: var(--df-font-serif);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.76rem;
+  padding: 4px 14px;
+  border-radius: 4px;
+  margin-bottom: 12px;
+}
+
+.pass-instruction {
+  font-size: 1.1rem;
+  color: var(--df-text-ash);
+}
+
+.pass-target-name {
+  font-family: var(--df-font-serif);
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: var(--df-text-bone);
+  letter-spacing: 0.05em;
+  margin: 8px 0 12px;
+  text-shadow: 0 3px 12px rgba(0, 0, 0, 0.8);
+}
+
+.hold-reveal-box {
+  margin: 18px auto 0;
+  width: 100%;
+}
+
+.btn-hold {
+  background: linear-gradient(180deg, #1b1e28 0%, #101219 100%);
+  border: 1px solid var(--df-border-iron-light);
+  border-radius: 12px;
+  padding: 24px 16px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--df-shadow-card), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.btn-hold:active, .btn-hold.holding {
+  background: #151822;
+  border-color: var(--df-border-gold);
+}
+
+.hold-icon {
+  font-size: 2rem;
+  margin-bottom: 8px;
+}
+
+.hold-text {
+  font-family: var(--df-font-serif);
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--df-text-bone);
+  letter-spacing: 0.06em;
+}
+
+.hold-subtext {
+  font-size: 0.82rem;
+  color: var(--df-text-ash);
+  margin-top: 4px;
+}
+
+.hold-progress-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 5px;
+  width: 0%;
+  background: linear-gradient(90deg, #4a361c, #8c734b);
+  transition: width 0.05s linear;
+}
+
+/* Modale Carta a Schermo Intero */
+.lupus-card-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: var(--df-bg-overlay);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 14px;
+}
+
+.lupus-card-modal-container {
+  width: 95%;
+  max-width: 440px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.lupus-modal-hold-hint {
+  background: #12151e;
+  border: 1px solid var(--df-border-iron);
+  color: var(--df-text-parchment);
+  font-family: var(--df-font-serif);
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+  padding: 4px 12px;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+/* Tarocco Dark Fantasy (Grimoire & Chiseled Frame) */
+.lupus-tarot-card {
+  position: relative;
+  background: linear-gradient(180deg, #141720 0%, #0c0e14 100%);
+  border: 2px solid var(--df-border-brass);
+  border-radius: 10px;
+  padding: 12px 14px 16px;
+  width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  overflow-y: auto;
+  box-shadow: var(--df-shadow-deep);
+}
+
+.lupus-tarot-card::before {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border: 1px solid rgba(140, 115, 75, 0.22);
+  border-radius: 6px;
+  pointer-events: none;
+}
+
+.lupus-tarot-card.theme-lupi {
+  border-color: var(--df-wolf-border);
+  box-shadow: var(--df-shadow-deep), inset 0 0 16px rgba(92, 24, 24, 0.25);
+}
+
+.lupus-tarot-card.theme-villaggio {
+  border-color: var(--df-village-border);
+  box-shadow: var(--df-shadow-deep), inset 0 0 16px rgba(110, 89, 56, 0.2);
+}
+
+.lupus-tarot-card.theme-solitario {
+  border-color: var(--df-solo-border);
+  box-shadow: var(--df-shadow-deep), inset 0 0 16px rgba(77, 86, 108, 0.2);
+}
+
+.lupus-tarot-img-container {
+  position: relative;
+  width: auto;
+  max-width: 100%;
+  height: clamp(300px, 58vh, 600px);
+  aspect-ratio: 3 / 4;
+  margin: 0 auto 10px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--df-border-iron);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.85);
+  background: #08090d;
+}
+
+.lupus-tarot-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.lupus-faction-badge {
+  display: inline-block;
+  font-family: var(--df-font-serif);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border-radius: 3px;
+  padding: 3px 12px;
+  margin-bottom: 6px;
+}
+
+.lupus-faction-badge.faction-lupi {
+  background: var(--df-wolf-bg);
+  color: var(--df-wolf-text);
+  border: 1px solid var(--df-wolf-border);
+}
+
+.lupus-faction-badge.faction-villaggio {
+  background: var(--df-village-bg);
+  color: var(--df-village-text);
+  border: 1px solid var(--df-village-border);
+}
+
+.lupus-faction-badge.faction-solitario {
+  background: var(--df-solo-bg);
+  color: var(--df-solo-text);
+  border: 1px solid var(--df-solo-border);
+}
+
+.lupus-card-title {
+  font-size: 1.45rem;
+  margin-bottom: 4px;
+}
+
+.lupus-card-desc {
+  font-family: var(--df-font-body);
+  font-size: 0.92rem;
+  color: var(--df-text-parchment);
+  line-height: 1.45;
+  margin-bottom: 8px;
+  max-width: 360px;
+}
+
+.lupus-allies-box {
+  background: #140d0d;
+  border: 1px solid var(--df-wolf-border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  margin-top: 6px;
+  width: 100%;
+}
+
+.lupus-allies-title {
+  font-family: var(--df-font-serif);
+  font-size: 0.74rem;
+  letter-spacing: 0.06em;
+  color: var(--df-wolf-text);
+  margin-bottom: 4px;
+}
+
+.lupus-ally-pill {
+  display: inline-block;
+  background: #201212;
+  border: 1px solid var(--df-wolf-border);
+  color: #eed0d0;
+  font-family: var(--df-font-serif);
+  font-size: 0.76rem;
+  padding: 2px 8px;
+  border-radius: 3px;
+  margin: 2px;
+}
+
+.lupus-ally-pill.solo {
+  background: #191c26;
+  border-color: var(--df-solo-border);
+  color: var(--df-solo-text);
+}
+
+/* --------------------------------------------------------------------------
+   8. GUIDA DEL NARRATORE (#view-lupus-master)
+   -------------------------------------------------------------------------- */
+#lupus-alive-count-badge {
+  background: #151822;
+  border: 1px solid var(--df-border-iron);
+  color: var(--df-text-bone);
+  font-family: var(--df-font-serif);
+  font-size: 0.78rem;
+  padding: 4px 10px;
+  border-radius: 4px;
+}
+
+.lupus-roster-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+  max-height: 240px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+@media (min-width: 480px) {
+  .lupus-roster-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.lupus-roster-chip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #10131a;
+  border: 1px solid var(--df-border-subtle);
+  border-radius: 6px;
+  padding: 7px 10px;
+  box-shadow: var(--df-shadow-chip);
+}
+
+.lupus-roster-chip.alive {
+  border-color: var(--df-border-iron);
+}
+
+.lupus-roster-chip.dead {
+  background: #090a0e !important;
+  border-color: #241616 !important;
+  opacity: 0.55;
+}
+
+.lupus-roster-chip.dead .roster-chip-name {
+  text-decoration: line-through;
+  color: #736c6c !important;
+}
+
+.roster-chip-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.roster-chip-icon {
+  font-size: 1.25rem;
+}
+
+.roster-chip-name {
+  font-family: var(--df-font-serif);
+  font-size: 0.88rem;
+  color: var(--df-text-bone);
+  font-weight: 700;
+}
+
+.roster-chip-role {
+  font-family: var(--df-font-body);
+  font-size: 0.78rem;
+  color: var(--df-text-ash);
+}
+
+.btn-roster-status {
+  background: #161922;
+  border: 1px solid var(--df-border-iron);
+  border-radius: 4px;
+  color: var(--df-text-bone);
+  font-family: var(--df-font-serif);
+  font-size: 0.74rem;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+.btn-roster-status:hover:not(:disabled) {
+  background: #222735;
+  border-color: var(--df-border-iron-light);
+}
+
+.btn-roster-status:disabled,
+.btn-roster-status.readonly-status {
+  background: #0d0f14 !important;
+  border-color: var(--df-border-subtle) !important;
+  color: var(--df-text-dim) !important;
+  cursor: default;
+}
+
+/* Scheda Sequenza Fasi Round */
+.lupus-phase-card {
+  background: #0f1218;
+  border: 1px solid var(--df-border-iron);
+  border-radius: 10px;
+  padding: 16px;
+  margin-top: 14px;
+  box-shadow: var(--df-shadow-deep);
+  position: relative;
+}
+
+.lupus-phase-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--df-border-brass), transparent);
+}
+
+.phase-badge {
+  font-family: var(--df-font-serif);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-radius: 4px;
+  font-size: 0.74rem;
+  padding: 4px 10px;
+}
+
+.phase-badge.badge-night {
+  background: #171b26;
+  border: 1px solid var(--df-solo-border);
+  color: var(--df-solo-text);
+}
+
+.phase-badge.badge-day {
+  background: #252018;
+  border: 1px solid var(--df-village-border);
+  color: var(--df-village-text);
+}
+
+.phase-badge.badge-solitario {
+  background: #1a1e28;
+  border: 1px solid var(--df-solo-border);
+  color: var(--df-solo-text);
+}
+
+.lupus-master-step-box {
+  background: #090b0f;
+  border: 1px solid var(--df-border-subtle);
+  border-radius: 8px;
+  padding: 14px;
+  margin-top: 12px;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.6);
+}
+
+.lupus-step-counter {
+  font-family: var(--df-font-serif);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  color: var(--df-text-dim);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.lupus-step-title {
+  font-size: 1.15rem;
+  color: var(--df-text-bone);
+  margin-bottom: 6px;
+}
+
+.lupus-step-desc {
+  font-family: var(--df-font-body);
+  font-size: 0.95rem;
+  color: var(--df-text-parchment);
+  line-height: 1.5;
+}
+
+/* Formula del Narratore: Lume di Candela & Manoscritto */
+.narrator-speech,
+.lupus-speech,
+.lupus-step-desc em {
+  color: var(--df-candle-text) !important;
+  background: var(--df-candle-bg);
+  border-left: 2px solid var(--df-candle-border);
+  font-family: var(--df-font-body);
+  font-style: italic;
+  font-size: 1rem;
+  font-weight: 600;
+  text-decoration: none !important;
+  padding: 4px 10px;
+  border-radius: 0 4px 4px 0;
+  display: inline-block;
+  margin: 4px 0;
+}
+
+.lupus-step-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.lupus-step-controls .btn-dawn-next {
+  flex: 1.6;
+  background: linear-gradient(180deg, #423522 0%, #261e13 100%) !important;
+  color: #faebd7 !important;
+  border: 1px solid var(--df-border-gold) !important;
+  font-family: var(--df-font-serif) !important;
+  font-weight: 800 !important;
+}
+
+.lupus-step-controls .btn-dawn-next:hover:not(:disabled) {
+  background: linear-gradient(180deg, #57462d 0%, #352a1a 100%) !important;
+  border-color: #cca667 !important;
+}
+
+/* Timer Discussione Diurna */
+.timer-display {
+  font-family: var(--df-font-serif);
+  font-size: 3rem;
+  font-weight: 800;
+  color: var(--df-village-accent);
+  letter-spacing: 2px;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+}
+
+/* --------------------------------------------------------------------------
+   9. AZIONI NOTTURNE INTERATTIVE (Widgets a Scelta Singola & Multipla)
+   -------------------------------------------------------------------------- */
+.lupus-action-widget {
+  background: #0b0d13;
+  border: 1px solid var(--df-border-iron);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.lupus-action-prompt {
+  font-family: var(--df-font-serif);
+  font-size: 0.84rem;
+  letter-spacing: 0.04em;
+  color: var(--df-text-bone);
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.lupus-action-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 8px;
+  margin: 10px 0;
+}
+
+@media (max-width: 480px) {
+  .lupus-action-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.lupus-action-card {
+  background: #11141b;
+  border: 1px solid var(--df-border-iron);
+  border-radius: 6px;
+  padding: 10px 6px;
+  text-align: center;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 96px;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+  user-select: none;
+}
+
+@media (hover: hover) {
+  .lupus-action-card:hover {
+    background: #171c26;
+    border-color: var(--df-border-iron-light);
+    transform: translateY(-1px);
+  }
+}
+
+.lupus-action-card.action-none {
+  grid-column: 1 / -1;
+  min-height: 44px;
+  padding: 6px 12px;
+  flex-direction: row;
+  gap: 8px;
+  background: #0d0f14;
+  border-style: dashed;
+  border-color: var(--df-border-iron);
+}
+
+.lupus-action-card .action-card-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #181b24;
+  border: 1px solid var(--df-border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  margin-bottom: 4px;
+}
+
+.lupus-action-card .action-card-name {
+  font-family: var(--df-font-serif);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--df-text-bone);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.lupus-action-card .action-card-role {
+  font-family: var(--df-font-body);
+  font-size: 0.74rem;
+  color: var(--df-text-ash);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+/* Stati Selezionati Senza Neon */
+.lupus-action-card.selected {
+  border-color: var(--df-village-border-active);
+  background: #1d1914;
+}
+
+.lupus-action-card.selected .action-card-avatar {
+  background: #2e261a;
+  border-color: var(--df-border-gold);
+}
+
+.lupus-action-card.selected-wolf {
+  border-color: var(--df-wolf-border-active) !important;
+  background: #1c0e0e !important;
+}
+
+.lupus-action-card.selected-wolf .action-card-avatar {
+  background: #331515 !important;
+  border-color: var(--df-wolf-border-active) !important;
+}
+
+.lupus-action-card.selected-guard {
+  border-color: #4a5c7a !important;
+  background: #101622 !important;
+}
+
+.lupus-action-card.selected-donna {
+  border-color: #8c4250 !important;
+  background: #1f1115 !important;
+}
+
+.lupus-action-card.selected-cupido {
+  border-color: #8a3f55 !important;
+  background: #1f1116 !important;
+}
+
+.lupus-action-card.selected-stregone {
+  border-color: #5c3f7a !important;
+  background: #16101f !important;
+}
+
+.lupus-action-card.selected-poison {
+  border-color: #3b5e43 !important;
+  background: #101a13 !important;
+}
+
+.lupus-action-card.selected-heal {
+  border-color: #42636e !important;
+  background: #10171a !important;
+}
+
+.lupus-action-card.selected-lupobianco {
+  border-color: var(--df-solo-border-active) !important;
+  background: #131720 !important;
+}
+
+.lupus-action-card.selected-beccamorto {
+  border-color: #575e6d !important;
+  background: #13151b !important;
+}
+
+.lupus-action-card.selected-necromante {
+  border-color: #684a82 !important;
+  background: #181120 !important;
+}
+
+.lupus-action-status {
+  background: #0e1118;
+  border: 1px solid var(--df-border-iron);
+  border-radius: 5px;
+  font-family: var(--df-font-body);
+  color: var(--df-text-bone);
+  padding: 8px 10px;
+  text-align: center;
+  font-size: 0.86rem;
+  margin-top: 8px;
+}
+
+.lupus-silenced-alert {
+  background: #181122;
+  border: 1px solid #4a3461;
+  color: #c9b1e2;
+  border-radius: 6px;
+  padding: 10px;
+  text-align: center;
+  font-size: 0.86rem;
+}
+
+.lupus-seer-result-box {
+  border-radius: 6px;
+  padding: 12px;
+  text-align: center;
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-top: 10px;
+}
+
+.lupus-seer-result-box.wolf {
+  background: #260e0e;
+  border: 1px solid var(--df-wolf-border-active);
+  color: var(--df-wolf-text);
+}
+
+.lupus-seer-result-box.innocent {
+  background: #132418;
+  border: 1px solid #3d7049;
+  color: #a3d9b0;
+}
+
+.witch-potions-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.witch-potion-item {
+  background: #0d1017;
+  border: 1px solid var(--df-border-iron);
+  border-radius: 6px;
+  padding: 10px;
+}
+
+.witch-potion-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.witch-potion-title {
+  font-family: var(--df-font-serif);
+  font-size: 0.9rem;
+  color: var(--df-text-bone);
+}
+
+.potion-available {
+  background: #132418;
+  border: 1px solid #3d7049;
+  color: #a3d9b0;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.74rem;
+}
+
+.potion-spent {
+  background: #241212;
+  border: 1px solid var(--df-wolf-border);
+  color: var(--df-wolf-text);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.74rem;
+}
+
+/* --------------------------------------------------------------------------
+   10. RISOLUZIONE ALL'ALBA & ROGO
+   -------------------------------------------------------------------------- */
+.lupus-dawn-card {
+  background: #0f1218;
+  border: 1px solid var(--df-border-iron);
+  border-radius: 8px;
+  padding: 14px;
+  margin-top: 10px;
+}
+
+.lupus-dawn-title {
+  font-family: var(--df-font-serif);
+  font-size: 1rem;
+  color: var(--df-village-accent);
+  letter-spacing: 0.05em;
+  margin-bottom: 10px;
+}
+
+.lupus-dawn-event {
+  padding: 8px 10px;
+  border-radius: 4px;
+  margin-bottom: 6px;
+  font-size: 0.88rem;
+}
+
+.lupus-dawn-event.death {
+  background: #200f0f;
+  border-left: 3px solid var(--df-wolf-border-active);
+  color: var(--df-wolf-text);
+}
+
+.lupus-dawn-event.saved {
+  background: #112015;
+  border-left: 3px solid #3d7049;
+  color: #a3d9b0;
+}
+
+.lupus-dawn-event.peaceful {
+  background: #1d1810;
+  border-left: 3px solid var(--df-village-border);
+  color: var(--df-village-text);
+}
+
+.lupus-moon-box {
+  background: #10141f;
+  border: 1px solid var(--df-solo-border);
+  border-radius: 8px;
+  padding: 14px;
+  text-align: center;
+  margin: 10px 0;
+}
+
+.lupus-moon-chance-bar {
+  background: #090b10;
+  border: 1px solid var(--df-border-iron);
+  border-radius: 4px;
+  padding: 6px 12px;
+  color: var(--df-solo-text);
+  font-family: var(--df-font-serif);
+  font-size: 0.86rem;
+  margin: 8px 0;
+}
+
+.lupus-moon-result-box.transformed {
+  background: #220e0e;
+  border: 1px solid var(--df-wolf-border-active);
+  color: var(--df-wolf-text);
+  padding: 10px;
+  border-radius: 6px;
+}
+
+.lupus-moon-result-box.dormant {
+  background: #101522;
+  border: 1px solid var(--df-solo-border);
+  color: var(--df-solo-text);
+  padding: 10px;
+  border-radius: 6px;
+}
+
+/* Voto al Rogo */
+.vote-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 8px;
+}
+
+.vote-card {
+  background: #10131b;
+  border: 1px solid var(--df-border-iron);
+  border-radius: 6px;
+  padding: 10px;
+  text-align: center;
+  cursor: pointer;
+  box-shadow: var(--df-shadow-chip);
+}
+
+.vote-card:hover {
+  background: #181d27;
+  border-color: var(--df-border-iron-light);
+}
+
+.vote-card.selected {
+  background: #260e0e !important;
+  border-color: var(--df-wolf-border-active) !important;
+}
+
+.vote-card.vote-card-none {
+  background: #0e1117;
+  border-style: dashed;
+  border-color: var(--df-border-brass);
+}
+
+.vote-card.vote-card-none.selected {
+  background: #241d14 !important;
+  border-color: var(--df-border-gold) !important;
+}
+
+.vote-avatar {
+  font-size: 1.5rem;
+  margin-bottom: 4px;
+}
+
+.vote-name {
+  font-family: var(--df-font-serif);
+  font-size: 0.85rem;
+  color: var(--df-text-bone);
+}
+
+.lupus-vote-result-box {
+  background: #101218;
+  border: 1px solid var(--df-border-iron);
+  border-radius: 8px;
+  padding: 16px;
+  text-align: center;
+}
+
+.auto-countdown-badge {
+  display: inline-block;
+  background: #0d0f15;
+  border: 1px solid var(--df-border-iron);
+  border-radius: 999px;
+  padding: 4px 12px;
+  color: var(--df-text-parchment);
+  font-family: var(--df-font-serif);
+  font-size: 0.8rem;
+}
+
+/* --------------------------------------------------------------------------
+   11. VITTORIA & GAME OVER
+   -------------------------------------------------------------------------- */
+.lupus-victory-banner,
+.lupus-gameover-box {
+  border-radius: 8px;
+  padding: 18px;
+  text-align: center;
+  margin-bottom: 16px;
+  box-shadow: var(--df-shadow-deep);
+  border-width: 1px;
+}
+
+.lupus-victory-banner.village-wins,
+.lupus-gameover-box.village-wins {
+  background: linear-gradient(180deg, #1b261e 0%, #0e1610 100%);
+  border: 1px solid #3d7049;
+  color: #c4ebd0;
+}
+
+.lupus-victory-banner.wolves-win,
+.lupus-gameover-box.wolves-win {
+  background: linear-gradient(180deg, #2b1111 0%, #150808 100%);
+  border: 1px solid var(--df-wolf-border-active);
+  color: #eed0d0;
+}
+
+.lupus-victory-banner.solitario-wins,
+.lupus-gameover-box.solitario-wins {
+  background: linear-gradient(180deg, #1d212d 0%, #0f121a 100%);
+  border: 1px solid var(--df-solo-border-active);
+  color: #d6deee;
+}
+
+.lupus-gameover-roster {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+  margin: 14px 0;
+  text-align: left;
+}
+
+@media (min-width: 480px) {
+  .lupus-gameover-roster {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.lupus-gameover-player {
+  background: #0c0e14;
+  border: 1px solid var(--df-border-subtle);
+  border-radius: 5px;
+  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.gameover-player-name {
+  font-family: var(--df-font-serif);
+  font-size: 0.88rem;
+  color: var(--df-text-bone);
+  font-weight: 700;
+}
+
+.gameover-player-role {
+  font-size: 0.74rem;
+  color: var(--df-text-ash);
+}
+
+.lupus-gameover-player.dead .gameover-player-name {
+  text-decoration: line-through;
+  color: var(--df-text-dim);
+}
+
+.lupus-gameover-player .role-badge.alive-badge {
+  background: #112015;
+  border: 1px solid #3d7049;
+  color: #a3d9b0;
+  font-size: 0.72rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.lupus-gameover-player .role-badge.dead-badge {
+  background: #200f0f;
+  border: 1px solid var(--df-wolf-border);
+  color: var(--df-wolf-text);
+  font-size: 0.72rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+/* --------------------------------------------------------------------------
+   12. CRONISTORIA SEGRETA DEL NARRATORE
+   -------------------------------------------------------------------------- */
+.lupus-chronicle-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--df-bg-overlay);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px;
+}
+
+.lupus-chronicle-dialog {
+  background: #0c0e14;
+  border: 1px solid var(--df-border-brass);
+  border-radius: 10px;
+  max-width: 640px;
+  width: 100%;
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--df-shadow-deep);
+  overflow: hidden;
+}
+
+.lupus-chronicle-header {
+  background: #141720;
+  border-bottom: 1px solid var(--df-border-iron);
+  padding: 14px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.chronicle-main-title {
+  font-size: 1.05rem;
+  color: var(--df-text-bone);
+}
+
+.chronicle-sub-title {
+  font-size: 0.78rem;
+  color: var(--df-text-ash);
+}
+
+.btn-chronicle-close {
+  background: #1b1f2b;
+  border: 1px solid var(--df-border-iron);
+  color: var(--df-text-parchment);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-chronicle-close:hover {
+  background: #331515;
+  border-color: var(--df-wolf-border);
+  color: var(--df-wolf-text);
+}
+
+.lupus-chronicle-body {
+  padding: 16px 18px;
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.lupus-chronicle-footer {
+  background: #10131a;
+  border-top: 1px solid var(--df-border-iron);
+  padding: 10px 18px;
+}
+
+.lupus-chronicle-round-card {
+  background: #090b10;
+  border: 1px solid var(--df-border-subtle);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.lupus-chronicle-round-header {
+  background: #151923;
+  border-bottom: 1px solid var(--df-border-iron);
+  padding: 8px 14px;
+  font-family: var(--df-font-serif);
+  font-size: 0.88rem;
+  color: var(--df-village-accent);
+}
+
+.lupus-chronicle-section-box {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--df-border-subtle);
+}
+
+.lupus-chronicle-section-box:last-child {
+  border-bottom: none;
+}
+
+.chronicle-section-title {
+  font-family: var(--df-font-serif);
+  font-size: 0.74rem;
+  letter-spacing: 0.06em;
+  color: var(--df-text-ash);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.lupus-chronicle-actions-list,
+.lupus-chronicle-dawn-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.lupus-chronicle-action-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: #0f1219;
+  border: 1px solid var(--df-border-subtle);
+  border-radius: 5px;
+  padding: 6px 10px;
+}
+
+.chronicle-action-title {
+  font-family: var(--df-font-serif);
+  font-size: 0.82rem;
+  color: var(--df-text-bone);
+}
+
+.chronicle-action-detail {
+  font-size: 0.78rem;
+  color: var(--df-text-parchment);
+}
+
+.lupus-chronicle-dawn-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.8rem;
+  padding: 5px 8px;
+  border-radius: 4px;
+}
+
+.lupus-chronicle-dawn-item.death {
+  background: #1d0c0c;
+  border: 1px solid var(--df-wolf-border);
+  color: var(--df-wolf-text);
+}
+
+.lupus-chronicle-dawn-item.saved {
+  background: #0f1c13;
+  border: 1px solid #2e5437;
+  color: #92cca1;
+}
+
+.lupus-chronicle-dawn-item.peaceful {
+  background: #171a23;
+  border: 1px solid var(--df-solo-border);
+  color: #b9c4db;
+}
+
+.lupus-chronicle-rogo-item {
+  background: #1c150c;
+  border: 1px solid var(--df-village-border);
+  color: var(--df-village-text);
+  font-size: 0.82rem;
+  padding: 6px 10px;
+  border-radius: 5px;
+}
+
+.lupus-chronicle-rogo-item.lover-death {
+  background: #1e0e14;
+  border-color: #6e2a3b;
+  color: #e5b2be;
+  margin-top: 4px;
+}
+
+/* --------------------------------------------------------------------------
+   13. MODALE REGOLE DEL GIOCO (Stile Pergamena Chiaroscuro)
+   -------------------------------------------------------------------------- */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--df-bg-overlay);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 10000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.modal-overlay.open {
+  display: flex;
+}
+
+.modal-container {
+  background: #0d0f15;
+  border: 1px solid var(--df-border-brass);
+  border-radius: 10px;
+  max-width: 520px;
+  width: 100%;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--df-shadow-deep);
+  overflow: hidden;
+}
+
+.modal-header {
+  background: #141720;
+  border-bottom: 1px solid var(--df-border-iron);
+  padding: 14px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-title {
+  font-family: var(--df-font-serif);
+  font-size: 1.1rem;
+  color: var(--df-text-bone);
+}
+
+.btn-close {
+  background: #1b1f2b;
+  border: 1px solid var(--df-border-iron);
+  color: var(--df-text-parchment);
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-body {
+  padding: 16px 18px;
+  overflow-y: auto;
+}
+
+.modal-footer {
+  background: #10131a;
+  border-top: 1px solid var(--df-border-iron);
+  padding: 12px 18px;
+}
+
+.rules-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rules-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: #10131b;
+  border: 1px solid var(--df-border-subtle);
+  border-radius: 6px;
+  padding: 10px 12px;
+}
+
+.rules-badge {
+  background: #191d29;
+  border: 1px solid var(--df-border-iron);
+  color: var(--df-village-accent);
+  font-family: var(--df-font-serif);
+  font-size: 0.8rem;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.rules-text {
+  font-size: 0.88rem;
+  color: var(--df-text-parchment);
+  line-height: 1.4;
+}

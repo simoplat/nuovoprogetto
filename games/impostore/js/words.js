@@ -346,8 +346,16 @@ function setWordDatabase(data) {
  */
 async function initWordsDatabase() {
   try {
-    const url = "words.json?t=" + Date.now();
-    const res = await fetch(url);
+    let url = "games/impostore/data/words.json?t=" + Date.now();
+    let res = await fetch(url);
+    if (!res.ok) {
+      url = "data/words.json?t=" + Date.now();
+      res = await fetch(url);
+    }
+    if (!res.ok) {
+      url = "words.json?t=" + Date.now();
+      res = await fetch(url);
+    }
     if (!res.ok) throw new Error("Status HTTP " + res.status);
     const data = await res.json();
     setWordDatabase(data);

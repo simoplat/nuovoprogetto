@@ -44,8 +44,8 @@ class PartyHubApp {
       const params = new URLSearchParams(window.location.search);
       const roomCode = params.get("room");
       if (roomCode) {
-        this.activeGameId = "impostore";
-        this.p2pGame.initView();
+        window.location.href = "games/impostore/index.html?room=" + encodeURIComponent(roomCode);
+        return;
       } else {
         this.switchView("view-hub");
       }
@@ -140,11 +140,19 @@ class PartyHubApp {
     this.activeGameId = gameId;
 
     if (gameId === "impostore") {
-      this.switchView("view-mode-select");
+      try {
+        window.location.href = "games/impostore/index.html";
+      } catch (e) {
+        this.switchView("view-mode-select");
+      }
     } else if (gameId === "lupus") {
-      this.switchView("view-lupus-setup");
-      if (this.lupusGame && typeof this.lupusGame.renderSetupView === "function") {
-        this.lupusGame.renderSetupView();
+      try {
+        window.location.href = "games/lupus/index.html";
+      } catch (e) {
+        this.switchView("view-lupus-setup");
+        if (this.lupusGame && typeof this.lupusGame.renderSetupView === "function") {
+          this.lupusGame.renderSetupView();
+        }
       }
     } else {
       const registry = window.GameRegistry || window.GlobalGameRegistry;

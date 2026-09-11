@@ -3,7 +3,9 @@ import re
 with open('index.html', 'r', encoding='utf-8') as f:
     html = f.read()
 
-with open('js/games/lupus_game.js', 'r', encoding='utf-8') as f:
+import os
+lupus_path = 'games/lupus/js/lupus_game.js' if os.path.exists('games/lupus/js/lupus_game.js') else 'js/games/lupus_game.js'
+with open(lupus_path, 'r', encoding='utf-8') as f:
     js = f.read()
 
 get_el_ids = re.findall(r'document\.getElementById\([\'"]([^\'"]+)[\'"]\)', js)

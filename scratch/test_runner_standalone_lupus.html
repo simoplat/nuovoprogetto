@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Test Lupus Standalone Page</title>
+</head>
+<body>
+  <div id="test-output">Running...</div>
+  <iframe id="app-frame" src="../games/lupus/index.html" style="width: 500px; height: 700px;"></iframe>
+
+  <script>
+    const iframe = document.getElementById('app-frame');
+    iframe.onload = () => {
+      try {
+        const win = iframe.contentWindow;
+        const doc = iframe.contentDocument;
+        
+        if (!win.App) throw new Error("App not initialized on window");
+        if (!win.LupusGame) throw new Error("LupusGame not initialized on window");
+        
+        const setupView = doc.getElementById("view-lupus-setup");
+        if (!setupView || setupView.style.display === "none") throw new Error("view-lupus-setup not visible initially");
+        
+        // Start game
+        const startBtn = doc.getElementById("lupus-btn-start-game");
+        if (!startBtn) throw new Error("startBtn not found");
+        startBtn.click();
+        
+        const passView = doc.getElementById("view-lupus-pass");
+        if (!passView || passView.style.display === "none") throw new Error("view-lupus-pass not visible after start");
+        
+        // Verify hold reveal btn
+        const holdBtn = doc.getElementById("lupus-hold-reveal-btn");
+        if (!holdBtn) throw new Error("lupus-hold-reveal-btn not found");
+        
+        // Switch to master view
+        win.App.switchView("view-lupus-master");
+        win.LupusGame.initMasterDashboard();
+        
+        const masterView = doc.getElementById("view-lupus-master");
+        if (!masterView || masterView.style.display === "none") throw new Error("view-lupus-master not visible");
+        
+        const rosterGrid = doc.getElementById("lupus-master-roster");
+        if (!rosterGrid || rosterGrid.children.length === 0) throw new Error("rosterGrid is empty");
+        
+        document.getElementById('test-output').innerText = "STANDALONE_LUPUS_SUCCESS: All views, initialization and interactions work perfectly!";
+      } catch (err) {
+        document.getElementById('test-output').innerText = "ERROR: " + err.message;
+      }
+    };
+  </script>
+</body>
+</html>

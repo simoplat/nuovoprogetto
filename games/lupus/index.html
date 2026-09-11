@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>🐺 Lupus in Fabula - Dark Fantasy Edition</title>
+  <meta name="description" content="Lupus in Fabula: Party Game da tavolo in salsa Dark Fantasy medievale. Gestione del villaggio, carte tarocco a schermo intero e guida narratore notturna.">
+  <meta name="theme-color" content="#06070a">
+
+  <!-- Google Fonts: Cinzel & Crimson Pro -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Crimson+Pro:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet">
+
+  <!-- CSS Esclusivo Dark Fantasy per Lupus in Fabula -->
+  <link rel="stylesheet" href="css/lupus-dark-fantasy.css">
+</head>
+<body>
+
+  <div class="app-container">
+    <!-- Header Dark Fantasy del Gioco -->
+    <header class="app-header">
+      <a href="../../index.html" class="brand" id="brand-btn" title="Torna al Party Game Hub">
+        <span class="brand-icon" id="brand-icon">🐺</span>
+        <div>
+          <h1 class="brand-title" id="brand-title">LUPUS IN FABULA</h1>
+          <div class="brand-subtitle" id="brand-subtitle">DARK FANTASY EDITION</div>
+        </div>
+      </a>
+      <div class="header-controls">
+        <button type="button" class="icon-btn" id="btn-rules" title="Regole del Gioco">📜</button>
+        <button type="button" class="icon-btn" id="btn-audio-toggle" title="Attiva/Disattiva Audio">🔊</button>
+        <a href="../../index.html" class="icon-btn" title="Torna all'Hub Giochi">🏰</a>
+      </div>
+    </header>
+
+    <!-- =========================================================================
+         LUPUS IN FABULA - VISTA 1: SETUP PARTITA LOCALE
+         ========================================================================= -->
+    <section id="view-lupus-setup" class="app-view">
+      <div class="glass-card">
+        <div class="text-center mb-3">
+          <div class="hub-hero-badge">
+            🐺 LUPUS IN FABULA
+          </div>
+          <h2 class="card-title justify-center" style="margin-top: 8px;">
+            Configura il Villaggio 🌙
+          </h2>
+          <p class="card-subtitle">
+            Scegli il numero di lupi e attiva i ruoli speciali. I restanti saranno pacifici contadini!
+          </p>
+        </div>
+
+        <!-- Stepper Lupi del Branco -->
+        <div class="form-group">
+          <div class="form-label">
+            <span>🐺 Numero Totale di Lupi:</span>
+            <span class="label-hint">(include i lupi con abilità speciali)</span>
+          </div>
+          <div class="stepper-control">
+            <button type="button" class="stepper-btn" id="lupus-wolves-minus" aria-label="Riduci lupi">-</button>
+            <span class="stepper-val danger" id="lupus-wolves-value">1</span>
+            <button type="button" class="stepper-btn" id="lupus-wolves-plus" aria-label="Aumenta lupi">+</button>
+          </div>
+        </div>
+
+        <!-- Ruoli Speciali Opzionali Toggles -->
+        <div class="form-group">
+          <div class="form-label">
+            <span>✨ Figure Speciali Opzionali:</span>
+            <span class="label-hint">(attivabili a piacere)</span>
+          </div>
+          <div class="lupus-roles-toggles-grid">
+            <!-- Sezione Villaggio -->
+            <div class="lupus-toggle-category-title">🏛️ Alleati del Villaggio</div>
+
+            <!-- Veggente -->
+            <label class="role-toggle-card">
+              <input type="checkbox" id="lupus-toggle-veggente" checked>
+              <div class="role-toggle-content">
+                <span class="role-toggle-icon">🔮</span>
+                <div class="role-toggle-text">
+                  <div class="role-toggle-name">Veggente</div>
+                  <div class="role-toggle-desc">Scopre una fazione ogni notte</div>
+                </div>
+              </div>
+            </label>
+
+            <!-- Guardia del Corpo -->
+            <label class="role-toggle-card">
+              <input type="checkbox" id="lupus-toggle-guardia" checked>
+              <div class="role-toggle-content">
+                <span class="role-toggle-icon">🛡️</span>
+                <div class="role-toggle-text">
+                  <div class="role-toggle-name">Guardia</div>
+                  <div class="role-toggle-desc">Protegge un cittadino ogni notte</div>
+                </div>
+              </div>
+            </label>
+
+            <!-- Strega -->
+            <label class="role-toggle-card">
+              <input type="checkbox" id="lupus-toggle-strega" checked>
+              <div class="role-toggle-content">
+                <span class="role-toggle-icon">🧙‍♀️</span>
+                <div class="role-toggle-text">
+                  <div class="role-toggle-name">Strega</div>
+                  <div class="role-toggle-desc">Pozione di vita e di morte</div>
+                </div>
+              </div>
+            </label>
+
+            <!-- Cupido -->
+            <label class="role-toggle-card">
+              <input type="checkbox" id="lupus-toggle-cupido" checked>
+              <div class="role-toggle-content">
+                <span class="role-toggle-icon">💘</span>
+                <div class="role-toggle-text">
+                  <div class="role-toggle-name">Cupido</div>
+                  <div class="role-toggle-desc">Lega due innamorati nella notte 1</div>
+                </div>
+              </div>
+            </label>
+
+            <!-- La Donna / Meretrice -->
+            <label class="role-toggle-card">
+              <input type="checkbox" id="lupus-toggle-donna">
+              <div class="role-toggle-content">
+                <span class="role-toggle-icon">💃</span>
+                <div class="role-toggle-text">
+                  <div class="role-toggle-name">La Donna</div>
+                  <div class="role-toggle-desc">Si rifugia a casa di un ospite</div>
+                </div>
+              </div>
+            </label>
+
+            <!-- Beccamorto -->
+            <label class="role-toggle-card">
+              <input type="checkbox" id="lupus-toggle-beccamorto">
+              <div class="role-toggle-content">
+                <span class="role-toggle-icon">⚰️</span>
+                <div class="role-toggle-text">
+                  <div class="role-toggle-name">Beccamorto</div>
+                  <div class="role-toggle-desc">Scopre il ruolo esatto dei morti (+1 notte)</div>
+                </div>
+              </div>
+            </label>
+
+            <!-- Idiota del Villaggio -->
+            <label class="role-toggle-card">
+              <input type="checkbox" id="lupus-toggle-idiota">
+              <div class="role-toggle-content">
+                <span class="role-toggle-icon">🤡</span>
+                <div class="role-toggle-text">
+                  <div class="role-toggle-name">Idiota del Villaggio</div>
+                  <div class="role-toggle-desc">Innocente, ma al Veggente appare LUPO</div>
+                </div>
+              </div>
+            </label>
+
+            <!-- Necromante -->
+            <label class="role-toggle-card">
+              <input type="checkbox" id="lupus-toggle-necromante">
+              <div class="role-toggle-content">
+                <span class="role-toggle-icon">🕯️💀</span>
+                <div class="role-toggle-text">
+                  <div class="role-toggle-name">Necromante</div>
+                  <div class="role-toggle-desc">Resuscita 1 solo defunto (1 volta a partita)</div>
+                </div>
+              </div>
+            </label>
+
+            <!-- Sezione Lupi Speciali -->
+            <div class="lupus-toggle-category-title">🐺 Branco dei Lupi & Alleati</div>
+
+            <!-- Lupo Stregone -->
+            <label class="role-toggle-card">
+              <input type="checkbox" id="lupus-toggle-lupo_stregone">
+              <div class="role-toggle-content">
+                <span class="role-toggle-icon">🐺🔮</span>
+                <div class="role-toggle-text">
+                  <div class="role-toggle-name">Lupo Stregone</div>
+                  <div class="role-toggle-desc">Blocca il potere notturno di un ruolo attivo</div>
+                </div>
+              </div>
+            </label>
+
+            <!-- Cane Nero -->
+            <label class="role-toggle-card">
+              <input type="checkbox" id="lupus-toggle-cane_nero">
+              <div class="role-toggle-content">
+                <span class="role-toggle-icon">🐕‍🦺</span>
+                <div class="role-toggle-text">
+                  <div class="role-toggle-name">Cane Nero</div>
+                  <div class="role-toggle-desc">Lupo che al Veggente risulta NON LUPO</div>
+                </div>
+              </div>
+            </label>
+
+            <!-- Lupo Mannaro -->
+            <label class="role-toggle-card">
+              <input type="checkbox" id="lupus-toggle-infiltrato">
+              <div class="role-toggle-content">
+                <span class="role-toggle-icon">🐺🌕</span>
+                <div class="role-toggle-text">
+                  <div class="role-toggle-name">Lupo Mannaro</div>
+                  <div class="role-toggle-desc">Umano maledetto: il dado notturno può trasformarlo in Lupo</div>
+                </div>
+              </div>
+            </label>
+
+            <!-- Sezione Fazione Solitaria -->
+            <div class="lupus-toggle-category-title">🃏 Fazione Solitaria (Cani Sciolti)</div>
+
+            <!-- Giullare -->
+            <label class="role-toggle-card">
+              <input type="checkbox" id="lupus-toggle-giullare">
+              <div class="role-toggle-content">
+                <span class="role-toggle-icon">🃏</span>
+                <div class="role-toggle-text">
+                  <div class="role-toggle-name">Il Giullare</div>
+                  <div class="role-toggle-desc">Vince SOLO se si fa bruciare al rogo!</div>
+                </div>
+              </div>
+            </label>
+
+            <!-- Lupo Bianco -->
+            <label class="role-toggle-card">
+              <input type="checkbox" id="lupus-toggle-lupo_bianco">
+              <div class="role-toggle-content">
+                <span class="role-toggle-icon">🐺❄️</span>
+                <div class="role-toggle-text">
+                  <div class="role-toggle-name">Il Lupo Bianco</div>
+                  <div class="role-toggle-desc">A notti alterne sbrana lupi; vince da solo</div>
+                </div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Durata Discussione Diurna -->
+        <div class="form-group">
+          <div class="form-label">
+            <span>⏱️ Durata Discussione Villaggio:</span>
+            <span class="label-hint">(può sempre concludersi prima)</span>
+          </div>
+          <div class="stepper-control">
+            <button type="button" class="stepper-btn" id="lupus-time-minus" aria-label="Riduci tempo">-</button>
+            <span class="stepper-val" id="lupus-time-value">3 min</span>
+            <button type="button" class="stepper-btn" id="lupus-time-plus" aria-label="Aumenta tempo">+</button>
+          </div>
+        </div>
+
+        <!-- Elenco Nomi Giocatori -->
+        <div class="form-group">
+          <div class="form-label">
+            <span>Giocatori (<span id="lupus-players-count">6</span>):</span>
+            <span class="label-hint">Tocca per modificare i nomi</span>
+          </div>
+          
+          <div id="lupus-players-container" class="player-tag-container">
+            <!-- Nomi generati dinamicamente via JS -->
+          </div>
+
+          <div class="preset-actions">
+            <button type="button" class="preset-chip" id="lupus-add-player-btn">➕ Aggiungi Giocatore</button>
+            <button type="button" class="preset-chip" id="lupus-quick-names-btn">🎲 Nomi Casuali</button>
+          </div>
+        </div>
+
+        <!-- Riepilogo Composizione Villaggio -->
+        <div id="lupus-roles-summary" class="lupus-summary-box mb-4"></div>
+
+        <button type="button" class="btn btn-primary btn-block" id="lupus-btn-start-game">
+          🎴 Inizia Distribuzione Ruoli
+        </button>
+
+        <a href="../../index.html" class="btn btn-secondary btn-block mt-3 text-center">
+          🏰 Torna al Party Game Hub
+        </a>
+      </div>
+    </section>
+
+    <!-- =========================================================================
+         LUPUS IN FABULA - VISTA 2: RIVELAZIONE SEGRETA RUOLO (PASSA IL TELEFONO)
+         ========================================================================= -->
+    <section id="view-lupus-pass" class="app-view" style="display: none;">
+      <div class="glass-card pass-phone-container">
+        <div class="turn-indicator" id="lupus-pass-progress-chip">Giocatore 1 di 6</div>
+        
+        <div id="lupus-pass-prompt-wrap">
+          <h2 class="pass-instruction" id="lupus-pass-instruction">Passa il dispositivo a:</h2>
+          <div class="pass-target-name" id="lupus-pass-target-name">Marco</div>
+          <p class="card-subtitle" id="lupus-pass-subtitle">Assicurati che nessuno stia sbirciando prima di rivelare la tua identità segreta!</p>
+        </div>
+
+        <!-- Tasto Tieni Premuto per Scoprire (Hold to Reveal) -->
+        <div class="hold-reveal-box" style="max-width: 440px;">
+          <div class="btn-hold" id="lupus-hold-reveal-btn">
+            <div class="hold-icon">👆</div>
+            <div class="hold-text">TIENI PREMUTO PER VEDERE</div>
+            <div class="hold-subtext">Rilascia per nascondere subito</div>
+            <div class="hold-progress-bar" id="lupus-hold-progress-bar"></div>
+          </div>
+        </div>
+
+        <!-- Tasto Passa al Prossimo -->
+        <div id="lupus-pass-next-btn-container" style="display: none; margin-top: 14px;">
+          <button type="button" class="btn btn-primary btn-block" id="lupus-next-turn-btn">
+            ✅ Ho visto! Passa al prossimo giocatore
+          </button>
+        </div>
+      </div>
+
+      <!-- Modale Carta Ruolo a Schermo Intero (visibile tenendo premuto) -->
+      <div id="lupus-secret-revealed-card" class="lupus-card-modal-overlay" style="display: none;">
+        <div class="lupus-card-modal-container">
+          <div class="lupus-modal-hold-hint">
+            <span>👆 Tieni premuto per leggere • Rilascia per chiudere</span>
+          </div>
+          <div id="lupus-card-box" class="lupus-tarot-card">
+            <div class="lupus-tarot-img-container">
+              <img id="lupus-card-img" class="lupus-tarot-img" src="img/lupo.jpg" alt="Carta Ruolo">
+            </div>
+            <div class="lupus-card-body">
+              <div id="lupus-card-faction" class="lupus-faction-badge faction-lupi">Branco dei Lupi 🐺</div>
+              <h2 id="lupus-card-title" class="lupus-card-title">Lupo Mannaro</h2>
+              <p id="lupus-card-desc" class="lupus-card-desc">Descrizione del ruolo...</p>
+
+              <!-- Box Alleati per i Lupi -->
+              <div id="lupus-card-allies-box" class="lupus-allies-box" style="display: none;">
+                <div class="lupus-allies-title">I tuoi compagni Lupi nel villaggio:</div>
+                <div id="lupus-card-allies-list"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================================
+         LUPUS IN FABULA - VISTA 3: GUIDA DEL NARRATORE (DASHBOARD NOTTE / GIORNO)
+         ========================================================================= -->
+    <section id="view-lupus-master" class="app-view" style="display: none;">
+      <div class="glass-card">
+        <div class="flex-between mb-2">
+          <h2 class="card-title">📜 Guida del Narratore</h2>
+          <span class="phase-badge" id="lupus-alive-count-badge">6/6 Vivi</span>
+        </div>
+        <p class="card-subtitle">
+          Affida il dispositivo al Narratore. Guida le chiamate notturne e i dibattiti al rogo diurni.
+        </p>
+
+        <!-- Banner Condizione di Vittoria -->
+        <div id="lupus-victory-banner" class="lupus-victory-banner" style="display: none;"></div>
+
+        <!-- Box Registro Abitanti (Vivi / Morti) -->
+        <div class="form-group">
+          <div class="form-label">
+            <span id="lupus-roster-label">👥 Registro Abitanti (tocca per segnare eliminato):</span>
+          </div>
+          <div id="lupus-master-roster" class="lupus-roster-grid"></div>
+        </div>
+
+        <!-- Scheda Sequenza Guidata del Round -->
+        <div class="lupus-phase-card">
+          <div class="flex-between mb-2">
+            <h3 id="lupus-phase-title" style="font-size: 1.25rem; font-weight: 800; color: #fff;">Round 1 🐺</h3>
+            <span id="lupus-phase-badge" class="phase-badge badge-night">Notte 1 🌙</span>
+          </div>
+
+          <!-- Step Box Unificato -->
+          <div id="lupus-master-step-box" class="lupus-master-step-box">
+            <div id="lupus-step-counter" class="lupus-step-counter">Passaggio 1 di 9</div>
+            <h4 id="lupus-step-title" class="lupus-step-title">🌙 Calano le Tenebre</h4>
+            <div id="lupus-step-desc" class="lupus-step-desc">Il Narratore annuncia: <em class="narrator-speech">'Cala la notte sul villaggio. Tutti gli abitanti chiudono gli occhi e si addormentano!'</em></div>
+
+            <!-- Widget 0: Azioni Notturne Interattive -->
+            <div id="lupus-step-action-widget" style="display: none; margin-top: 14px;"></div>
+
+            <!-- Widget 0b: Riepilogo Risoluzione dell'Alba -->
+            <div id="lupus-dawn-summary-widget" style="display: none; margin-top: 14px;"></div>
+
+            <!-- Widget 1: Timer Discussione Diurna -->
+            <div id="lupus-step-timer-widget" style="display: none; text-align: center; margin: 16px 0 8px;">
+              <div id="lupus-timer-display" class="timer-display" style="font-size: 3rem; margin: 8px 0;">03:00</div>
+              <div style="display: flex; gap: 8px; justify-content: center; margin-bottom: 12px;">
+                <button type="button" class="btn btn-secondary" id="lupus-timer-toggle-btn">▶️ Avvia Timer</button>
+              </div>
+              <button type="button" class="btn btn-primary btn-block" id="lupus-end-discussion-early-btn">
+                ⚖️ Concludi e Vai al Voto
+              </button>
+            </div>
+
+            <!-- Widget 2: Votazione del Rogo -->
+            <div id="lupus-step-voting-widget" style="display: none; margin-top: 16px;">
+              <div id="lupus-voting-prompt" style="font-size: 0.9rem; color: var(--df-text-ash); margin-bottom: 10px; text-align: center;">
+                Tocca l'unico abitante che il villaggio ha deciso di mandare al rogo:
+              </div>
+              
+              <div id="lupus-voting-grid" class="vote-grid" style="margin: 12px 0;"></div>
+
+              <button type="button" class="btn btn-danger btn-block mt-2" id="lupus-confirm-vote-btn" disabled>
+                🔥 Seleziona un giocatore da condannare
+              </button>
+
+              <!-- Risultato Votazione -->
+              <div id="lupus-vote-result-box" class="lupus-vote-result-box" style="display: none;">
+                <div id="lupus-vote-result-text" style="font-size: 1rem; font-weight: 700; color: #dfc694; margin-bottom: 12px; line-height: 1.4;"></div>
+                <div id="lupus-countdown-container" style="margin-bottom: 14px;">
+                  <span class="auto-countdown-badge">
+                    ⏱️ Avanzamento automatico alla Notte successiva in <strong id="lupus-countdown-sec">4</strong>s...
+                  </span>
+                </div>
+                <button type="button" class="btn btn-primary btn-block" id="lupus-btn-next-night" style="font-size: 0.95rem; padding: 12px;">
+                  🌙 Inizia la Notte Successiva Subito ➡️
+                </button>
+              </div>
+            </div>
+
+            <!-- Widget 3: Game Over Card interna -->
+            <div id="lupus-step-gameover-widget" style="display: none; margin-top: 16px;">
+              <div id="lupus-gameover-content"></div>
+            </div>
+
+            <!-- Controlli Navigazione Passaggi Sequenziali -->
+            <div class="lupus-step-controls mt-4" id="lupus-step-nav-controls">
+              <button type="button" class="btn btn-secondary btn-sm" id="lupus-master-prev-step">⬅️ Indietro</button>
+              <button type="button" class="btn btn-primary btn-sm" id="lupus-master-next-step">Avanti ➡️</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top: 24px; display: flex; gap: 10px;">
+          <button type="button" class="btn btn-primary" style="flex: 1;" id="lupus-btn-restart-game">
+            🔄 Nuova Partita
+          </button>
+          <a href="../../index.html" class="btn btn-secondary" style="flex: 1; text-align: center;">
+            🏰 Hub Giochi
+          </a>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Modale Regole del Gioco -->
+  <div class="modal-overlay" id="rules-modal">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 class="modal-title">📜 Regole di Lupus in Fabula</h3>
+        <button type="button" class="btn-close" id="btn-close-rules">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="rules-list">
+          <div class="rules-item">
+            <span class="rules-badge">Fasi</span>
+            <div class="rules-text">Il gioco si divide in due fasi: Notte (il villaggio dorme e i ruoli speciali agiscono) e Giorno (dibattito e rogo).</div>
+          </div>
+          <div class="rules-item">
+            <span class="rules-badge">Lupi</span>
+            <div class="rules-text">Il branco dei Lupi si sveglia ogni notte per scegliere all'unanimità una vittima innocente da sbranare.</div>
+          </div>
+          <div class="rules-item">
+            <span class="rules-badge">Vittoria</span>
+            <div class="rules-text">Il Villaggio vince se elimina tutti i Lupi. I Lupi vincono se raggiungono o superano il numero degli umani vivi.</div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary btn-block" id="btn-modal-got-it">Ho Capito! ⚔️</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Audio System -->
+  <script src="../../js/audio.js"></script>
+
+  <!-- Moduli Lupus in Fabula -->
+  <script src="js/lupus_roles.js"></script>
+  <script src="js/lupus_night_resolver.js"></script>
+  <script src="js/lupus_night_widgets.js"></script>
+  <script src="js/lupus_master_ui.js"></script>
+  <script src="js/lupus_setup_ui.js"></script>
+  <script src="js/lupus_game.js"></script>
+
+  <!-- Controller Inizializzazione Standalone per Lupus -->
+  <script>
+    class StandaloneLupusApp {
+      constructor() {
+        this.currentView = "view-lupus-setup";
+        this.lupusGame = new LupusGameController();
+        window.LupusGame = this.lupusGame;
+
+        this.bindEvents();
+        this.updateAudioButtonState();
+        this.lupusGame.renderSetupView();
+      }
+
+      switchView(viewId) {
+        document.querySelectorAll(".app-view").forEach(v => v.style.display = "none");
+        const target = document.getElementById(viewId);
+        if (target) {
+          target.style.display = "block";
+          this.currentView = viewId;
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+      }
+
+      bindEvents() {
+        // Regole modal
+        const rulesBtn = document.getElementById("btn-rules");
+        const rulesModal = document.getElementById("rules-modal");
+        const closeRulesBtn = document.getElementById("btn-close-rules");
+        const gotItBtn = document.getElementById("btn-modal-got-it");
+
+        if (rulesBtn && rulesModal) {
+          rulesBtn.addEventListener("click", () => {
+            try { Sound.playClick(); } catch(e) {}
+            rulesModal.classList.add("open");
+          });
+        }
+        [closeRulesBtn, gotItBtn].forEach(btn => {
+          if (btn && rulesModal) {
+            btn.addEventListener("click", () => {
+              try { Sound.playClick(); } catch(e) {}
+              rulesModal.classList.remove("open");
+            });
+          }
+        });
+        if (rulesModal) {
+          rulesModal.addEventListener("click", (e) => {
+            if (e.target === rulesModal) rulesModal.classList.remove("open");
+          });
+        }
+
+        // Audio toggle
+        const audioBtn = document.getElementById("btn-audio-toggle");
+        if (audioBtn) {
+          audioBtn.addEventListener("click", () => {
+            try { Sound.toggle(); } catch(e) {}
+            this.updateAudioButtonState();
+          });
+        }
+      }
+
+      updateAudioButtonState() {
+        const audioBtn = document.getElementById("btn-audio-toggle");
+        if (audioBtn) {
+          if (Sound && Sound.enabled) {
+            audioBtn.innerHTML = "🔊";
+            audioBtn.classList.add("active");
+            audioBtn.title = "Audio Attivo";
+          } else {
+            audioBtn.innerHTML = "🔇";
+            audioBtn.classList.remove("active");
+            audioBtn.title = "Audio Disattivato";
+          }
+        }
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      window.App = new StandaloneLupusApp();
+    });
+  </script>
+</body>
+</html>

@@ -4,17 +4,19 @@ import re
 def verify_lupus_implementation():
     print("Testing Lupus implementation across modular files...")
 
-    with open("js/games/lupus_game.js", "r", encoding="utf-8") as f:
+    js_dir = "games/lupus/js" if os.path.exists("games/lupus/js") else "js/games/lupus"
+    game_file = os.path.join(js_dir, "lupus_game.js") if os.path.exists(os.path.join(js_dir, "lupus_game.js")) else "js/games/lupus_game.js"
+    with open(game_file, "r", encoding="utf-8") as f:
         game_js = f.read()
-    with open("js/games/lupus/lupus_roles.js", "r", encoding="utf-8") as f:
+    with open(os.path.join(js_dir, "lupus_roles.js"), "r", encoding="utf-8") as f:
         roles_js = f.read()
-    with open("js/games/lupus/lupus_setup_ui.js", "r", encoding="utf-8") as f:
+    with open(os.path.join(js_dir, "lupus_setup_ui.js"), "r", encoding="utf-8") as f:
         setup_js = f.read()
-    with open("js/games/lupus/lupus_master_ui.js", "r", encoding="utf-8") as f:
+    with open(os.path.join(js_dir, "lupus_master_ui.js"), "r", encoding="utf-8") as f:
         master_js = f.read()
-    with open("js/games/lupus/lupus_night_widgets.js", "r", encoding="utf-8") as f:
+    with open(os.path.join(js_dir, "lupus_night_widgets.js"), "r", encoding="utf-8") as f:
         widgets_js = f.read()
-    with open("js/games/lupus/lupus_night_resolver.js", "r", encoding="utf-8") as f:
+    with open(os.path.join(js_dir, "lupus_night_resolver.js"), "r", encoding="utf-8") as f:
         resolver_js = f.read()
 
     all_js = game_js + "\n" + roles_js + "\n" + setup_js + "\n" + master_js + "\n" + widgets_js + "\n" + resolver_js
@@ -74,8 +76,9 @@ def verify_lupus_implementation():
     print("[OK] All 13 setup toggles present in index.html")
 
     # Verify Images
+    img_dir = "games/lupus/img" if os.path.exists("games/lupus/img") else "img/lupus"
     for r in ["giullare", "infiltrato", "lupo_bianco", "lupo_stregone", "beccamorto", "idiota", "cane_nero", "necromante"]:
-        path = f"img/lupus/{r}.jpg"
+        path = os.path.join(img_dir, f"{r}.jpg")
         assert os.path.exists(path) and os.path.getsize(path) > 10000, f"Image {path} missing or invalid"
     print("[OK] All tarot images exist and exceed 10KB")
 

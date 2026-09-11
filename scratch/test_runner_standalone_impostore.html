@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Test Impostore Standalone Page</title>
+</head>
+<body>
+  <div id="test-output">Running...</div>
+  <iframe id="app-frame" src="../games/impostore/index.html" style="width: 500px; height: 700px;"></iframe>
+
+  <script>
+    const iframe = document.getElementById('app-frame');
+    iframe.onload = () => {
+      try {
+        const win = iframe.contentWindow;
+        const doc = iframe.contentDocument;
+        
+        if (!win.LocalGame) throw new Error("LocalGame not initialized on window");
+        if (!win.P2PGame) throw new Error("P2PGame not initialized on window");
+        
+        const modeView = doc.getElementById("view-mode-select");
+        if (!modeView || modeView.style.display === "none") throw new Error("view-mode-select not visible initially");
+        
+        // Select Passa il Telefono
+        const localModeBtn = doc.getElementById("select-mode-local");
+        if (!localModeBtn) throw new Error("select-mode-local btn not found");
+        localModeBtn.click();
+        
+        const setupView = doc.getElementById("view-local-setup");
+        if (!setupView || setupView.style.display === "none") throw new Error("view-local-setup not visible after selecting mode");
+        
+        // Start game
+        const startBtn = doc.getElementById("local-start-game-btn");
+        if (!startBtn) throw new Error("local-start-game-btn not found");
+        startBtn.click();
+        
+        const passView = doc.getElementById("view-pass-reveal");
+        if (!passView || passView.style.display === "none") throw new Error("view-pass-reveal not visible after start");
+        
+        document.getElementById('test-output').innerText = "STANDALONE_IMPOSTORE_SUCCESS: Local and standalone initialization work perfectly!";
+      } catch (err) {
+        document.getElementById('test-output').innerText = "ERROR: " + err.message;
+      }
+    };
+  </script>
+</body>
+</html>

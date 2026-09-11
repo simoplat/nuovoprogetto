@@ -1,9 +1,10 @@
-import re
+import os
 
 def test_necromante():
     print("Testing Necromante integration...")
 
-    with open('js/games/lupus/lupus_roles.js', 'r', encoding='utf-8') as f:
+    js_dir = 'games/lupus/js' if os.path.exists('games/lupus/js') else 'js/games/lupus'
+    with open(os.path.join(js_dir, 'lupus_roles.js'), 'r', encoding='utf-8') as f:
         roles_js = f.read()
     assert 'necromante: {' in roles_js, "necromante role missing in lupus_roles.js"
     assert 'Villaggio 🕯️💀' in roles_js, "necromante faction label missing"
@@ -15,13 +16,14 @@ def test_necromante():
     assert 'id="lupus-toggle-necromante"' in html, "lupus-toggle-necromante missing in index.html"
     print("[OK] index.html verified")
 
-    with open('js/games/lupus/lupus_setup_ui.js', 'r', encoding='utf-8') as f:
+    with open(os.path.join(js_dir, 'lupus_setup_ui.js'), 'r', encoding='utf-8') as f:
         setup_js = f.read()
     assert '"necromante"' in setup_js, "necromante missing in toggle loop"
     assert 'this.game.enabledRoles.necromante' in setup_js, "necromante missing in validateRolesAndRenderSummary"
     print("[OK] lupus_setup_ui.js verified")
 
-    with open('js/games/lupus_game.js', 'r', encoding='utf-8') as f:
+    lupus_game_file = os.path.join(js_dir, 'lupus_game.js') if os.path.exists(os.path.join(js_dir, 'lupus_game.js')) else 'js/games/lupus_game.js'
+    with open(lupus_game_file, 'r', encoding='utf-8') as f:
         game_js = f.read()
     assert 'necromante: false' in game_js, "enabledRoles.necromante missing"
     assert 'necromanteTarget: undefined' in game_js, "nightActions.necromanteTarget missing"
@@ -32,19 +34,19 @@ def test_necromante():
     assert 'roleDeck.push("necromante")' in game_js, "roleDeck missing necromante"
     print("[OK] lupus_game.js verified")
 
-    with open('js/games/lupus/lupus_master_ui.js', 'r', encoding='utf-8') as f:
+    with open(os.path.join(js_dir, 'lupus_master_ui.js'), 'r', encoding='utf-8') as f:
         master_js = f.read()
     assert 'subtype === "necromante"' in master_js, "isStepActionComplete missing necromante"
     print("[OK] lupus_master_ui.js verified")
 
-    with open('js/games/lupus/lupus_night_widgets.js', 'r', encoding='utf-8') as f:
+    with open(os.path.join(js_dir, 'lupus_night_widgets.js'), 'r', encoding='utf-8') as f:
         widgets_js = f.read()
     assert 'stepSubtype === "necromante"' in widgets_js, "renderNightActionWidget missing necromante"
     assert 'selected-necromante' in widgets_js, "selected-necromante class missing in widgets"
     assert 'Il Necromante è stato silenziato dal Lupo Stregone' in widgets_js, "silenced alert missing"
     print("[OK] lupus_night_widgets.js verified")
 
-    with open('js/games/lupus/lupus_night_resolver.js', 'r', encoding='utf-8') as f:
+    with open(os.path.join(js_dir, 'lupus_night_resolver.js'), 'r', encoding='utf-8') as f:
         resolver_js = f.read()
     assert 'game.preDawnNecromanteSnapshot = game.necromanteUsed;' in resolver_js, "preDawnNecromanteSnapshot not saved"
     assert 'isNecromanteSilenced' in resolver_js, "isNecromanteSilenced check missing"
@@ -64,10 +66,10 @@ def test_necromante():
     assert '**Il Necromante** | Villaggio | **NON LUPO 👤**' in report, "Necromante missing in Veggente matrix"
     print("[OK] game_mechanics_matrix_report.md verified")
 
-    import os
-    assert os.path.exists('img/lupus/necromante.jpg'), "necromante.jpg image missing in img/lupus/"
-    assert os.path.getsize('img/lupus/necromante.jpg') > 100000, "necromante.jpg is too small"
-    print("[OK] img/lupus/necromante.jpg verified")
+    img_necro = 'games/lupus/img/necromante.jpg' if os.path.exists('games/lupus/img/necromante.jpg') else 'img/lupus/necromante.jpg'
+    assert os.path.exists(img_necro), "necromante.jpg image missing"
+    assert os.path.getsize(img_necro) > 100000, "necromante.jpg is too small"
+    print("[OK] necromante.jpg verified")
 
     # Verify NO_ROGO integration
     assert 'NO_ROGO' in master_js, "NO_ROGO missing in lupus_master_ui.js"
