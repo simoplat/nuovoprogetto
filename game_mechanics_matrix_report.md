@@ -18,9 +18,10 @@ Questo documento costituisce il registro ufficiale e aggiornato di tutte le rego
   * Se l'ospite muore per **veleno della Strega** $\rightarrow$ **La Donna SOPRAVVIVE**.
 * **Logica:** I Lupi non hanno violato la dimora in cui si trova la Donna; la morte interiore da crepacuore o l'ingestione di una pozione velenosa non coinvolge fisicamente la Donna, che può allontanarsi illesa all'Alba.
 
-### 3. Conflitto di Fazione negli Innamorati Misti (Umano ❤️ Lupo) 💘
-* **Regola:** Gli Innamorati misti mantengono il conflitto d'interessi intrinseco del gioco.
-* **Condizione di Vittoria:** La coppia Umano-Lupo vince la partita **SOLO se riesce a diventare gli unici 2 superstiti del villaggio**, eliminando sia tutti gli altri lupi che tutti gli altri contadini. Se vince il Villaggio (tutti i lupi morti), l'amante lupo muore e fa morire per crepacuore l'amante umano; se vincono i Lupi (parità numerica con i contadini), i lupi sbranano i contadini rimasti compreso l'amante umano, uccidendo per crepacuore anche il lupo.
+### 3. Regola degli Innamorati (Cupido): Muoiono semplicemente insieme 💘
+* **Regola:** **Non esiste alcuna condizione di vittoria della coppia**. Gli Innamorati non costituiscono una terza fazione e non hanno un trionfo autonomo a due.
+* **Fazione di Appartenenza:** Ciascun innamorato conserva esclusivamente l'obiettivo di vittoria della propria fazione originaria (Villaggio o Lupi).
+* **Vincolo Vitale Tragico:** Il legame scoccato dalle frecce di Cupido opera unicamente come vincolo di morte simbiotico: se uno dei due amanti perde la vita (sbranato dai lupi, arso al rogo, avvelenato dalla Strega o ucciso dal Lupo Bianco), l'altro **muore all'istante di crepacuore**.
 
 ### 4. Strega: Massimo 1 Pozione per Notte 🧪/☠️
 * **Regola:** La Strega possiede 2 pozioni per l'intera partita (1 Vita, 1 Morte), ma può utilizzarne **AL MASSIMO UNA per notte**.
@@ -104,7 +105,7 @@ flowchart TD
 | **Veggente vs Cane Nero** | Visione Mistica | Mascheramento | **Cane Nero** 🐕‍🦺 | Risposta: **NON LUPO**. |
 | **Veggente vs Idiota del Villaggio** | Visione Mistica | Pazzia Apparente | **Idiota** 🤡 | Risposta: **LUPO** (falso positivo, ma è innocente). |
 | **Veggente vs Lupo Mannaro** | Visione Mistica | Licantropia | **Dinamico** 🌓 | Prima della trasformazione: **NON LUPO**. Dopo la luna piena: **LUPO**. |
-| **Innamorati vs Qualsiasi Morte** | Crepacuore | Amore Indissolubile | **Crepacuore** 💔 | Se uno muore per qualsiasi causa (Lupi, Rogo, Veleno), **l'altro muore subito**. |
+| **Innamorati vs Qualsiasi Morte** | Crepacuore | Fazione Originale | **Nessuna Vittoria di Coppia** 💔 | **Muoiono semplicemente insieme**. Ciascuno appartiene alla propria fazione; se uno muore per qualsiasi causa (Lupi, Rogo, Veleno), l'altro muore subito di crepacuore. |
 | **Giullare al Rogo (Giorno)** | Rogo Villaggio | Vittoria Giullare | **Giullare** 🃏 | **Partita vinta all'istante dal Giullare**. |
 | **Giullare sbranato o avvelenato (Notte)** | Attacco Notte | Giullare | **Attaccante** 🐺☠️ | Giullare **Eliminato** senza vincere. |
 
@@ -112,8 +113,8 @@ flowchart TD
 
 ## 4. File Sorgente Collegati
 
-- [lupus_night_resolver.js](file:///c:/Users/simop/Documents/GitHub/nuovoprogetto/js/games/lupus/lupus_night_resolver.js): Risoluzione eventi notturni all'Alba, scudo Guardia contro Lupo Bianco e vincoli di morte.
-- [lupus_night_widgets.js](file:///c:/Users/simop/Documents/GitHub/nuovoprogetto/js/games/lupus/lupus_night_widgets.js): Interfaccia grafica con mutua esclusione per le pozioni della Strega e pulsante rapido di conservazione.
-- [lupus_master_ui.js](file:///c:/Users/simop/Documents/GitHub/nuovoprogetto/js/games/lupus/lupus_master_ui.js): Convalida del pulsante Avanti e gestione del rogo/innamorati.
-- [lupus_roles.js](file:///c:/Users/simop/Documents/GitHub/nuovoprogetto/js/games/lupus/lupus_roles.js): Definizioni e descrizioni canoniche dei ruoli.
-- [lupus_game.js](file:///c:/Users/simop/Documents/GitHub/nuovoprogetto/js/games/lupus_game.js): Controller principale, istruzioni narratore e condizioni di vittoria.
+- [lupus_night_resolver.js](file:///c:/Users/simop/Documents/GitHub/nuovoprogetto/js/games/lupus/lupus_night_resolver.js): Risoluzione eventi notturni all'Alba, scudo Guardia contro Lupo Bianco e vincoli di morte a catena.
+- [lupus_night_widgets.js](file:///c:/Users/simop/Documents/GitHub/nuovoprogetto/js/games/lupus/lupus_night_widgets.js): Interfaccia grafica con mutua esclusione per le pozioni della Strega e selezione innamorati.
+- [lupus_master_ui.js](file:///c:/Users/simop/Documents/GitHub/nuovoprogetto/js/games/lupus/lupus_master_ui.js): Convalida del pulsante Avanti e gestione del rogo con crepacuore immediato.
+- [lupus_roles.js](file:///c:/Users/simop/Documents/GitHub/nuovoprogetto/js/games/lupus/lupus_roles.js): Definizioni canoniche dei ruoli (Cupido: nessun trionfo di coppia, semplice destino comune).
+- [lupus_game.js](file:///c:/Users/simop/Documents/GitHub/nuovoprogetto/js/games/lupus_game.js): Controller principale, istruzioni narratore e condizioni di vittoria standard (Villaggio, Lupi, Giullare, Lupo Bianco).

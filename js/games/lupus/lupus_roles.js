@@ -61,7 +61,7 @@ const LUPUS_ROLES = {
     icon: "💘",
     image: "img/lupus/cupido.jpg",
     color: "#f43f5e",
-    description: "Solo la Prima Notte, scagli le tue frecce su due giocatori legandoli per la vita. Se uno dei due muore in qualunque momento, l'altro muore all'istante di crepacuore!",
+    description: "Solo la Prima Notte, scagli le tue frecce su due giocatori legandoli nel destino. Se uno dei due muore in qualunque momento (notte o giorno), l'altro muore all'istante di crepacuore! Non esiste condizione di vittoria della coppia: muoiono semplicemente insieme.",
     nightAction: "Cupido apre gli occhi solo la prima notte e sceglie 2 giocatori da innamorare toccando loro la spalla."
   },
   donna: {
