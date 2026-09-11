@@ -835,6 +835,13 @@ h1, h2, h3, h4,
   border: 1px solid var(--df-solo-border);
 }
 
+.lupus-card-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
 .lupus-card-title {
   font-size: 1.45rem;
   margin-bottom: 4px;
@@ -1899,4 +1906,217 @@ h1, h2, h3, h4,
   font-size: 0.88rem;
   color: var(--df-text-parchment);
   line-height: 1.4;
+}
+
+/* --------------------------------------------------------------------------
+   14. LAYOUT CONTENITORI BASE (MOBILE DEFAULT)
+   -------------------------------------------------------------------------- */
+.lupus-setup-grid-layout,
+.lupus-master-grid-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.lupus-master-sidebar-actions {
+  margin-top: 14px;
+}
+
+/* ==========================================================================
+   15. OTTIMIZZAZIONE VISIONE ORIZZONTALE PER DESKTOP E TABLET
+   Questa sezione entra in azione SOLO per schermi ampi (Desktop, Tablet orizzontali)
+   lasciando il layout verticale per smartphone intatto al 100%.
+   ========================================================================== */
+@media (min-width: 860px), (min-width: 768px) and (orientation: landscape) {
+  /* Espansione della larghezza del contenitore su desktop/tablet orizzontale */
+  .app-container {
+    max-width: 1200px;
+    padding: 24px 32px 48px;
+  }
+
+  .app-header {
+    padding: 14px 22px;
+    margin-bottom: 24px;
+    border-radius: 12px;
+  }
+
+  .brand-title {
+    font-size: 1.32rem;
+  }
+
+  .brand-subtitle {
+    font-size: 0.76rem;
+  }
+
+  /* ------------------------------------------------------------------------
+     SETUP PARTITA A 2 COLONNE (Command Sidebar + Grimoire Ruoli Speciali)
+     ------------------------------------------------------------------------ */
+  .lupus-setup-grid-layout {
+    display: grid;
+    grid-template-columns: 390px 1fr;
+    grid-template-areas:
+      "base  roles"
+      "players roles";
+    gap: 24px;
+    align-items: start;
+  }
+
+  .lupus-setup-base-panel {
+    grid-area: base;
+    margin-bottom: 0;
+  }
+
+  .lupus-setup-roles-panel {
+    grid-area: roles;
+    margin-bottom: 0;
+    padding: 24px 22px;
+  }
+
+  .lupus-setup-players-panel {
+    grid-area: players;
+    margin-bottom: 0;
+  }
+
+  .lupus-roles-toggles-grid {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 10px;
+  }
+
+  .player-tag-container {
+    max-height: 280px;
+  }
+
+  /* ------------------------------------------------------------------------
+     PASSA IL TELEFONO & CARTA TAROCCO ORIZZONTALE PER TABLET/DESKTOP
+     ------------------------------------------------------------------------ */
+  .pass-phone-container {
+    max-width: 580px;
+    margin: 0 auto;
+    padding: 32px 28px;
+  }
+
+  .lupus-card-modal-container {
+    max-width: 840px;
+    width: 92%;
+  }
+
+  .lupus-tarot-card {
+    flex-direction: row;
+    align-items: stretch;
+    text-align: left;
+    gap: 28px;
+    padding: 24px 28px;
+    max-height: 85vh;
+  }
+
+  .lupus-tarot-img-container {
+    width: 280px;
+    height: 380px;
+    flex-shrink: 0;
+    margin: 0;
+  }
+
+  .lupus-card-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    overflow-y: auto;
+    padding-right: 8px;
+  }
+
+  .lupus-card-desc {
+    max-width: 100%;
+    font-size: 1.05rem;
+    line-height: 1.55;
+    margin-bottom: 12px;
+  }
+
+  .lupus-allies-box {
+    margin-top: 10px;
+    padding: 10px 14px;
+    width: 100%;
+  }
+
+  /* ------------------------------------------------------------------------
+     GUIDA DEL NARRATORE - DASHBOARD COMANDO A 2 COLONNE
+     ------------------------------------------------------------------------ */
+  .lupus-master-grid-layout {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 24px;
+    align-items: start;
+  }
+
+  .lupus-master-sidebar-panel {
+    position: sticky;
+    top: 20px;
+    max-height: calc(100vh - 40px);
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 0;
+  }
+
+  .lupus-master-sidebar-panel .lupus-roster-grid {
+    max-height: calc(100vh - 280px);
+    grid-template-columns: 1fr;
+    overflow-y: auto;
+  }
+
+  .lupus-master-sidebar-actions {
+    margin-top: auto;
+    padding-top: 14px;
+    border-top: 1px solid var(--df-border-iron);
+  }
+
+  .lupus-master-main-panel {
+    margin-bottom: 0;
+  }
+
+  .lupus-phase-card {
+    padding: 22px;
+    margin-top: 0;
+  }
+
+  .lupus-master-step-box {
+    padding: 20px;
+  }
+
+  .lupus-step-title {
+    font-size: 1.35rem;
+  }
+
+  .lupus-step-desc {
+    font-size: 1.05rem;
+  }
+
+  .narrator-speech,
+  .lupus-speech,
+  .lupus-step-desc em {
+    font-size: 1.08rem;
+    padding: 8px 14px;
+  }
+
+  .lupus-action-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+  }
+
+  .vote-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+  }
+
+  /* Modale Regole Spazioso */
+  .modal-container {
+    max-width: 720px;
+  }
+
+  .rules-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
 }
