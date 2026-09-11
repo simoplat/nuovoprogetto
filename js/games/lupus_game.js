@@ -247,11 +247,21 @@ class LupusGameController {
     this.renderTurnReveal();
   }
 
+  isPlayerAliveInRound(p) {
+    if (!p) return false;
+    if (this.roundStartAliveSnapshot && this.roundStartAliveSnapshot.has(p.id)) {
+      return this.roundStartAliveSnapshot.get(p.id);
+    }
+    return p.isAlive;
+  }
+
   initMasterDashboard() {
     this.nightCount = 1;
     this.masterStepIndex = 0;
     this.selectedVotePlayerId = null;
     this.voteConfirmed = false;
+    this.roundStartAliveSnapshot = new Map(this.assignments.map(p => [p.id, p.isAlive]));
+    this.roundStartTransformedSnapshot = new Map(this.assignments.map(p => [p.id, !!p.isTransformed]));
     this.resetDiscussionTimer();
 
     this.renderMasterRoster();
@@ -288,7 +298,7 @@ class LupusGameController {
     }
 
     // 3. La Donna (se abilitata e viva)
-    const donnaAlive = this.assignments.some(p => p.roleKey === "donna" && p.isAlive);
+    const donnaAlive = this.assignments.some(p => p.roleKey === "donna" && this.isPlayerAliveInRound(p));
     if (this.enabledRoles.donna && donnaAlive) {
       steps.push({
         type: "night",
@@ -300,9 +310,10 @@ class LupusGameController {
       });
     }
 
-    // 3b. La Luna Piena del Lupo Mannaro (se abilitato, vivo e non ancora trasformato)
-    const infiltratoPlayer = this.assignments.find(p => p.roleKey === "infiltrato" && p.isAlive);
-    if (this.enabledRoles.infiltrato && infiltratoPlayer && !infiltratoPlayer.isTransformed) {
+    // 3b. La Luna Piena del Lupo Mannaro (se abilitato, vivo e non ancora trasformato all'inizio del round)
+    const infiltratoPlayer = this.assignments.find(p => p.roleKey === "infiltrato" && this.isPlayerAliveInRound(p));
+    const wasTransformedAtRoundStart = infiltratoPlayer && (this.roundStartTransformedSnapshot ? this.roundStartTransformedSnapshot.get(infiltratoPlayer.id) : infiltratoPlayer.isTransformed);
+    if (this.enabledRoles.infiltrato && infiltratoPlayer && !wasTransformedAtRoundStart) {
       steps.push({
         type: "night",
         stepSubtype: "infiltrato_moon",
@@ -315,9 +326,9 @@ class LupusGameController {
 
     // 4. I Lupi (se ci sono lupi del branco vivi: normali, stregone, cane nero, lupo bianco o lupo mannaro trasformato)
     const wolfRoles = ["lupo", "lupo_stregone", "cane_nero", "lupo_bianco"];
-    const wolvesAlive = this.assignments.some(p => (wolfRoles.includes(p.roleKey) || (p.roleKey === "infiltrato" && p.isTransformed)) && p.isAlive);
+    const wolvesAlive = this.assignments.some(p => (wolfRoles.includes(p.roleKey) || (p.roleKey === "infiltrato" && p.isTransformed)) && this.isPlayerAliveInRound(p));
     if (wolvesAlive) {
-      const infiltratoTransformed = this.assignments.find(p => p.roleKey === "infiltrato" && p.isAlive && p.isTransformed);
+      const infiltratoTransformed = this.assignments.find(p => p.roleKey === "infiltrato" && this.isPlayerAliveInRound(p) && p.isTransformed);
       const infiltratoNote = infiltratoTransformed
         ? ` (🐺 Il Lupo Mannaro si è trasformato e ORA si sveglia con i lupi!)`
         : ` (Il Lupo Mannaro NON si sveglia finché non si trasforma).`;
@@ -332,7 +343,7 @@ class LupusGameController {
     }
 
     // 4b. Il Lupo Stregone (se abilitato e vivo)
-    const stregoneAlive = this.assignments.some(p => p.roleKey === "lupo_stregone" && p.isAlive);
+    const stregoneAlive = this.assignments.some(p => p.roleKey === "lupo_stregone" && this.isPlayerAliveInRound(p));
     if (this.enabledRoles.lupo_stregone && stregoneAlive) {
       steps.push({
         type: "night",
@@ -345,7 +356,7 @@ class LupusGameController {
     }
 
     // 4c. Il Lupo Bianco (a notti alterne: 2, 4, 6... se abilitato e vivo)
-    const lupoBiancoAlive = this.assignments.some(p => p.roleKey === "lupo_bianco" && p.isAlive);
+    const lupoBiancoAlive = this.assignments.some(p => p.roleKey === "lupo_bianco" && this.isPlayerAliveInRound(p));
     if (this.enabledRoles.lupo_bianco && lupoBiancoAlive && (this.nightCount % 2 === 0)) {
       steps.push({
         type: "night",
@@ -358,7 +369,7 @@ class LupusGameController {
     }
 
     // 5. La Guardia (se abilitata e viva)
-    const guardiaAlive = this.assignments.some(p => p.roleKey === "guardia" && p.isAlive);
+    const guardiaAlive = this.assignments.some(p => p.roleKey === "guardia" && this.isPlayerAliveInRound(p));
     if (this.enabledRoles.guardia && guardiaAlive) {
       steps.push({
         type: "night",
@@ -371,7 +382,7 @@ class LupusGameController {
     }
 
     // 6. Il Veggente (se abilitato e vivo)
-    const veggenteAlive = this.assignments.some(p => p.roleKey === "veggente" && p.isAlive);
+    const veggenteAlive = this.assignments.some(p => p.roleKey === "veggente" && this.isPlayerAliveInRound(p));
     if (this.enabledRoles.veggente && veggenteAlive) {
       steps.push({
         type: "night",
@@ -384,7 +395,7 @@ class LupusGameController {
     }
 
     // 6b. Il Beccamorto (dalla Notte 2 in poi, se abilitato e vivo)
-    const beccamortoAlive = this.assignments.some(p => p.roleKey === "beccamorto" && p.isAlive);
+    const beccamortoAlive = this.assignments.some(p => p.roleKey === "beccamorto" && this.isPlayerAliveInRound(p));
     if (this.enabledRoles.beccamorto && beccamortoAlive && this.nightCount >= 2) {
       steps.push({
         type: "night",
@@ -397,7 +408,7 @@ class LupusGameController {
     }
 
     // 7. La Strega (se abilitata e viva)
-    const stregaAlive = this.assignments.some(p => p.roleKey === "strega" && p.isAlive);
+    const stregaAlive = this.assignments.some(p => p.roleKey === "strega" && this.isPlayerAliveInRound(p));
     if (this.enabledRoles.strega && stregaAlive) {
       steps.push({
         type: "night",
@@ -456,6 +467,15 @@ class LupusGameController {
         return;
       }
     }
+    // Transizione esplicita e sicura da Alba a Dibattito
+    if (curStep && curStep.type === "dawn") {
+      const discIdx = steps.findIndex(s => s.type === "discussion");
+      if (discIdx !== -1) {
+        this.masterStepIndex = discIdx;
+        this.renderMasterPhaseGuide();
+        return;
+      }
+    }
     if (this.masterStepIndex < steps.length - 1) {
       this.masterStepIndex++;
       this.renderMasterPhaseGuide();
@@ -466,6 +486,14 @@ class LupusGameController {
     Sound.playClick();
     const steps = this.getRoundSteps();
     const curStep = steps[this.masterStepIndex];
+    if (curStep && curStep.type === "discussion") {
+      const dawnIdx = steps.findIndex(s => s.type === "dawn");
+      if (dawnIdx !== -1) {
+        this.masterStepIndex = dawnIdx;
+        this.renderMasterPhaseGuide();
+        return;
+      }
+    }
     if (this.masterStepIndex > 0) {
       if (curStep && curStep.type === "dawn" && this.nightResolved && this.preDawnAliveSnapshot) {
         this.assignments.forEach((p, idx) => {
@@ -475,6 +503,8 @@ class LupusGameController {
         this.witchDeathUsed = this.preDawnWitchDeathSnapshot;
         this.nightResolved = false;
         this.dawnReport = null;
+        this.roundStartAliveSnapshot = new Map(this.assignments.map(p => [p.id, p.isAlive]));
+        this.roundStartTransformedSnapshot = new Map(this.assignments.map(p => [p.id, !!p.isTransformed]));
       }
       this.masterStepIndex--;
       this.renderMasterPhaseGuide();
@@ -494,6 +524,8 @@ class LupusGameController {
     this.selectedVotePlayerId = null;
     this.voteConfirmed = false;
     this.masterStepIndex = 0;
+    this.roundStartAliveSnapshot = new Map(this.assignments.map(p => [p.id, p.isAlive]));
+    this.roundStartTransformedSnapshot = new Map(this.assignments.map(p => [p.id, !!p.isTransformed]));
     this.resetDiscussionTimer();
 
     // Reset azioni notturne transitorie

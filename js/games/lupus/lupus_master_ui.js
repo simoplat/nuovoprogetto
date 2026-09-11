@@ -256,6 +256,7 @@ class LupusMasterUI {
       }
       if (navControls) navControls.style.display = "flex";
       if (nextBtn) {
+        nextBtn.classList.remove("btn-dawn-next");
         nextBtn.style.display = "inline-flex";
         nextBtn.textContent = "Avanti ➡️";
         this.updateNextBtnState();
@@ -272,12 +273,20 @@ class LupusMasterUI {
         }
         game.renderDawnSummaryWidget();
       }
+
+      const winType = game.checkVictoryCondition();
+      if (winType) {
+        game.renderGameOverCard(null, winType);
+        return;
+      }
+
       if (navControls) navControls.style.display = "flex";
       if (nextBtn) {
         nextBtn.style.display = "inline-flex";
         nextBtn.textContent = "Vai al Dibattito ☀️";
         nextBtn.disabled = false;
         nextBtn.title = "";
+        nextBtn.classList.add("btn-dawn-next");
       }
       this.stopDiscussionTimer();
     } else if (curStep.type === "discussion") {
@@ -286,7 +295,10 @@ class LupusMasterUI {
       if (timerWidget) timerWidget.style.display = "block";
       if (votingWidget) votingWidget.style.display = "none";
       if (navControls) navControls.style.display = "flex";
-      if (nextBtn) nextBtn.style.display = "none";
+      if (nextBtn) {
+        nextBtn.style.display = "none";
+        nextBtn.classList.remove("btn-dawn-next");
+      }
       this.startDiscussionTimerAuto();
     } else if (curStep.type === "voting") {
       if (actionWidget) actionWidget.style.display = "none";
@@ -296,7 +308,10 @@ class LupusMasterUI {
       this.renderVotingGrid();
 
       if (navControls) navControls.style.display = "flex";
-      if (nextBtn) nextBtn.style.display = "none";
+      if (nextBtn) {
+        nextBtn.style.display = "none";
+        nextBtn.classList.remove("btn-dawn-next");
+      }
       this.stopDiscussionTimer();
     }
 
