@@ -89,6 +89,7 @@ class LupusGameController {
       beccamortoSeen: false
     };
     this.beccamortoRevealed = [];
+    this.matchLog = [];
     this.nightResolved = false;
     this.preDawnAliveSnapshot = null;
     this.preDawnWitchLifeSnapshot = false;
@@ -243,6 +244,7 @@ class LupusGameController {
       beccamortoSeen: false
     };
     this.beccamortoRevealed = [];
+    this.matchLog = [];
     this.nightResolved = false;
     this.preDawnAliveSnapshot = null;
     this.dawnReport = null;
@@ -286,7 +288,7 @@ class LupusGameController {
       phaseBadge: `Notte ${this.nightCount} 🌙`,
       badgeClass: "badge-night",
       title: `🌙 Calano le Tenebre (Notte ${this.nightCount})`,
-      instruction: "Il Narratore annuncia ad alta voce: <em>'Cala la notte sul villaggio. Tutti gli abitanti chiudono gli occhi e si addormentano!'</em>"
+      instruction: "Il Narratore annuncia ad alta voce: <em class=\"narrator-speech\">'Cala la notte sul villaggio. Tutti gli abitanti chiudono gli occhi e si addormentano!'</em>"
     });
 
     // 2. Cupido (SOLO Notte 1 se abilitato)
@@ -297,7 +299,7 @@ class LupusGameController {
         phaseBadge: `Notte ${this.nightCount} 🌙`,
         badgeClass: "badge-night",
         title: "💘 Risveglio di Cupido",
-        instruction: "Il Narratore dice: <em>'Cupido, apri gli occhi e indica i due Innamorati.'</em> Cupido indica due persone. Il Narratore annuisce, fa richiudere gli occhi a Cupido e tocca discretamente le spalle dei due innamorati, dicendo: <em>'Gli Innamorati aprano gli occhi per guardarsi e riconoscersi.'</em>"
+        instruction: "Il Narratore dice: <em class=\"narrator-speech\">'Cupido, apri gli occhi e indica i due Innamorati.'</em> Cupido indica due persone e richiude gli occhi. Il Narratore tocca con discrezione le spalle dei prescelti e dice: <em class=\"narrator-speech\">'Gli Innamorati aprano gli occhi per guardarsi e riconoscersi.'</em> Poi: <em class=\"narrator-speech\">'Gli Innamorati richiudano gli occhi.'</em>"
       });
     }
 
@@ -310,7 +312,7 @@ class LupusGameController {
         phaseBadge: `Notte ${this.nightCount} 🌙`,
         badgeClass: "badge-night",
         title: "💃 Risveglio della Donna",
-        instruction: "Il Narratore dice: <em>'La Donna apre gli occhi e indica con chi trascorrerà la notte.'</em> La Donna indica un giocatore. Se sceglie un Lupo o se il suo ospite muore, muore anche lei!"
+        instruction: "Il Narratore dice: <em class=\"narrator-speech\">'La Donna apre gli occhi e indica con chi trascorrerà la notte.'</em> La Donna indica un giocatore. Poi: <em class=\"narrator-speech\">'La Donna richiuda gli occhi.'</em> (Se sceglie un Lupo o se il suo ospite muore, perirà anche lei!)"
       });
     }
 
@@ -324,7 +326,7 @@ class LupusGameController {
         phaseBadge: `Notte ${this.nightCount} 🌙`,
         badgeClass: "badge-night",
         title: "🌕 Il Richiamo della Luna (Lupo Mannaro)",
-        instruction: "Il Narratore verifica la Luna Piena per il Lupo Mannaro: tocca <strong>🎲 Lancia Dado</strong>. Se la luna è piena, si trasforma permanentemente in un feroce Lupo del branco! (Il Narratore toccherà con discrezione la sua spalla per avvisarlo di aprire gli occhi con i Lupi nel passaggio successivo)."
+        instruction: "Il Narratore verifica la Luna Piena per il Lupo Mannaro: tocca <strong>🎲 Lancia Dado</strong>. Se la luna è piena, si trasforma permanentemente in un feroce Lupo del branco! (Azione silenziosa del Master: se si trasforma, toccagli discretamente la spalla per avvisarlo di svegliarsi con i Lupi nel passaggio successivo)."
       });
     }
 
@@ -342,7 +344,7 @@ class LupusGameController {
         phaseBadge: `Notte ${this.nightCount} 🌙`,
         badgeClass: "badge-night",
         title: "🐺 Risveglio del Branco dei Lupi",
-        instruction: `Il Narratore dice: <em>'I Lupi aprano gli occhi, si riconoscano e scelgano silenziosamente la loro vittima.'</em> (Si svegliano tutti i Lupi del branco: normali, Lupo Stregone, Cane Nero, Lupo Bianco${infiltratoTransformed ? ', e il Lupo Mannaro trasformato' : ''}).${infiltratoNote} I lupi concordano una vittima indicandola al Narratore.`
+        instruction: `Il Narratore dice: <em class="narrator-speech">'I Lupi aprano gli occhi, si riconoscano e scelgano silenziosamente la loro vittima.'</em> (Si svegliano tutti i Lupi del branco: normali, Lupo Stregone, Cane Nero, Lupo Bianco${infiltratoTransformed ? ', e il Lupo Mannaro trasformato' : ''}).${infiltratoNote} I lupi concordano una vittima indicandola al Narratore. Poi: <em class="narrator-speech">'I Lupi richiudano gli occhi.'</em>`
       });
     }
 
@@ -355,7 +357,7 @@ class LupusGameController {
         phaseBadge: `Notte ${this.nightCount} 🌙`,
         badgeClass: "badge-night",
         title: "🐺🔮 Risveglio del Lupo Stregone",
-        instruction: "Il Narratore dice: <em>'Il Lupo Stregone apra gli occhi.'</em> Il Lupo Stregone indica un giocatore al Narratore per annullarne il potere notturno. Se quel giocatore ha un potere notturno attivo (Guardia, Veggente, Strega, Beccamorto), il suo potere è <strong>bloccato</strong> per questa notte!"
+        instruction: "Il Narratore dice: <em class=\"narrator-speech\">'Il Lupo Stregone apra gli occhi.'</em> Il Lupo Stregone indica un giocatore al Narratore per annullarne il potere notturno (Guardia, Veggente, Strega, Beccamorto). Poi: <em class=\"narrator-speech\">'Il Lupo Stregone richiuda gli occhi.'</em>"
       });
     }
 
@@ -368,7 +370,7 @@ class LupusGameController {
         phaseBadge: `Notte ${this.nightCount} 🌙`,
         badgeClass: "badge-night",
         title: "🐺❄️ Risveglio Solitario del Lupo Bianco",
-        instruction: "A notti alterne (notte pari), il Lupo Bianco si risveglia da solo per tradire il branco! Può decidere di sbranare uno degli altri Lupi indicandolo al Narratore, oppure rinunciare."
+        instruction: "Il Narratore dice: <em class=\"narrator-speech\">'Il Lupo Bianco apra gli occhi.'</em> A notti alterne (notte pari), il Lupo Bianco può decidere di sbranare uno degli altri Lupi indicandolo al Narratore, oppure rinunciare. Poi: <em class=\"narrator-speech\">'Il Lupo Bianco richiuda gli occhi.'</em>"
       });
     }
 
@@ -381,7 +383,7 @@ class LupusGameController {
         phaseBadge: `Notte ${this.nightCount} 🌙`,
         badgeClass: "badge-night",
         title: "🛡️ Risveglio della Guardia",
-        instruction: "Il Narratore dice: <em>'La Guardia apra gli occhi e indichi chi proteggere con il suo scudo.'</em> La Guardia indica un abitante (può proteggere anche se stessa). Lo scudo salverà il prescelto da qualsiasi attacco dei Lupi (compreso il Lupo Bianco)!"
+        instruction: "Il Narratore dice: <em class=\"narrator-speech\">'La Guardia apra gli occhi e indichi chi proteggere con il suo scudo.'</em> La Guardia indica un abitante (può proteggere anche se stessa). Lo scudo salverà il prescelto da qualsiasi attacco dei Lupi (compreso il Lupo Bianco)! Poi: <em class=\"narrator-speech\">'La Guardia richiuda gli occhi.'</em>"
       });
     }
 
@@ -394,7 +396,7 @@ class LupusGameController {
         phaseBadge: `Notte ${this.nightCount} 🌙`,
         badgeClass: "badge-night",
         title: "🔮 Risveglio del Veggente",
-        instruction: "Il Narratore dice: <em>'Il Veggente apra gli occhi e indichi la persona di cui vuole scoprire l'identità.'</em> Tocca il giocatore indicato per visualizzare il responso esatto."
+        instruction: "Il Narratore dice: <em class=\"narrator-speech\">'Il Veggente apra gli occhi e indichi la persona di cui vuole scoprire l'identità.'</em> Tocca il giocatore indicato per visualizzare il responso esatto (da mimare con discrezione). Poi: <em class=\"narrator-speech\">'Il Veggente richiuda gli occhi.'</em>"
       });
     }
 
@@ -407,7 +409,7 @@ class LupusGameController {
         phaseBadge: `Notte ${this.nightCount} 🌙`,
         badgeClass: "badge-night",
         title: "⚰️ Risveglio del Beccamorto",
-        instruction: "Il Narratore dice: <em>'Il Beccamorto apra gli occhi.'</em> Il Beccamorto indica <strong>un solo defunto</strong> di cui desidera conoscere l'identità (massimo 1 a round). Il Narratore gli mostra la carta o mima il ruolo del prescelto."
+        instruction: "Il Narratore dice: <em class=\"narrator-speech\">'Il Beccamorto apra gli occhi.'</em> Il Beccamorto indica <strong>un solo defunto</strong> di cui desidera conoscere l'identità (massimo 1 a round). Tocca il defunto per scoprire il ruolo da mostrargli o mimargli. Poi: <em class=\"narrator-speech\">'Il Beccamorto richiuda gli occhi.'</em>"
       });
     }
 
@@ -420,7 +422,7 @@ class LupusGameController {
         phaseBadge: `Notte ${this.nightCount} 🌙`,
         badgeClass: "badge-night",
         title: "🧙‍♀️ Risveglio della Strega",
-        instruction: "Il Narratore dice: <em>'La Strega apra gli occhi.'</em> Il Narratore le mostra la vittima dei lupi. La Strega decide se usare la pozione di vita oppure la pozione di morte (al massimo 1 sola pozione a notte)."
+        instruction: "Il Narratore dice: <em class=\"narrator-speech\">'La Strega apra gli occhi.'</em> Il Narratore le mostra silenziosamente la vittima dei lupi. La Strega decide se usare la pozione di vita oppure la pozione di morte (al massimo 1 sola pozione a notte). Poi: <em class=\"narrator-speech\">'La Strega richiuda gli occhi.'</em>"
       });
     }
 
@@ -431,7 +433,7 @@ class LupusGameController {
       phaseBadge: "Alba 🌅",
       badgeClass: "badge-day",
       title: `☀️ Risveglio del Villaggio (Giorno ${this.nightCount})`,
-      instruction: "Il Narratore annuncia ad alta voce: <em>'Sorge il sole sul villaggio! Tutti gli abitanti aprano gli occhi!'</em> L'esito della notte è calcolato e mostrato di seguito."
+      instruction: "Il Narratore annuncia ad alta voce: <em class=\"narrator-speech\">'Sorge il sole sul villaggio! Tutti gli abitanti aprano gli occhi!'</em> L'esito ufficiale della notte è calcolato e mostrato di seguito per essere proclamato:"
     });
 
     // 9. Dibattito & Timer del Villaggio (Giorno)
@@ -441,7 +443,7 @@ class LupusGameController {
       phaseBadge: `Giorno ${this.nightCount} ☀️`,
       badgeClass: "badge-day",
       title: "⏱️ Dibattito & Timer del Villaggio",
-      instruction: "Gli abitanti discutono animatamente per trovare i colpevoli. Avvia il timer di discussione oppure concludi in anticipo non appena il gruppo è pronto a votare."
+      instruction: "Il Narratore dice: <em class=\"narrator-speech\">'Abitanti del villaggio, discutete tra voi per individuare i colpevoli!'</em> Avvia il timer di discussione oppure concludi in anticipo non appena il gruppo è pronto a votare."
     });
 
     // 10. Votazione del Rogo (Eliminazione di un solo giocatore)
@@ -451,7 +453,7 @@ class LupusGameController {
       phaseBadge: "Rogo ⚖️",
       badgeClass: "badge-night",
       title: "🔥 Votazione del Rogo",
-      instruction: "Il villaggio vota chi mandare al rogo. Seleziona <strong>l'unico abitante</strong> accusato dalla maggioranza:"
+      instruction: "Il Narratore dice: <em class=\"narrator-speech\">'Cittadini, il tempo della discussione è scaduto! Procediamo con le accuse e il voto per il rogo.'</em> Seleziona <strong>l'unico abitante</strong> accusato dalla maggioranza:"
     });
 
     return steps;
@@ -509,6 +511,9 @@ class LupusGameController {
         this.dawnReport = null;
         this.roundStartAliveSnapshot = new Map(this.assignments.map(p => [p.id, p.isAlive]));
         this.roundStartTransformedSnapshot = new Map(this.assignments.map(p => [p.id, !!p.isTransformed]));
+        if (this.matchLog && this.matchLog.length > 0 && this.matchLog[this.matchLog.length - 1].night === this.nightCount) {
+          this.matchLog.pop();
+        }
       }
       this.masterStepIndex--;
       this.renderMasterPhaseGuide();

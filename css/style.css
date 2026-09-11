@@ -2244,6 +2244,25 @@ input.custom-select,
   line-height: 1.5;
 }
 
+/* Parole che il Narratore deve leggere ad alta voce ai giocatori */
+.narrator-speech,
+.lupus-speech,
+.lupus-step-desc em {
+  color: #fde047 !important; /* Giallo brillante ad alto contrasto */
+  font-style: normal;
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-color: #f59e0b; /* Sottolineatura ambra calda */
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3.5px;
+  letter-spacing: 0.015em;
+  background: rgba(245, 158, 11, 0.12);
+  padding: 1px 5px;
+  border-radius: 4px;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
 .lupus-step-controls {
   display: flex;
   justify-content: space-between;
@@ -2933,6 +2952,218 @@ input.custom-select,
   background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(15, 23, 42, 0.9));
   border: 1px solid rgba(96, 165, 250, 0.4);
   color: #bfdbfe;
+}
+
+/* ==========================================================================
+   LUPUS CHRONICLE MODAL (Cronistoria Segreta Notturna)
+   ========================================================================== */
+
+.lupus-chronicle-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.82);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.lupus-chronicle-dialog {
+  background: #0f172a;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 16px;
+  max-width: 680px;
+  width: 100%;
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.75);
+}
+
+.lupus-chronicle-header {
+  padding: 16px 20px;
+  background: rgba(30, 41, 59, 0.95);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.chronicle-main-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #f8fafc;
+}
+
+.chronicle-sub-title {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  margin-top: 2px;
+}
+
+.btn-chronicle-close {
+  background: rgba(255, 255, 255, 0.08);
+  border: none;
+  color: #cbd5e1;
+  font-size: 1.1rem;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.btn-chronicle-close:hover {
+  background: rgba(239, 68, 68, 0.25);
+  color: #ef4444;
+}
+
+.lupus-chronicle-body {
+  padding: 18px 20px;
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.lupus-chronicle-footer {
+  padding: 12px 20px;
+  background: rgba(30, 41, 59, 0.85);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.lupus-chronicle-round-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.lupus-chronicle-round-header {
+  background: linear-gradient(90deg, rgba(56, 189, 248, 0.2), rgba(99, 102, 241, 0.15));
+  border-bottom: 1px solid rgba(56, 189, 248, 0.3);
+  padding: 10px 16px;
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: #38bdf8;
+  letter-spacing: 0.3px;
+}
+
+.lupus-chronicle-section-box {
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.lupus-chronicle-section-box:last-child {
+  border-bottom: none;
+}
+
+.chronicle-section-title {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 800;
+  color: #94a3b8;
+  margin-bottom: 8px;
+}
+
+.lupus-chronicle-actions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.lupus-chronicle-action-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.chronicle-action-icon {
+  font-size: 1.3rem;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.chronicle-action-title {
+  font-size: 0.86rem;
+  font-weight: 800;
+  color: #e2e8f0;
+}
+
+.chronicle-action-detail {
+  font-size: 0.82rem;
+  color: #cbd5e1;
+  margin-top: 2px;
+  line-height: 1.35;
+}
+
+.lupus-chronicle-dawn-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.lupus-chronicle-dawn-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.82rem;
+  padding: 6px 10px;
+  border-radius: 6px;
+  line-height: 1.35;
+}
+
+.lupus-chronicle-dawn-item.death {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: #fca5a5;
+}
+
+.lupus-chronicle-dawn-item.saved {
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  color: #6ee7b7;
+}
+
+.lupus-chronicle-dawn-item.peaceful {
+  background: rgba(56, 189, 248, 0.1);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  color: #bae6fd;
+}
+
+.lupus-chronicle-rogo-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.85rem;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.28);
+  padding: 8px 12px;
+  border-radius: 8px;
+  color: #fde68a;
+  line-height: 1.35;
+}
+
+.lupus-chronicle-rogo-item.lover-death {
+  margin-top: 6px;
+  background: rgba(244, 63, 94, 0.12);
+  border-color: rgba(244, 63, 94, 0.28);
+  color: #fecdd3;
 }
 
 

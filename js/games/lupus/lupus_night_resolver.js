@@ -196,12 +196,240 @@ class LupusNightResolver {
     game.nightResolved = true;
     game.dawnReport = events;
 
+    // Registra cronistoria segreta completa per la partita
+    this.recordNightChronicle(events, deaths);
+
     // Aggiorna registro e verifica vittoria
     game.renderMasterRoster();
     const winType = game.checkVictoryCondition();
     if (winType) {
       game.renderGameOverCard(null, winType);
     }
+  }
+
+  recordNightChronicle(events, deaths) {
+    const game = this.game;
+    if (!game.matchLog) game.matchLog = [];
+
+    // Rimuovi eventuale log preesistente per questa notte (es. rollback e ri-risoluzione)
+    game.matchLog = game.matchLog.filter(e => e.night !== game.nightCount);
+
+    const nightNum = game.nightCount;
+    const actions = [];
+    const stregoneTargetId = game.nightActions.stregoneTarget;
+    const stregonePlayer = game.assignments.find(p => p.roleKey === "lupo_stregone" && game.isPlayerAliveInRound(p));
+
+    // 1. Cupido (Notte 1)
+    if (game.enabledRoles.cupido && nightNum === 1 && game.lovers && game.lovers.length === 2) {
+      const p1 = game.assignments.find(p => p.id === game.lovers[0]);
+      const p2 = game.assignments.find(p => p.id === game.lovers[1]);
+      actions.push({
+        roleKey: "cupido",
+        icon: "💘",
+        title: "Cupido",
+        detail: `Ha unito nel destino <strong>${p1?.name}</strong> (${p1?.role.name}) e <strong>${p2?.name}</strong> (${p2?.role.name})`
+      });
+    }
+
+    // 2. La Donna
+    const donnaPlayer = game.assignments.find(p => p.roleKey === "donna" && game.isPlayerAliveInRound(p));
+    if (game.enabledRoles.donna && donnaPlayer) {
+      const targetId = game.nightActions.donnaTarget;
+      let detail = "";
+      if (targetId === null) {
+        detail = `È rimasta a dormire <strong>A Casa Sua</strong> 🏠`;
+      } else if (targetId) {
+        const host = game.assignments.find(p => p.id === targetId);
+        const isHostWolf = host && (["lupo", "lupo_stregone", "cane_nero", "lupo_bianco"].includes(host.roleKey) || (host.roleKey === "infiltrato" && host.isTransformed));
+        detail = `Si è rifugiata da <strong>${host?.name}</strong> (${host?.role.name}) ${isHostWolf ? '⚠️ (Tana di un Lupo!)' : '✅ (Innocente)'}`;
+      } else {
+        detail = `Nessuna scelta effettuata`;
+      }
+      actions.push({
+        roleKey: "donna",
+        icon: "💃",
+        title: "La Donna (Meretrice)",
+        detail
+      });
+    }
+
+    // 3. Lupo Mannaro (Infiltrato)
+    const infiltratoPlayer = game.assignments.find(p => p.roleKey === "infiltrato" && game.isPlayerAliveInRound(p));
+    if (game.enabledRoles.infiltrato && infiltratoPlayer) {
+      let detail = "";
+      const roll = game.nightActions.infiltratoRoll;
+      if (roll) {
+        detail = `Dado Luna Piena: <strong>${roll.value}%</strong> &rarr; ${roll.success ? '🌕 <strong>TRASFORMAZIONE IN LUPO AVVENUTA!</strong>' : '🌑 Non trasformato (rimasto latente)'}`;
+      } else if (infiltratoPlayer.isTransformed) {
+        detail = `🌕 Già trasformato in precedenza (sveglio con i lupi)`;
+      } else {
+        detail = `🌑 Rimasto umano latente`;
+      }
+      actions.push({
+        roleKey: "infiltrato",
+        icon: "🐺🌕",
+        title: `Lupo Mannaro (${infiltratoPlayer.name})`,
+        detail
+      });
+    }
+
+    // 4. Branco dei Lupi
+    const wolfVictimId = game.nightActions.wolfTarget;
+    if (wolfVictimId) {
+      const victim = game.assignments.find(p => p.id === wolfVictimId);
+      actions.push({
+        roleKey: "lupo",
+        icon: "🐺",
+        title: "Branco dei Lupi",
+        detail: `Hanno scelto di sbranare <strong>${victim?.name}</strong> (${victim?.role.name})`
+      });
+    }
+
+    // 5. Lupo Stregone
+    if (game.enabledRoles.lupo_stregone && stregonePlayer) {
+      let detail = "";
+      if (stregoneTargetId === null) {
+        detail = `Non ha silenziato nessuno`;
+      } else if (stregoneTargetId) {
+        const target = game.assignments.find(p => p.id === stregoneTargetId);
+        const hasPower = ["guardia", "veggente", "strega", "beccamorto"].includes(target?.roleKey);
+        detail = `Ha silenziato <strong>${target?.name}</strong> (${target?.role.name}) ${hasPower ? '⛔ (Potere notturno annullato!)' : '(Nessun potere bloccabile)'}`;
+      }
+      actions.push({
+        roleKey: "lupo_stregone",
+        icon: "🐺🔮",
+        title: "Lupo Stregone",
+        detail
+      });
+    }
+
+    // 6. Lupo Bianco
+    const lupoBiancoPlayer = game.assignments.find(p => p.roleKey === "lupo_bianco" && game.isPlayerAliveInRound(p));
+    if (game.enabledRoles.lupo_bianco && lupoBiancoPlayer && (nightNum % 2 === 0)) {
+      const tId = game.nightActions.lupoBiancoTarget;
+      let detail = "";
+      if (tId === null) {
+        detail = `Ha deciso di passare (nessun compagno aggredito stanotte)`;
+      } else if (tId) {
+        const victim = game.assignments.find(p => p.id === tId);
+        detail = `Ha sbranato alle spalle il compagno <strong>${victim?.name}</strong> (${victim?.role.name})`;
+      }
+      actions.push({
+        roleKey: "lupo_bianco",
+        icon: "🐺❄️",
+        title: "Lupo Bianco (Risveglio Solitario)",
+        detail
+      });
+    }
+
+    // 7. La Guardia
+    const guardiaPlayer = game.assignments.find(p => p.roleKey === "guardia" && game.isPlayerAliveInRound(p));
+    if (game.enabledRoles.guardia && guardiaPlayer) {
+      const isSilenced = stregonePlayer && (stregoneTargetId === guardiaPlayer.id);
+      let detail = "";
+      if (isSilenced) {
+        detail = `⛔ <strong>Silenziata dal Lupo Stregone!</strong> (Scudo bloccato)`;
+      } else if (game.nightActions.guardTarget === null) {
+        detail = `Nessuna protezione assegnata`;
+      } else if (game.nightActions.guardTarget) {
+        const target = game.assignments.find(p => p.id === game.nightActions.guardTarget);
+        const isSelf = (target?.id === guardiaPlayer.id);
+        detail = `Ha protetto con lo scudo <strong>${target?.name}</strong> (${target?.role.name}) ${isSelf ? '🛡️ (Se stessa)' : ''}`;
+      }
+      actions.push({
+        roleKey: "guardia",
+        icon: "🛡️",
+        title: "La Guardia",
+        detail
+      });
+    }
+
+    // 8. Il Veggente
+    const veggentePlayer = game.assignments.find(p => p.roleKey === "veggente" && game.isPlayerAliveInRound(p));
+    if (game.enabledRoles.veggente && veggentePlayer) {
+      const isSilenced = stregonePlayer && (stregoneTargetId === veggentePlayer.id);
+      let detail = "";
+      if (isSilenced) {
+        detail = `⛔ <strong>Silenziato dal Lupo Stregone!</strong> (Vista oscurata)`;
+      } else if (game.nightActions.seerTarget === null) {
+        detail = `Non ha scrutato nessuno`;
+      } else if (game.nightActions.seerTarget) {
+        const target = game.assignments.find(p => p.id === game.nightActions.seerTarget);
+        const isWolf = target && (["lupo", "lupo_stregone", "lupo_bianco", "idiota"].includes(target.roleKey) || (target.roleKey === "infiltrato" && target.isTransformed));
+        let subnote = "";
+        if (target?.roleKey === "idiota") subnote = " <em>(Falso Positivo)</em>";
+        else if (target?.roleKey === "cane_nero") subnote = " <em>(Falso Negativo)</em>";
+        else if (target?.roleKey === "infiltrato" && !target.isTransformed) subnote = " <em>(Latente)</em>";
+        detail = `Ha scrutato <strong>${target?.name}</strong> (${target?.role.name}) &rarr; Responso: <strong>${isWolf ? 'LUPO 🐺' : 'NON LUPO 👤'}</strong>${subnote}`;
+      }
+      actions.push({
+        roleKey: "veggente",
+        icon: "🔮",
+        title: "Il Veggente",
+        detail
+      });
+    }
+
+    // 9. Il Beccamorto
+    const beccamortoPlayer = game.assignments.find(p => p.roleKey === "beccamorto" && game.isPlayerAliveInRound(p));
+    if (game.enabledRoles.beccamorto && beccamortoPlayer && nightNum >= 2) {
+      const isSilenced = stregonePlayer && (stregoneTargetId === beccamortoPlayer.id);
+      let detail = "";
+      if (isSilenced) {
+        detail = `⛔ <strong>Silenziato dal Lupo Stregone!</strong> (I morti tacciono)`;
+      } else if (game.nightActions.beccamortoTarget) {
+        const target = game.assignments.find(p => p.id === game.nightActions.beccamortoTarget);
+        const isLatentInfiltrato = target && (target.roleKey === "infiltrato" && !target.isTransformed);
+        const shownRole = isLatentInfiltrato ? "Contadino (Villaggio 👨‍🌾)" : `${target?.role.name} (${target?.role.factionLabel})`;
+        detail = `Ha consultato lo spirito di <strong>${target?.name}</strong> &rarr; Rivelato come: <strong>${shownRole}</strong> ${isLatentInfiltrato ? '<em>(Copertura da Contadino)</em>' : ''}`;
+      } else {
+        detail = `Nessun defunto consultato`;
+      }
+      actions.push({
+        roleKey: "beccamorto",
+        icon: "⚰️",
+        title: "Il Beccamorto",
+        detail
+      });
+    }
+
+    // 10. La Strega
+    const stregaPlayer = game.assignments.find(p => p.roleKey === "strega" && game.isPlayerAliveInRound(p));
+    if (game.enabledRoles.strega && stregaPlayer) {
+      const isSilenced = stregonePlayer && (stregoneTargetId === stregaPlayer.id);
+      let detail = "";
+      if (isSilenced) {
+        detail = `⛔ <strong>Silenziata dal Lupo Stregone!</strong> (Pozioni bloccate)`;
+      } else {
+        const parts = [];
+        if (game.nightActions.witchHealTarget) {
+          const hTarget = game.assignments.find(p => p.id === game.nightActions.witchHealTarget);
+          parts.push(`🧪 Pozione di Vita su <strong>${hTarget?.name}</strong> (${hTarget?.role.name})`);
+        } else {
+          parts.push(`🧪 Pozione di Vita: non usata`);
+        }
+        if (game.nightActions.witchKill) {
+          const kTarget = game.assignments.find(p => p.id === game.nightActions.witchKill);
+          parts.push(`☠️ Pozione di Morte su <strong>${kTarget?.name}</strong> (${kTarget?.role.name})`);
+        } else {
+          parts.push(`☠️ Pozione di Morte: non usata`);
+        }
+        detail = parts.join(" &bull; ");
+      }
+      actions.push({
+        roleKey: "strega",
+        icon: "🧙‍♀️",
+        title: "La Strega",
+        detail
+      });
+    }
+
+    game.matchLog.push({
+      night: nightNum,
+      actions: actions,
+      dawnReport: events.map(e => ({ type: e.type, icon: e.icon, text: e.text })),
+      rogo: null
+    });
   }
 
   renderDawnSummaryWidget() {
@@ -239,7 +467,7 @@ class LupusNightResolver {
         </div>
         ${eventsHtml}
         <div style="font-size: 0.82rem; color: #94a3b8; margin-top: 10px; text-align: center; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 8px;">
-          📢 Il Narratore legge a voce alta l'esito. Il Registro Abitanti è stato aggiornato in automatico.
+          📢 <span class="narrator-speech">Il Narratore legge ad alta voce l'esito qui sopra al villaggio.</span> Il Registro Abitanti è stato aggiornato in automatico.
         </div>
       </div>
     `;

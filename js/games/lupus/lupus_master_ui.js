@@ -525,6 +525,26 @@ class LupusMasterUI {
       game.lastRoundDeaths = [condemned];
     }
 
+    // Registra sentenza del rogo nella cronistoria del round
+    if (game.matchLog && game.matchLog.length > 0) {
+      const currentLog = game.matchLog.find(entry => entry.night === game.nightCount);
+      if (currentLog) {
+        currentLog.rogo = {
+          condemned: {
+            name: condemned.name,
+            roleName: condemned.role.name,
+            factionLabel: condemned.role.factionLabel,
+            icon: condemned.role.icon
+          },
+          partnerLover: partnerLover ? {
+            name: partnerLover.name,
+            roleName: partnerLover.role.name,
+            icon: partnerLover.role.icon
+          } : null
+        };
+      }
+    }
+
     this.renderMasterRoster();
 
     // 1. Vittoria immediata se il Giullare viene condannato al rogo dal Villaggio!
@@ -593,7 +613,7 @@ class LupusMasterUI {
         `;
       }
       stepDesc.innerHTML = `
-        La sentenza del villaggio è compiuta. L'identità di <strong>${condemned.name}</strong> è svelata: era un <strong>${condemned.role.name}</strong> (${condemned.role.factionLabel}).<br>
+        Il Narratore annuncia ad alta voce: <em class="narrator-speech">'La sentenza del villaggio è compiuta! ${condemned.name} è stat${sfx} condannat${sfx} al rogo!'</em> L'identità di <strong>${condemned.name}</strong> è svelata: era un <strong>${condemned.role.name}</strong> (${condemned.role.factionLabel}).<br>
         ${loverHtml}
         Il villaggio non è ancora salvo! Restano <strong>${aliveCount}</strong> abitanti vivi (${aliveWolves} lup${aliveWolves === 1 ? 'o' : 'i'}).
       `;
@@ -771,6 +791,10 @@ class LupusMasterUI {
               ⬅️ Hub Giochi
             </button>
           </div>
+
+          <button type="button" class="btn btn-secondary" id="lupus-btn-open-chronicle" style="width: 100%; margin-top: 12px; font-weight: 800; background: rgba(56, 189, 248, 0.14); border: 1.5px solid #38bdf8; color: #e0f2fe; padding: 11px; border-radius: var(--radius-md); font-size: 0.92rem; cursor: pointer; transition: all 0.2s ease;">
+            📜 Visualizza Registro Completo delle Azioni (Cronistoria Segreta)
+          </button>
         </div>
       `;
 
@@ -779,6 +803,14 @@ class LupusMasterUI {
         restartBtn.addEventListener("click", () => {
           try { Sound.playClick(); } catch (e) {}
           game.startGame();
+        });
+      }
+
+      const chronicleBtn = document.getElementById("lupus-btn-open-chronicle");
+      if (chronicleBtn) {
+        chronicleBtn.addEventListener("click", () => {
+          try { Sound.playClick(); } catch (e) {}
+          this.renderChronicleModal();
         });
       }
 
@@ -799,6 +831,137 @@ class LupusMasterUI {
         cardEl.scrollIntoView({ behavior: "smooth", block: "start" });
       }
     }
+  }
+
+  renderChronicleModal() {
+    const game = this.game;
+    let modalEl = document.getElementById("lupus-chronicle-modal");
+    if (!modalEl) {
+      modalEl = document.createElement("div");
+      modalEl.id = "lupus-chronicle-modal";
+      modalEl.className = "lupus-chronicle-overlay";
+      document.body.appendChild(modalEl);
+    }
+
+    const log = game.matchLog || [];
+    let roundsHtml = "";
+
+    if (log.length === 0) {
+      roundsHtml = `
+        <div style="text-align: center; padding: 30px; color: #94a3b8;">
+          Nessuna azione notturna registrata per questa partita.
+        </div>
+      `;
+    } else {
+      roundsHtml = log.map(round => {
+        const actionsHtml = round.actions.map(act => `
+          <div class="lupus-chronicle-action-item">
+            <span class="chronicle-action-icon">${act.icon}</span>
+            <div class="chronicle-action-text">
+              <div class="chronicle-action-title">${act.title}</div>
+              <div class="chronicle-action-detail">${act.detail}</div>
+            </div>
+          </div>
+        `).join("");
+
+        const dawnEventsHtml = (round.dawnReport || []).map(ev => `
+          <div class="lupus-chronicle-dawn-item ${ev.type}">
+            <span style="font-size: 1.15rem; line-height: 1;">${ev.icon}</span>
+            <div>${ev.text}</div>
+          </div>
+        `).join("");
+
+        let rogoHtml = "";
+        if (round.rogo) {
+          const condemned = round.rogo.condemned;
+          const partner = round.rogo.partnerLover;
+          const sfx = condemned.name.endsWith('a') ? 'a' : 'o';
+          rogoHtml = `
+            <div class="lupus-chronicle-section-box rogo-box">
+              <div class="chronicle-section-title">🔥 Sentenza del Rogo (Giorno ${round.night}):</div>
+              <div class="lupus-chronicle-rogo-item">
+                <span style="font-size: 1.3rem;">🔥</span>
+                <div>
+                  <strong>${condemned.name}</strong> è stat${sfx} condannat${sfx} al rogo dal villaggio!
+                  <div style="color: #cbd5e1; font-size: 0.82rem; margin-top: 2px;">Ruolo Svelato: <strong>${condemned.roleName}</strong> (${condemned.factionLabel})</div>
+                </div>
+              </div>
+              ${partner ? `
+                <div class="lupus-chronicle-rogo-item lover-death">
+                  <span style="font-size: 1.3rem;">💔</span>
+                  <div>
+                    <strong>${partner.name}</strong> (${partner.roleName}) muore all'istante di crepacuore per la perdita dell'innamorato!
+                  </div>
+                </div>
+              ` : ''}
+            </div>
+          `;
+        }
+
+        return `
+          <div class="lupus-chronicle-round-card">
+            <div class="lupus-chronicle-round-header">
+              <span>🌙 Round ${round.night} (Notte & Giorno)</span>
+            </div>
+            
+            <div class="lupus-chronicle-section-box">
+              <div class="chronicle-section-title">🤫 Scelte & Azioni Notturne Segrete:</div>
+              <div class="lupus-chronicle-actions-list">
+                ${actionsHtml || '<div style="color: #94a3b8; font-size: 0.85rem;">Nessuna azione notturna registrata.</div>'}
+              </div>
+            </div>
+
+            <div class="lupus-chronicle-section-box dawn-box">
+              <div class="chronicle-section-title">🌅 Risoluzione all'Alba:</div>
+              <div class="lupus-chronicle-dawn-list">
+                ${dawnEventsHtml}
+              </div>
+            </div>
+
+            ${rogoHtml}
+          </div>
+        `;
+      }).join("");
+    }
+
+    modalEl.innerHTML = `
+      <div class="lupus-chronicle-dialog">
+        <div class="lupus-chronicle-header">
+          <div>
+            <div class="chronicle-main-title">📜 Registro Completo delle Azioni (Cronistoria)</div>
+            <div class="chronicle-sub-title">Riepilogo segreto di tutte le notti, scelte dei personaggi, esiti all'Alba e votazioni al Rogo</div>
+          </div>
+          <button type="button" class="btn-chronicle-close" id="lupus-chronicle-close-btn" aria-label="Chiudi">✖️</button>
+        </div>
+        
+        <div class="lupus-chronicle-body">
+          ${roundsHtml}
+        </div>
+
+        <div class="lupus-chronicle-footer">
+          <button type="button" class="btn btn-secondary" id="lupus-chronicle-bottom-close-btn" style="width: 100%; font-weight: 700;">
+            Chiudi Cronistoria ✖️
+          </button>
+        </div>
+      </div>
+    `;
+
+    modalEl.style.display = "flex";
+
+    const closeHandler = () => {
+      try { Sound.playClick(); } catch (e) {}
+      modalEl.style.display = "none";
+    };
+
+    const closeBtn = modalEl.querySelector("#lupus-chronicle-close-btn");
+    if (closeBtn) closeBtn.addEventListener("click", closeHandler);
+
+    const bottomCloseBtn = modalEl.querySelector("#lupus-chronicle-bottom-close-btn");
+    if (bottomCloseBtn) bottomCloseBtn.addEventListener("click", closeHandler);
+
+    modalEl.onclick = (e) => {
+      if (e.target === modalEl) closeHandler();
+    };
   }
 }
 

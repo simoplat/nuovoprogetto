@@ -192,6 +192,11 @@ Questo documento costituisce il registro ufficiale, esaustivo e definitivo di tu
 * Se all'Alba o al Rogo (es. 2 innamorati rimasti soli di cui uno viene bruciato e l'altro muore di crepacuore) non resta alcun giocatore vivo ($N_{vivi} = 0$), non c'è vittoria del Villaggio né dei Lupi.
 * Viene proclamato ufficialmente: **Nessun Vincitore (Estinzione Totale)**.
 
+### 8. Registro Completo delle Azioni (Cronistoria Segreta Post-Partita) 📜
+* **Funzionamento:** Durante la partita, il motore di gioco traccia silenziosamente in background ogni singola scelta notturna di tutti i personaggi (accoppiamento di Cupido, rifugio della Donna, dado della Luna Piena, vittima dei lupi, silenziamento dello Stregone, tradimento del Lupo Bianco, scudo della Guardia, indagine e responso del Veggente, morto e carta rivelata al Beccamorto, uso o conservazione delle pozioni della Strega) insieme all'esito dell'Alba e alla sentenza del Rogo diurno.
+* **Segretezza in Partita:** Durante i round, il Report dell'Alba e il Registro Abitanti mostrano unicamente chi vive e chi muore, senza mai spoilerare le scelte investigative o di protezione.
+* **Consultazione a Fine Partita:** Nella schermata finale di Epilogo/Game Over compare il pulsante dedicato **"📜 Visualizza Registro Completo delle Azioni (Cronistoria Segreta)"**. Toccandolo, si apre una schermata modale dettagliata che permette al Narratore e ai giocatori di ripercorrere l'intera partita notte per notte.
+
 ---
 
 ## 3. Ordine di Risoluzione & Gerarchia delle Priorità
