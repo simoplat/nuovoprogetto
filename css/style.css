@@ -1008,6 +1008,22 @@ input.custom-select,
   box-shadow: 0 0 16px rgba(255, 0, 85, 0.3);
 }
 
+.vote-card.vote-card-none {
+  border: 1.5px dashed rgba(148, 163, 184, 0.45);
+  background: rgba(148, 163, 184, 0.05);
+}
+
+.vote-card.vote-card-none:hover {
+  border-color: #38bdf8;
+  background: rgba(56, 189, 248, 0.1);
+}
+
+.vote-card.vote-card-none.selected {
+  border: 1.5px solid #38bdf8;
+  background: rgba(56, 189, 248, 0.18);
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.35);
+}
+
 .vote-avatar {
   width: 46px;
   height: 46px;

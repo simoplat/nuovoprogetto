@@ -127,6 +127,7 @@ Questo documento costituisce il registro ufficiale, esaustivo e definitivo di tu
 * **Descrizione & Azione Notturna:** Attivo **dalla Notte 2 in poi**. Nel silenzio del cimitero, il Narratore gli rivela segretamente l'identità di un defunto.
 * **Condizioni Particolari & Casi Limite:**
   * **1 Sola Identità per Round:** Se nel cimitero o nel round precedente ci sono più morti (es. rogo + innamorato per crepacuore, o sbranato + avvelenato), il Beccamorto sceglie **un solo defunto** da consultare per notte. Gli altri rimangono coperti per le notti successive.
+  * **Riconsulto dello stesso defunto consentito:** Se il Beccamorto indica un defunto già esaminato nelle notti passate, il Narratore glielo mostra nuovamente (la scheda reca il badge `Già consultato 📜`), ma questo consuma comunque la sua unica azione della notte.
   * **Copertura Infiltrato Latente (Opzione B):** Se l'Infiltrato è morto prima di trasformarsi, al Beccamorto appare falsamente come **Contadino (Villaggio 👨‍🌾)**.
   * **Infiltrato Trasformato:** Appare come **Lupo Mannaro (Branco dei Lupi 🐺🌕)**.
   * **Verità su Cane Nero & Idiota:** Al Beccamorto non mentono: il Cane Nero appare come **Lupo**, e l'Idiota appare come **Innocente**.
@@ -186,6 +187,7 @@ Questo documento costituisce il registro ufficiale, esaustivo e definitivo di tu
 ### 4. Il Beccamorto: 1 Sola Identità a Round & Copertura Infiltrato (Opzione B Ufficiale) ⚰️
 * Dalla Notte 2 in poi, il Beccamorto può interrogare **un solo defunto alla volta per ciascun round**.
 * Se ci sono più morti nel cimitero, ne sceglie uno solo; gli altri restano segreti e consultabili nei round successivi.
+* **Riconsulto Consentito con Consumo di Turno:** È consentito indicare nuovamente un defunto già consultato in precedenza (il sistema espone il badge `Già consultato 📜`); l'azione consuma comunque la facoltà della notte.
 * **Regola di Copertura (Opzione B):**
   * Se l'Infiltrato muore **prima** di trasformarsi, al Beccamorto appare con la copertura da **Contadino (Villaggio 👨‍🌾)**.
   * Se muore **dopo** la trasformazione, appare come **Lupo Mannaro (Branco dei Lupi 🐺🌕)**.
@@ -201,12 +203,13 @@ Questo documento costituisce il registro ufficiale, esaustivo e definitivo di tu
 * **Cimitero dei Turni Precedenti:** Il Necromante agisce sui defunti già sepolti (morti ai roghi o sbranati nei round passati). Non interferisce con la vittima della notte in corso (la cui salvezza immediata compete alla Strega).
 * **Silenziamento (Carica Protetta):** Se il Lupo Stregone silenzia il Necromante, il potere fallisce per quella notte ma la carica non viene consumata.
 * **Resurrezione di un Lupo:** Se il Necromante resuscita per errore un Lupo morto al rogo, il Lupo torna vivo a tutti gli effetti e si risveglia con il branco la notte successiva.
+* **Morte del Necromante nella Notte del Rito (Lascito Estremo):** Se il Necromante evoca la resurrezione ma in quella stessa notte viene sbranato dai Lupi o avvelenato dalla Strega, il rito si compie comunque prima dell'alba: il defunto prescelto risorge e il Necromante muore all'Alba.
 * **Innamorati:** Se risorge un innamorato morto di crepacuore, risorge solo lui; il partner resta morto e il legame d'amore è estinto.
 * **Strega Risorta:** Rinasce mantenendo lo stato delle pozioni (quelle usate rimangono consumate).
 
-### 8. Paradosso della Coppia Mista rimasta sola (Lupo + Cittadino) ⏳
+### 8. Regola Ufficiale della Coppia Mista rimasta sola (Lupo + Cittadino) 🐺
 * Non esiste condizione di vittoria esclusiva della coppia.
-* Se rimangono vivi solo 1 Lupo e 1 Cittadino innamorati, per formula numerica ($Lupi \ge NonLupi$) scatta la vittoria della **Fazione Lupi**.
+* Se rimangono vivi solo 1 Lupo e 1 Cittadino innamorati, per formula numerica ($Lupi \ge NonLupi$, ovvero $1 \ge 1$) scatta ufficialmente la vittoria della **Fazione Lupi**.
 
 ### 9. Estinzione Totale (0 Superstiti): Scenario "Nessuno Vince" 🪦
 * Se all'Alba o al Rogo (es. 2 innamorati rimasti soli di cui uno viene bruciato e l'altro muore di crepacuore) non resta alcun giocatore vivo ($N_{vivi} = 0$), non c'è vittoria del Villaggio né dei Lupi.
@@ -216,6 +219,10 @@ Questo documento costituisce il registro ufficiale, esaustivo e definitivo di tu
 * **Funzionamento:** Durante la partita, il motore di gioco traccia silenziosamente in background ogni singola scelta notturna di tutti i personaggi (accoppiamento di Cupido, rifugio della Donna, dado della Luna Piena, vittima dei lupi, silenziamento dello Stregone, tradimento del Lupo Bianco, scudo della Guardia, indagine e responso del Veggente, morto e carta rivelata al Beccamorto, uso o conservazione delle pozioni della Strega, evocazione del Necromante) insieme all'esito dell'Alba e alla sentenza del Rogo diurno.
 * **Segretezza in Partita:** Durante i round, il Report dell'Alba e il Registro Abitanti mostrano unicamente chi vive e chi muore, senza mai spoilerare le scelte investigative o di protezione.
 * **Consultazione a Fine Partita:** Nella schermata finale di Epilogo/Game Over compare il pulsante dedicato **"📜 Visualizza Registro Completo delle Azioni (Cronistoria Segreta)"**. Toccandolo, si apre una schermata modale dettagliata che permette al Narratore e ai giocatori di ripercorrere l'intera partita notte per notte.
+
+### 11. Votazione del Rogo: Condanna Singola o Parità / Nessun Rogo ⚖️
+* Durante il dibattito diurno, il Narratore può selezionare l'unico abitante condannato a maggioranza, oppure l'opzione dedicata **"⚖️ Nessun Rogo / Parità"** in caso di parità di voti o deliberata decisione del villaggio di non giustiziare nessuno.
+* In caso di nessun rogo, la giornata si chiude pacificamente senza alcuna eliminazione e la partita avanza regolarmente al round notturno successivo.
 
 ---
 
@@ -359,7 +366,9 @@ flowchart TD
 | **Partner del Giullare al Rogo** | Crepacuore | Giullare | **Morte Amore** 💔 | Il Giullare **Muore di crepacuore e NON vince** la partita. |
 | **Entrambi Innamorati uccisi stanotte** | Lupi + Veleno | Coppia d'Amore | **Doppia Morte Diretta** | Ciascuno muore per la sua causa; nessun crepacuore ridondante. |
 | **Estinzione Totale (0 superstiti vivi)** | Notte / Rogo | Sopravvivenza | **Nessuno** 🪦 | **Nessun Vincitore!** Villaggio deserto, pareggio per distruzione. |
-| **Coppia Mista (Lupo + Umano) rimasta sola**| Vincolo Amoroso | Regole Fazione | **In Sospeso** ⏳ | Attualmente vittoria Lupi per formula numerica ($1 \ge 1$). |
+| **Coppia Mista (Lupo + Umano) rimasta sola**| Vincolo Amoroso | Regole Fazione | **Vittoria Lupi** 🐺 | Se restano solo 1 Lupo e 1 Cittadino innamorati, scatta la vittoria dei Lupi ($1 \ge 1$). |
+| **Parità di voti al Rogo diurno** | Voto Villaggio | Delibera Diurna | **Nessun Rogo** ⚖️ | Nessun abitante viene condannato; si avanza alla notte successiva senza morti. |
+| **Morte del Necromante nella notte del rito** | Resurrezione + Attacco | Lascito Estremo | **Rito Compiuto** 🕯️ | Il defunto prescelto risorge; il Necromante perisce all'Alba. |
 
 ---
 

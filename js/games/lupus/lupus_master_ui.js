@@ -470,15 +470,33 @@ class LupusMasterUI {
     if (confirmBtn) {
       confirmBtn.style.display = "block";
       confirmBtn.disabled = !game.selectedVotePlayerId;
-      if (game.selectedVotePlayerId) {
+      if (game.selectedVotePlayerId === "NO_ROGO") {
+        confirmBtn.innerHTML = `⚖️ Conferma: <strong>Nessun Rogo / Parità</strong> (Nessun Eliminato)`;
+      } else if (game.selectedVotePlayerId) {
         const selPlayer = game.assignments.find(p => p.id === game.selectedVotePlayerId);
         confirmBtn.innerHTML = `🔥 Condanna al Rogo: <strong>${selPlayer ? selPlayer.name : ''}</strong>`;
       } else {
-        confirmBtn.innerHTML = "🔥 Seleziona un solo giocatore da condannare";
+        confirmBtn.innerHTML = "🔥 Seleziona un abitante o 'Nessun Rogo / Parità'";
       }
     }
 
     grid.innerHTML = "";
+
+    // Scheda speciale per Parità o Nessun Rogo
+    const noRogoCard = document.createElement("div");
+    const isNoRogoSelected = (game.selectedVotePlayerId === "NO_ROGO");
+    noRogoCard.className = `vote-card vote-card-none ${isNoRogoSelected ? "selected" : ""}`;
+    noRogoCard.innerHTML = `
+      <div class="vote-avatar">⚖️</div>
+      <div class="vote-name">Nessun Rogo / Parità</div>
+    `;
+    noRogoCard.addEventListener("click", () => {
+      try { Sound.playClick(); } catch (e) {}
+      game.selectedVotePlayerId = "NO_ROGO";
+      this.renderVotingGrid();
+    });
+    grid.appendChild(noRogoCard);
+
     const alivePlayers = game.assignments.filter(p => p.isAlive);
 
     alivePlayers.forEach(player => {
@@ -508,7 +526,41 @@ class LupusMasterUI {
     }
 
     if (!game.selectedVotePlayerId) {
-      alert("Seleziona prima l'unico abitante da condannare al rogo toccando la sua scheda.");
+      alert("Seleziona un abitante da condannare al rogo oppure la scheda 'Nessun Rogo / Parità'.");
+      return;
+    }
+
+    // Gestione Parità / Nessun Rogo
+    if (game.selectedVotePlayerId === "NO_ROGO") {
+      try {
+        Sound.playClick();
+      } catch (e) {}
+
+      game.voteConfirmed = true;
+      game.lastRoundDeaths = [];
+
+      // Registra nella cronistoria
+      if (game.matchLog && game.matchLog.length > 0) {
+        const currentLog = game.matchLog.find(entry => entry.night === game.nightCount);
+        if (currentLog) {
+          currentLog.rogo = {
+            condemned: null,
+            partnerLover: null,
+            reason: "Nessun abitante arso sul rogo (Parità di voti o clemenza)"
+          };
+        }
+      }
+
+      this.renderMasterRoster();
+
+      // Verifica se comunque si verificano altre condizioni di vittoria
+      const winType = game.checkVictoryCondition();
+      if (winType) {
+        this.renderGameOverCard(null, winType);
+        return;
+      }
+
+      this.renderRoundProceedCard(null, null);
       return;
     }
 
@@ -606,42 +658,70 @@ class LupusMasterUI {
 
     const aliveCount = game.assignments.filter(p => p.isAlive).length;
     const aliveWolves = game.assignments.filter(p => p.isAlive && (["lupo", "lupo_stregone", "cane_nero", "lupo_bianco"].includes(p.roleKey) || (p.roleKey === "infiltrato" && p.isTransformed))).length;
-    const sfx = condemned.name.endsWith("a") ? "a" : "o";
 
-    if (phaseBadge) {
-      phaseBadge.textContent = "Sentenza Eseguita 🔥";
-      phaseBadge.className = "phase-badge badge-night";
-    }
-    if (stepCounter) {
-      stepCounter.textContent = `Fine Round ${game.nightCount}`;
-    }
-    if (stepTitle) {
-      stepTitle.textContent = `🔥 ${condemned.name} è stat${sfx} arso sul rogo!`;
-    }
-    if (stepDesc) {
-      let loverHtml = "";
-      if (partnerLover) {
-        loverHtml = `
-          <div style="margin-top: 10px; color: #f43f5e; font-weight: 700; background: rgba(244, 63, 94, 0.15); border: 1px solid rgba(244, 63, 94, 0.35); padding: 8px 12px; border-radius: var(--radius-sm);">
-            💔 <strong>${partnerLover.name}</strong> (${partnerLover.role.name}) muore all'istante di crepacuore per la perdita dell'innamorato!
-          </div>
+    if (!condemned) {
+      if (phaseBadge) {
+        phaseBadge.textContent = "Nessun Rogo ⚖️";
+        phaseBadge.className = "phase-badge badge-day";
+      }
+      if (stepCounter) {
+        stepCounter.textContent = `Fine Round ${game.nightCount}`;
+      }
+      if (stepTitle) {
+        stepTitle.textContent = `⚖️ Nessun abitante è stato arso sul rogo!`;
+      }
+      if (stepDesc) {
+        stepDesc.innerHTML = `
+          Il Narratore annuncia ad alta voce: <em class="narrator-speech">'Il villaggio non ha raggiunto una condanna: parità di voti o clemenza! Nessun abitante viene bruciato oggi.'</em><br>
+          Restano <strong>${aliveCount}</strong> abitanti vivi (${aliveWolves} lup${aliveWolves === 1 ? 'o' : 'i'}).
         `;
       }
-      stepDesc.innerHTML = `
-        Il Narratore annuncia ad alta voce: <em class="narrator-speech">'La sentenza del villaggio è compiuta! ${condemned.name} è stat${sfx} condannat${sfx} al rogo!'</em> L'identità di <strong>${condemned.name}</strong> è svelata: era un <strong>${condemned.role.name}</strong> (${condemned.role.factionLabel}).<br>
-        ${loverHtml}
-        Il villaggio non è ancora salvo! Restano <strong>${aliveCount}</strong> abitanti vivi (${aliveWolves} lup${aliveWolves === 1 ? 'o' : 'i'}).
-      `;
-    }
+      if (resultText) {
+        resultText.innerHTML = `
+          ⚖️ <strong>Nessun giocatore è stato eliminato al rogo.</strong><br>
+          <span style="font-size: 0.88rem; color: #94a3b8; font-weight: 500;">
+            Tutti gli abitanti chiudono gli occhi. È ora di iniziare il prossimo round notturno.
+          </span>
+        `;
+      }
+    } else {
+      const sfx = condemned.name.endsWith("a") ? "a" : "o";
 
-    if (resultText) {
-      let loverNote = partnerLover ? `<br><span style="color: #f43f5e; font-weight: 700;">💔 Anche ${partnerLover.name} (${partnerLover.role.name}) muore di crepacuore!</span>` : "";
-      resultText.innerHTML = `
-        🔥 <strong>${condemned.name}</strong> (${condemned.role.name}) è fuori dal gioco.${loverNote}<br>
-        <span style="font-size: 0.88rem; color: #94a3b8; font-weight: 500;">
-          Tutti gli abitanti chiudono gli occhi. È ora di iniziare il prossimo round notturno.
-        </span>
-      `;
+      if (phaseBadge) {
+        phaseBadge.textContent = "Sentenza Eseguita 🔥";
+        phaseBadge.className = "phase-badge badge-night";
+      }
+      if (stepCounter) {
+        stepCounter.textContent = `Fine Round ${game.nightCount}`;
+      }
+      if (stepTitle) {
+        stepTitle.textContent = `🔥 ${condemned.name} è stat${sfx} arso sul rogo!`;
+      }
+      if (stepDesc) {
+        let loverHtml = "";
+        if (partnerLover) {
+          loverHtml = `
+            <div style="margin-top: 10px; color: #f43f5e; font-weight: 700; background: rgba(244, 63, 94, 0.15); border: 1px solid rgba(244, 63, 94, 0.35); padding: 8px 12px; border-radius: var(--radius-sm);">
+              💔 <strong>${partnerLover.name}</strong> (${partnerLover.role.name}) muore all'istante di crepacuore per la perdita dell'innamorato!
+            </div>
+          `;
+        }
+        stepDesc.innerHTML = `
+          Il Narratore annuncia ad alta voce: <em class="narrator-speech">'La sentenza del villaggio è compiuta! ${condemned.name} è stat${sfx} condannat${sfx} al rogo!'</em> L'identità di <strong>${condemned.name}</strong> è svelata: era un <strong>${condemned.role.name}</strong> (${condemned.role.factionLabel}).<br>
+          ${loverHtml}
+          Il villaggio non è ancora salvo! Restano <strong>${aliveCount}</strong> abitanti vivi (${aliveWolves} lup${aliveWolves === 1 ? 'o' : 'i'}).
+        `;
+      }
+
+      if (resultText) {
+        let loverNote = partnerLover ? `<br><span style="color: #f43f5e; font-weight: 700;">💔 Anche ${partnerLover.name} (${partnerLover.role.name}) muore di crepacuore!</span>` : "";
+        resultText.innerHTML = `
+          🔥 <strong>${condemned.name}</strong> (${condemned.role.name}) è fuori dal gioco.${loverNote}<br>
+          <span style="font-size: 0.88rem; color: #94a3b8; font-weight: 500;">
+            Tutti gli abitanti chiudono gli occhi. È ora di iniziare il prossimo round notturno.
+          </span>
+        `;
+      }
     }
 
     const nextNightNum = game.nightCount + 1;
@@ -890,27 +970,41 @@ class LupusMasterUI {
         if (round.rogo) {
           const condemned = round.rogo.condemned;
           const partner = round.rogo.partnerLover;
-          const sfx = condemned.name.endsWith('a') ? 'a' : 'o';
-          rogoHtml = `
-            <div class="lupus-chronicle-section-box rogo-box">
-              <div class="chronicle-section-title">🔥 Sentenza del Rogo (Giorno ${round.night}):</div>
-              <div class="lupus-chronicle-rogo-item">
-                <span style="font-size: 1.3rem;">🔥</span>
-                <div>
-                  <strong>${condemned.name}</strong> è stat${sfx} condannat${sfx} al rogo dal villaggio!
-                  <div style="color: #cbd5e1; font-size: 0.82rem; margin-top: 2px;">Ruolo Svelato: <strong>${condemned.roleName}</strong> (${condemned.factionLabel})</div>
-                </div>
-              </div>
-              ${partner ? `
-                <div class="lupus-chronicle-rogo-item lover-death">
-                  <span style="font-size: 1.3rem;">💔</span>
+          if (condemned) {
+            const sfx = condemned.name.endsWith('a') ? 'a' : 'o';
+            rogoHtml = `
+              <div class="lupus-chronicle-section-box rogo-box">
+                <div class="chronicle-section-title">🔥 Sentenza del Rogo (Giorno ${round.night}):</div>
+                <div class="lupus-chronicle-rogo-item">
+                  <span style="font-size: 1.3rem;">🔥</span>
                   <div>
-                    <strong>${partner.name}</strong> (${partner.roleName}) muore all'istante di crepacuore per la perdita dell'innamorato!
+                    <strong>${condemned.name}</strong> è stat${sfx} condannat${sfx} al rogo dal villaggio!
+                    <div style="color: #cbd5e1; font-size: 0.82rem; margin-top: 2px;">Ruolo Svelato: <strong>${condemned.roleName}</strong> (${condemned.factionLabel})</div>
                   </div>
                 </div>
-              ` : ''}
-            </div>
-          `;
+                ${partner ? `
+                  <div class="lupus-chronicle-rogo-item lover-death">
+                    <span style="font-size: 1.3rem;">💔</span>
+                    <div>
+                      <strong>${partner.name}</strong> (${partner.roleName}) muore all'istante di crepacuore per la perdita dell'innamorato!
+                    </div>
+                  </div>
+                ` : ""}
+              </div>
+            `;
+          } else {
+            rogoHtml = `
+              <div class="lupus-chronicle-section-box rogo-box">
+                <div class="chronicle-section-title">⚖️ Delibera del Giorno ${round.night}:</div>
+                <div class="lupus-chronicle-rogo-item">
+                  <span style="font-size: 1.3rem;">⚖️</span>
+                  <div>
+                    <strong>Nessun abitante arso sul rogo</strong> (Parità di voti o clemenza del villaggio).
+                  </div>
+                </div>
+              </div>
+            `;
+          }
         }
 
         return `

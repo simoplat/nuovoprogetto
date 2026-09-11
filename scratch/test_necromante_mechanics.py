@@ -69,7 +69,14 @@ def test_necromante():
     assert os.path.getsize('img/lupus/necromante.jpg') > 100000, "necromante.jpg is too small"
     print("[OK] img/lupus/necromante.jpg verified")
 
-    print("\nALL NECROMANTE MECHANICS AND INTEGRATIONS VERIFIED SUCCESSFULLY!")
+    # Verify NO_ROGO integration
+    assert 'NO_ROGO' in master_js, "NO_ROGO missing in lupus_master_ui.js"
+    assert 'vote-card-none' in master_js, "vote-card-none missing in lupus_master_ui.js"
+    assert '.vote-card.vote-card-none' in css, "vote-card-none CSS missing in css/style.css"
+    assert 'Nessun Rogo / Parità' in report, "Nessun Rogo missing in report"
+    print("[OK] NO_ROGO integration verified")
+
+    print("\nALL MECHANICS AND INTEGRATIONS VERIFIED SUCCESSFULLY!")
 
 if __name__ == '__main__':
     test_necromante()
