@@ -309,8 +309,8 @@ class LupusP2PController {
       this.renderLobbyUI();
       if (this.isHost) {
         this.validateRolesAndSummary();
-        this.updateMasterMonitorUI();
         this.syncPlayerConnectionStatusToGame();
+        this.updateMasterMonitorUI();
       }
     });
 
@@ -321,8 +321,8 @@ class LupusP2PController {
       this.renderLobbyUI();
       if (this.isHost) {
         this.validateRolesAndSummary();
-        this.updateMasterMonitorUI();
         this.syncPlayerConnectionStatusToGame();
+        this.updateMasterMonitorUI();
       }
     });
 
@@ -333,8 +333,8 @@ class LupusP2PController {
       this.renderLobbyUI();
       if (this.isHost) {
         this.validateRolesAndSummary();
-        this.updateMasterMonitorUI();
         this.syncPlayerConnectionStatusToGame();
+        this.updateMasterMonitorUI();
 
         // Se la partita è già iniziata, reinvia la carta privata al giocatore riconnesso
         if (this.assignments && this.assignments.length > 0) {
@@ -524,7 +524,7 @@ class LupusP2PController {
 
         const connPill = document.createElement("span");
         connPill.className = `conn-pill ${isOnline ? 'online' : 'offline'}`;
-        connPill.textContent = isOnline ? "🟢 Connesso" : "⚪ Disconnesso";
+        connPill.textContent = isOnline ? "🟢 Connesso" : "🔴 Disconnesso";
         actionsDiv.appendChild(connPill);
 
         if (this.isHost && !p.isHost) {
@@ -1265,7 +1265,7 @@ class LupusP2PController {
 
         const isConfirmed = this.confirmedPlayers.has(a.playerId);
         const row = document.createElement("div");
-        row.className = "monitor-player-row";
+        row.className = `monitor-player-row ${a.online ? '' : 'is-offline'}`;
 
         const leftDiv = document.createElement("div");
         leftDiv.className = "monitor-player-left";
@@ -1295,7 +1295,7 @@ class LupusP2PController {
 
         const connPill = document.createElement("span");
         connPill.className = `conn-pill ${a.online ? 'online' : 'offline'}`;
-        connPill.textContent = a.online ? "🟢 Connesso" : "⚪ Disconnesso";
+        connPill.textContent = a.online ? "🟢 Connesso" : "🔴 Disconnesso";
 
         const seenBadge = document.createElement("span");
         seenBadge.className = `monitor-seen-badge ${isConfirmed ? 'confirmed' : 'waiting'}`;
@@ -1312,7 +1312,7 @@ class LupusP2PController {
     if (!this.assignments || this.assignments.length === 0) return;
 
     this.assignments.forEach(a => {
-      const peerRecord = this.players.find(p => (p.playerId && p.playerId === a.playerId) || p.id === a.peerId);
+      const peerRecord = this.players.find(p => (p.playerId && p.playerId === a.playerId) || p.id === a.peerId || p.peerId === a.peerId || p.name === a.name);
       if (peerRecord) {
         a.online = peerRecord.online !== false;
       }

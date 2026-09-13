@@ -537,7 +537,11 @@ class LupusNightResolver {
       iconSpan.textContent = ev.icon;
 
       const textDiv = document.createElement("div");
-      textDiv.textContent = ev.text;
+      if (typeof LupusMasterUI !== "undefined" && typeof LupusMasterUI.setSafeInstruction === "function") {
+        LupusMasterUI.setSafeInstruction(textDiv, ev.text);
+      } else {
+        textDiv.textContent = ev.text;
+      }
 
       evDiv.append(iconSpan, textDiv);
       card.append(evDiv);

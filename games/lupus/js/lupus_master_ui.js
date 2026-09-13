@@ -8,7 +8,7 @@ class LupusMasterUI {
     this.game = game;
   }
 
-  setSafeInstruction(container, htmlString) {
+  static setSafeInstruction(container, htmlString) {
     container.replaceChildren();
     if (!htmlString) return;
     const parser = new DOMParser();
@@ -38,6 +38,10 @@ class LupusMasterUI {
       const walked = walk(child);
       if (walked) container.appendChild(walked);
     }
+  }
+
+  setSafeInstruction(container, htmlString) {
+    LupusMasterUI.setSafeInstruction(container, htmlString);
   }
 
   renderMasterRoster() {
@@ -106,7 +110,7 @@ class LupusMasterUI {
         connSpan.style.marginLeft = "6px";
         connSpan.style.fontSize = "0.68rem";
         connSpan.title = player.online ? "Giocatore Connesso" : "Giocatore Disconnesso (il gioco continua)";
-        connSpan.textContent = player.online ? "🟢 Connesso" : "⚪ Disconnesso";
+        connSpan.textContent = player.online ? "🟢 Connesso" : "🔴 Disconnesso";
         nameDiv.append(connSpan);
       }
 
@@ -1229,7 +1233,7 @@ class LupusMasterUI {
 
             const itemDetail = document.createElement("div");
             itemDetail.className = "chronicle-action-detail";
-            itemDetail.textContent = act.detail;
+            this.setSafeInstruction(itemDetail, act.detail);
 
             textDiv.append(itemTitle, itemDetail);
             item.append(iconSpan, textDiv);
@@ -1263,7 +1267,7 @@ class LupusMasterUI {
           evIcon.textContent = ev.icon;
 
           const evText = document.createElement("div");
-          evText.textContent = ev.text;
+          this.setSafeInstruction(evText, ev.text);
 
           evItem.append(evIcon, evText);
           dawnList.append(evItem);

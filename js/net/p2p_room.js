@@ -34,6 +34,20 @@ class P2PRoomManager {
     this.hostGraceCountdownTimer = null;
     this.hostGraceRemainingSeconds = 0;
 
+    // Heartbeat e Keep-Alive WebRTC
+    this.heartbeatTimer = null;
+    this.clientHostWatcherTimer = null;
+    this.lastHostContact = 0;
+
+    // Rilevamento chiusura finestra / scheda del browser
+    this.handleWindowUnload = () => {
+      this.notifyDisconnect();
+    };
+    if (typeof window !== "undefined") {
+      window.addEventListener("beforeunload", this.handleWindowUnload);
+      window.addEventListener("pagehide", this.handleWindowUnload);
+    }
+
     // Sistema Eventi Pub/Sub
     this.listeners = new Map();
 
@@ -148,6 +162,7 @@ class P2PRoomManager {
       }];
 
       console.log(`[P2P Host] Stanza creata con codice: ${this.roomCode} (ID: ${id})`);
+      this.startHeartbeat();
       this.emit("room_created", {
         roomCode: this.roomCode,
         peerId: id,
@@ -171,6 +186,7 @@ class P2PRoomManager {
 
     this.peer.on("close", () => {
       console.log("[P2P Host] Connessione Host chiusa.");
+      this.stopHeartbeat();
     });
   }
 
@@ -186,6 +202,14 @@ class P2PRoomManager {
         this.handlePlayerJoin(conn, data.name, data.playerId);
       } else if (data.type === "RECONNECT") {
         this.handlePlayerReconnect(conn, data.playerId, data.name);
+      } else if (data.type === "LEAVE_ROOM") {
+        console.log(`[P2P Host] Notifica di chiusura volontaria/disconnessione da ${conn.peer} (${data.playerId})`);
+        this.handlePeerDisconnected(conn.peer, data.playerId);
+      } else if (data.type === "__PONG__") {
+        const client = this.connections.get(conn.peer);
+        if (client) {
+          client.lastPong = Date.now();
+        }
       } else {
         this.emit("message", {
           senderPeer: conn.peer,
@@ -228,7 +252,8 @@ class P2PRoomManager {
       name: peerName,
       conn: conn,
       playerId: newPlayer.playerId,
-      online: true
+      online: true,
+      lastPong: Date.now()
     });
 
     this.players.push(newPlayer);
@@ -260,7 +285,8 @@ class P2PRoomManager {
       name: existing.name,
       conn: conn,
       playerId: existing.playerId,
-      online: true
+      online: true,
+      lastPong: Date.now()
     });
 
     console.log(`[P2P Host] Giocatore ${existing.name} riconnesso con successo.`);
@@ -275,15 +301,62 @@ class P2PRoomManager {
     this.emit("player_reconnected", { player: existing, oldPeerId: oldPeerId });
   }
 
-  handlePeerDisconnected(peerId) {
-    this.connections.delete(peerId);
-    const player = this.players.find(p => p.id === peerId || p.peerId === peerId);
+  handlePeerDisconnected(peerId, playerId = null) {
+    if (peerId) {
+      this.connections.delete(peerId);
+    }
+    if (playerId) {
+      for (const [pId, c] of this.connections.entries()) {
+        if (c.playerId === playerId) {
+          this.connections.delete(pId);
+        }
+      }
+    }
+
+    const player = this.players.find(p => (peerId && (p.id === peerId || p.peerId === peerId)) || (playerId && p.playerId === playerId));
     if (!player) return;
+    if (player.online === false) return; // Evita broadcast duplicati se già offline
 
     player.online = false;
     console.log(`[P2P Host] Giocatore ${player.name} disconnesso/offline.`);
     this.broadcastPlayersUpdate();
     this.emit("player_left", { player: player, players: this.players });
+  }
+
+  startHeartbeat() {
+    this.stopHeartbeat();
+    this.heartbeatTimer = setInterval(() => {
+      if (!this.isHost) return;
+      const now = Date.now();
+      for (const [peerId, client] of this.connections.entries()) {
+        if (!client.conn || !client.conn.open) {
+          this.handlePeerDisconnected(peerId, client.playerId);
+          continue;
+        }
+
+        // Se non risponde da più di 4 secondi (2 ping consecutivi senza risposta)
+        if (client.lastPong && (now - client.lastPong > 4500)) {
+          console.warn(`[P2P Host] Heartbeat timeout per ${client.name} (${peerId})`);
+          try { client.conn.close(); } catch(e) {}
+          this.handlePeerDisconnected(peerId, client.playerId);
+          continue;
+        }
+
+        try {
+          client.conn.send({ type: "__PING__", t: now });
+        } catch (err) {
+          console.warn(`[P2P Host] Errore invio ping a ${peerId}:`, err);
+          this.handlePeerDisconnected(peerId, client.playerId);
+        }
+      }
+    }, 2000);
+  }
+
+  stopHeartbeat() {
+    if (this.heartbeatTimer) {
+      clearInterval(this.heartbeatTimer);
+      this.heartbeatTimer = null;
+    }
   }
 
   getPublicPlayersList() {
@@ -402,6 +475,7 @@ class P2PRoomManager {
       this.isReconnecting = false;
       this.reconnectAttempts = 0;
       this.stopHostGraceCountdown();
+      this.startClientHostWatcher();
 
       if (isReconnect) {
         this.hostConn.send({
@@ -425,11 +499,13 @@ class P2PRoomManager {
 
     this.hostConn.on("close", () => {
       console.warn("[P2P Client] Connessione con l'Host chiusa.");
+      this.stopClientHostWatcher();
       this.handleClientConnectionLost();
     });
 
     this.hostConn.on("error", (err) => {
       console.warn("[P2P Client] Errore connessione con Host:", err);
+      this.stopClientHostWatcher();
       this.handleClientConnectionLost();
     });
   }
@@ -437,7 +513,25 @@ class P2PRoomManager {
   handleClientIncomingData(data) {
     if (!data || !data.type) return;
 
-    if (data.type === "JOIN_SUCCESS") {
+    this.lastHostContact = Date.now();
+
+    if (data.type === "__PING__") {
+      if (this.hostConn && this.hostConn.open) {
+        try {
+          this.hostConn.send({
+            type: "__PONG__",
+            playerId: this.playerId,
+            t: data.t
+          });
+        } catch (e) {}
+      }
+      return;
+    } else if (data.type === "HOST_DISCONNECTED") {
+      console.warn("[P2P Client] Host disconnesso/sessione chiusa.");
+      this.stopClientHostWatcher();
+      this.handleClientConnectionLost();
+      return;
+    } else if (data.type === "JOIN_SUCCESS") {
       this.players = data.players || [];
       this.emit("room_joined", { roomCode: this.roomCode, players: this.players });
     } else if (data.type === "PLAYERS_UPDATE") {
@@ -453,6 +547,27 @@ class P2PRoomManager {
         type: data.type,
         data: data
       });
+    }
+  }
+
+  startClientHostWatcher() {
+    this.stopClientHostWatcher();
+    this.lastHostContact = Date.now();
+    this.clientHostWatcherTimer = setInterval(() => {
+      if (this.isHost || !this.hostConn || this.isReconnecting) return;
+      // Se non riceviamo dati o ping dall'Host da oltre 5.5s
+      if (Date.now() - this.lastHostContact > 5500) {
+        console.warn("[P2P Client] Timeout contatto Host (>5.5s). Connessione persa.");
+        this.stopClientHostWatcher();
+        this.handleClientConnectionLost();
+      }
+    }, 2000);
+  }
+
+  stopClientHostWatcher() {
+    if (this.clientHostWatcherTimer) {
+      clearInterval(this.clientHostWatcherTimer);
+      this.clientHostWatcherTimer = null;
     }
   }
 
@@ -606,7 +721,33 @@ class P2PRoomManager {
     });
   }
 
+  notifyDisconnect() {
+    try {
+      if (this.isHost) {
+        this.broadcast({ type: "HOST_DISCONNECTED" });
+        this.stopHeartbeat();
+      } else {
+        if (this.hostConn && this.hostConn.open) {
+          try {
+            this.hostConn.send({
+              type: "LEAVE_ROOM",
+              playerId: this.playerId
+            });
+          } catch (e) {}
+          try {
+            this.hostConn.close();
+          } catch (e) {}
+        }
+      }
+      if (this.peer && !this.peer.destroyed) {
+        try { this.peer.destroy(); } catch (e) {}
+      }
+    } catch (e) {}
+  }
+
   cleanUp() {
+    this.stopHeartbeat();
+    this.stopClientHostWatcher();
     clearTimeout(this.reconnectTimer);
     this.stopHostGraceCountdown();
 
