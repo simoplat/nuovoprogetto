@@ -478,15 +478,8 @@ class LupusP2PController {
     if (countEl) countEl.textContent = this.players.length;
 
     // Render QR Code (visibile per tutti, ma fondamentale per l'Host)
-    this.renderQRCode();
-
-    // Visualizza URL della stanza
-    const urlDisplayBox = document.getElementById("lupus-p2p-url-display-box");
-    const urlText = document.getElementById("lupus-p2p-room-url-text");
-    const roomUrl = this.getRoomDirectUrl();
-    if (urlDisplayBox && urlText) {
-      urlText.textContent = roomUrl;
-      urlDisplayBox.style.display = "flex";
+    if (this.roomCode) {
+      this.renderQRCode();
     }
 
     // Lista dei giocatori connessi in tempo reale
@@ -559,26 +552,57 @@ class LupusP2PController {
     }
   }
 
-  renderQRCode() {
+  async renderQRCode() {
     const qrContainer = document.getElementById("lupus-p2p-qrcode-container");
     if (!qrContainer) return;
     qrContainer.replaceChildren();
 
-    const roomUrl = this.getRoomDirectUrl();
+    if (!this.roomCode) return;
+
+    const roomUrl = await this.getEffectiveRoomUrl();
+
+    // Aggiorna anche il testo dell'URL mostrato all'Host
+    const urlDisplayBox = document.getElementById("lupus-p2p-url-display-box");
+    const urlText = document.getElementById("lupus-p2p-room-url-text");
+    if (urlDisplayBox && urlText) {
+      urlText.textContent = roomUrl;
+      urlDisplayBox.style.display = "flex";
+    }
+
     if (typeof QRCode !== "undefined") {
       try {
+        const correctLevel = (QRCode.CorrectLevel && QRCode.CorrectLevel.M !== undefined)
+          ? QRCode.CorrectLevel.M
+          : 0;
+
         new QRCode(qrContainer, {
           text: roomUrl,
-          width: 160,
-          height: 160,
+          width: 170,
+          height: 170,
           colorDark: "#06070a",
           colorLight: "#ffffff",
-          correctLevel: QRCode.CorrectLevel.M
+          correctLevel: correctLevel
         });
       } catch (err) {
         console.warn("[Lupus P2P] Errore generazione QR:", err);
       }
     }
+  }
+
+  async getEffectiveRoomUrl() {
+    let origin = window.location.origin;
+    if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
+      try {
+        const res = await fetch("/api/info");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.lan_ip && !data.lan_ip.startsWith("127.")) {
+            origin = `http://${data.lan_ip}:${data.port || window.location.port || 8000}`;
+          }
+        }
+      } catch (e) {}
+    }
+    return `${origin}${window.location.pathname}?room=${this.roomCode}`;
   }
 
   getRoomDirectUrl() {
@@ -587,8 +611,8 @@ class LupusP2PController {
     return `${origin}${pathname}?room=${this.roomCode}`;
   }
 
-  copyRoomLink() {
-    const url = this.getRoomDirectUrl();
+  async copyRoomLink() {
+    const url = await this.getEffectiveRoomUrl();
     const btn = document.getElementById("lupus-p2p-copy-link-btn");
 
     if (navigator.clipboard && navigator.clipboard.writeText) {
