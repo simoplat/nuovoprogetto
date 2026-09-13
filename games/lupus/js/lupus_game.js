@@ -16,10 +16,13 @@ class LupusGameController {
     this.nightResolver = new LupusNightResolver(this);
     this.nightWidgets = new LupusNightWidgets(this);
 
-    this.players = this.loadSavedPlayers() || [
-      "Marco", "Sofia", "Luca", "Giulia", "Matteo", "Elena"
+    this.defaultPlayerNames = [
+      "Simone", "Matteo", "Alessandra", "Giorgia", "Davide", "Leonardo",
+      "Pietro", "Cristian", "Francesca", "Daniele", "Riccardo", "Jacopo", "Noemi", "Francesco"
     ];
-    this.wolvesCount = 1;
+
+    this.players = this.loadSavedPlayers() || this.defaultPlayerNames.slice(0, 4);
+    this.wolvesCount = 1; // Minimo 1 lupo per 4 giocatori predefiniti
     this.isP2PMode = false;
 
     // Timer Discussione
@@ -35,10 +38,10 @@ class LupusGameController {
 
     // Ruoli speciali abilitati
     this.enabledRoles = {
-      veggente: true,
-      guardia: true,
-      strega: true,
-      cupido: true,
+      veggente: false,
+      guardia: false,
+      strega: false,
+      cupido: false,
       donna: false,
       giullare: false,
       infiltrato: false,
@@ -160,7 +163,7 @@ class LupusGameController {
     Sound.playClick();
 
     // Raccogli nomi validi
-    this.players = this.players.map((p, idx) => (p || "").trim() || `Giocatore ${idx + 1}`);
+    this.players = this.players.map((p, idx) => (p || "").trim() || (this.defaultPlayerNames[idx] || `Giocatore ${idx + 1}`));
     this.savePlayers();
 
     if (this.players.length < 4) {

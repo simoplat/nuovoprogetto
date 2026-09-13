@@ -32,10 +32,10 @@ class LupusP2PController {
     } catch (e) {}
 
     this.enabledRoles = {
-      veggente: true,
-      guardia: true,
-      strega: true,
-      cupido: true,
+      veggente: false,
+      guardia: false,
+      strega: false,
+      cupido: false,
       donna: false,
       giullare: false,
       infiltrato: false,
@@ -190,23 +190,60 @@ class LupusP2PController {
 
     // 9. Hold-to-Reveal per la carta del giocatore
     const holdBtn = document.getElementById("lupus-p2p-hold-reveal-btn");
+    const secretCard = document.getElementById("lupus-p2p-secret-revealed-card");
+
     if (holdBtn) {
-      const startEvents = ["mousedown", "touchstart"];
-      const endEvents = ["mouseup", "mouseleave", "touchend", "touchcancel"];
+      const startHold = (e) => {
+        if (e.cancelable && e.type === "touchstart") e.preventDefault();
+        this.onHoldStart(false);
+      };
+      const endHold = () => {
+        if (!this.isHolding) return;
+        this.onHoldEnd();
+      };
 
-      startEvents.forEach(evt => {
-        holdBtn.addEventListener(evt, (e) => {
-          if (e.cancelable && evt === "touchstart") e.preventDefault();
-          this.onHoldStart();
-        }, { passive: false });
-      });
+      holdBtn.addEventListener("pointerdown", startHold);
+      window.addEventListener("pointerup", endHold);
+      window.addEventListener("pointercancel", endHold);
 
-      endEvents.forEach(evt => {
-        holdBtn.addEventListener(evt, (e) => {
-          if (e.cancelable && (evt === "touchend" || evt === "touchcancel")) e.preventDefault();
-          this.onHoldEnd();
-        }, { passive: false });
-      });
+      holdBtn.addEventListener("touchstart", startHold, { passive: false });
+      window.addEventListener("touchend", endHold);
+      window.addEventListener("touchcancel", endHold);
+
+      holdBtn.addEventListener("mousedown", startHold);
+      window.addEventListener("mouseup", endHold);
+
+      if (secretCard) {
+        secretCard.addEventListener("pointerup", endHold);
+        secretCard.addEventListener("touchend", endHold);
+        secretCard.addEventListener("mouseup", endHold);
+        secretCard.addEventListener("pointercancel", endHold);
+        secretCard.addEventListener("touchcancel", endHold);
+      }
+    }
+
+    // 9b. Hold-to-Reveal per il Master (quando gioca nel villaggio)
+    const masterHoldBtn = document.getElementById("lupus-p2p-master-hold-reveal-btn");
+    if (masterHoldBtn) {
+      const startMasterHold = (e) => {
+        if (e.cancelable && e.type === "touchstart") e.preventDefault();
+        this.onHoldStart(true);
+      };
+      const endMasterHold = () => {
+        if (!this.isHolding) return;
+        this.onHoldEnd();
+      };
+
+      masterHoldBtn.addEventListener("pointerdown", startMasterHold);
+      window.addEventListener("pointerup", endMasterHold);
+      window.addEventListener("pointercancel", endMasterHold);
+
+      masterHoldBtn.addEventListener("touchstart", startMasterHold, { passive: false });
+      window.addEventListener("touchend", endMasterHold);
+      window.addEventListener("touchcancel", endMasterHold);
+
+      masterHoldBtn.addEventListener("mousedown", startMasterHold);
+      window.addEventListener("mouseup", endMasterHold);
     }
 
     // 10. Tasto Rivedi Carta nella schermata "Posa il telefono"
@@ -245,7 +282,7 @@ class LupusP2PController {
 
   createRoomAsHost() {
     const nameInput = document.getElementById("lupus-p2p-host-name-input");
-    const name = (nameInput ? nameInput.value : "").trim() || "Master";
+    const name = (nameInput ? nameInput.value : "").trim() || "Simone";
     this.playerName = name;
     try {
       localStorage.setItem("lupus_p2p_name", name);
@@ -378,7 +415,17 @@ class LupusP2PController {
     const codeInput = document.getElementById("lupus-p2p-join-code-input");
     const nameInput = document.getElementById("lupus-p2p-join-name-input");
     const code = (presetCode || (codeInput ? codeInput.value : "")).trim().toUpperCase();
-    const name = (nameInput ? nameInput.value : "").trim() || "Abitante";
+
+    const defaultJoinNames = [
+      "Matteo", "Alessandra", "Giorgia", "Davide", "Leonardo",
+      "Pietro", "Cristian", "Francesca", "Daniele", "Riccardo", "Jacopo", "Noemi", "Francesco"
+    ];
+    let fallbackName = defaultJoinNames[0];
+    if (this.players && this.players.length > 0) {
+      const unused = defaultJoinNames.find(n => !this.players.some(p => (p.name || "").toLowerCase() === n.toLowerCase()));
+      if (unused) fallbackName = unused;
+    }
+    const name = (nameInput ? nameInput.value : "").trim() || fallbackName;
 
     if (!code || code.length < 3) {
       alert("Inserisci un codice stanza valido (4 lettere)!");
@@ -419,8 +466,8 @@ class LupusP2PController {
     if (msg.type === "LUPUS_ROLE_ASSIGNMENT") {
       this.myRoleData = msg.data.roleData;
       this.hasConfirmedRole = false;
+      this.prepareRoleRevealScreen();
       this.app.switchView("view-lupus-p2p-role");
-      this.renderPlayerRoleCard();
     }
 
     // 2. L'Host riceve la conferma che un giocatore ha visto e memorizzato la carta
@@ -1059,33 +1106,100 @@ class LupusP2PController {
     }
   }
 
-  onHoldStart() {
+  prepareRoleRevealScreen() {
+    this.isHolding = false;
+    if (this.holdProgressInterval) {
+      clearInterval(this.holdProgressInterval);
+      this.holdProgressInterval = null;
+    }
+
+    const holdBtn = document.getElementById("lupus-p2p-hold-reveal-btn");
+    const progressBar = document.getElementById("lupus-p2p-hold-progress-bar");
+    const confirmContainer = document.getElementById("lupus-p2p-confirm-btn-container");
+    const secretCard = document.getElementById("lupus-p2p-secret-revealed-card");
+
+    if (holdBtn) {
+      holdBtn.style.display = "flex";
+      holdBtn.classList.remove("holding");
+    }
+    if (progressBar) progressBar.style.width = "0%";
+    if (confirmContainer) confirmContainer.style.display = "none";
+    if (secretCard) secretCard.style.display = "none";
+    document.body.style.overflow = "";
+
+    this.renderPlayerRoleCard();
+  }
+
+  onHoldStart(isMaster = false) {
+    if (this.isHolding || !this.myRoleData) return;
     this.isHolding = true;
+    this.isHoldingMaster = !!isMaster;
     this.holdStartTime = Date.now();
-    const pBar = document.getElementById("lupus-p2p-hold-progress-bar");
-    const modal = document.getElementById("lupus-p2p-role-modal-overlay");
+
+    const holdBtnId = isMaster ? "lupus-p2p-master-hold-reveal-btn" : "lupus-p2p-hold-reveal-btn";
+    const pBarId = isMaster ? "lupus-p2p-master-hold-progress-bar" : "lupus-p2p-hold-progress-bar";
+
+    const holdBtn = document.getElementById(holdBtnId);
+    const progressBar = document.getElementById(pBarId);
+    if (holdBtn) holdBtn.classList.add("holding");
+
+    try { Sound.playHoldTick(); } catch (e) {}
 
     clearInterval(this.holdProgressInterval);
     this.holdProgressInterval = setInterval(() => {
       if (!this.isHolding) return;
       const elapsed = Date.now() - this.holdStartTime;
       const pct = Math.min(100, Math.round((elapsed / this.holdRequiredMs) * 100));
-      if (pBar) pBar.style.width = `${pct}%`;
+      if (progressBar) progressBar.style.width = `${pct}%`;
 
       if (elapsed >= this.holdRequiredMs) {
         clearInterval(this.holdProgressInterval);
-        if (modal) modal.style.display = "flex";
+        this.revealCardContent(this.isHoldingMaster);
       }
     }, 25);
   }
 
+  revealCardContent(isMaster = false) {
+    if (!this.myRoleData) return;
+    this.renderPlayerRoleCard();
+    const modal = document.getElementById("lupus-p2p-secret-revealed-card");
+    if (modal) {
+      modal.style.display = "flex";
+      document.body.style.overflow = "hidden";
+    }
+  }
+
   onHoldEnd() {
+    if (!this.isHolding) return;
+    const isMaster = this.isHoldingMaster;
     this.isHolding = false;
+    this.isHoldingMaster = false;
     clearInterval(this.holdProgressInterval);
-    const pBar = document.getElementById("lupus-p2p-hold-progress-bar");
-    if (pBar) pBar.style.width = "0%";
-    const modal = document.getElementById("lupus-p2p-role-modal-overlay");
-    if (modal) modal.style.display = "none";
+
+    const holdBtnId = isMaster ? "lupus-p2p-master-hold-reveal-btn" : "lupus-p2p-hold-reveal-btn";
+    const pBarId = isMaster ? "lupus-p2p-master-hold-progress-bar" : "lupus-p2p-hold-progress-bar";
+
+    const holdBtn = document.getElementById(holdBtnId);
+    const progressBar = document.getElementById(pBarId);
+    const modal = document.getElementById("lupus-p2p-secret-revealed-card");
+    const confirmContainer = document.getElementById("lupus-p2p-confirm-btn-container");
+
+    if (holdBtn) holdBtn.classList.remove("holding");
+    if (progressBar) progressBar.style.width = "0%";
+    document.body.style.overflow = "";
+
+    if (modal && modal.style.display !== "none") {
+      modal.style.display = "none";
+      if (!isMaster && confirmContainer) {
+        confirmContainer.style.display = "block";
+      } else if (isMaster) {
+        const hostAssign = this.assignments.find(a => a.isHost);
+        if (hostAssign && !this.confirmedPlayers.has(hostAssign.playerId)) {
+          this.confirmedPlayers.add(hostAssign.playerId);
+          this.updateMasterMonitorUI();
+        }
+      }
+    }
   }
 
   renderReviewCardContent() {
@@ -1155,6 +1269,11 @@ class LupusP2PController {
 
   updateMasterMonitorUI() {
     if (!this.isHost) return;
+
+    const masterRoleBox = document.getElementById("lupus-p2p-master-own-role-box");
+    if (masterRoleBox) {
+      masterRoleBox.style.display = (this.hostPlaysInVillage && this.myRoleData) ? "block" : "none";
+    }
 
     const totalCount = this.assignments.length;
     const confirmedCount = this.confirmedPlayers.size;

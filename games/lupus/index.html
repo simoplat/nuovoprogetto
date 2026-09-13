@@ -139,7 +139,7 @@
 
               <!-- Veggente -->
               <label class="role-toggle-card">
-                <input type="checkbox" id="lupus-toggle-veggente" checked>
+                <input type="checkbox" id="lupus-toggle-veggente">
                 <div class="role-toggle-content">
                   <span class="role-toggle-icon">🔮</span>
                   <div class="role-toggle-text">
@@ -151,7 +151,7 @@
 
               <!-- Guardia del Corpo -->
               <label class="role-toggle-card">
-                <input type="checkbox" id="lupus-toggle-guardia" checked>
+                <input type="checkbox" id="lupus-toggle-guardia">
                 <div class="role-toggle-content">
                   <span class="role-toggle-icon">🛡️</span>
                   <div class="role-toggle-text">
@@ -163,7 +163,7 @@
 
               <!-- Strega -->
               <label class="role-toggle-card">
-                <input type="checkbox" id="lupus-toggle-strega" checked>
+                <input type="checkbox" id="lupus-toggle-strega">
                 <div class="role-toggle-content">
                   <span class="role-toggle-icon">🧙‍♀️</span>
                   <div class="role-toggle-text">
@@ -175,7 +175,7 @@
 
               <!-- Cupido -->
               <label class="role-toggle-card">
-                <input type="checkbox" id="lupus-toggle-cupido" checked>
+                <input type="checkbox" id="lupus-toggle-cupido">
                 <div class="role-toggle-content">
                   <span class="role-toggle-icon">💘</span>
                   <div class="role-toggle-text">
@@ -307,7 +307,7 @@
           <!-- Elenco Nomi Giocatori -->
           <div class="form-group">
             <div class="form-label">
-              <span>Giocatori (<span id="lupus-players-count">6</span>):</span>
+              <span>Giocatori (<span id="lupus-players-count">4</span>):</span>
               <span class="label-hint">Tocca per modificare i nomi</span>
             </div>
             
@@ -317,7 +317,7 @@
 
             <div class="preset-actions">
               <button type="button" class="preset-chip" id="lupus-add-player-btn">➕ Aggiungi Giocatore</button>
-              <button type="button" class="preset-chip" id="lupus-quick-names-btn">🎲 Nomi Casuali</button>
+              <button type="button" class="preset-chip" id="lupus-quick-names-btn">↺ Nomi Predefiniti</button>
             </div>
           </div>
 
@@ -344,7 +344,7 @@
         
         <div id="lupus-pass-prompt-wrap">
           <h2 class="pass-instruction" id="lupus-pass-instruction">Passa il dispositivo a:</h2>
-          <div class="pass-target-name" id="lupus-pass-target-name">Marco</div>
+          <div class="pass-target-name" id="lupus-pass-target-name">Simone</div>
           <p class="card-subtitle" id="lupus-pass-subtitle">Assicurati che nessuno stia sbirciando prima di rivelare la tua identità segreta!</p>
         </div>
 
@@ -529,7 +529,7 @@
         <div id="lupus-p2p-panel-create">
           <div class="form-group">
             <label class="form-label" for="lupus-p2p-host-name-input">Il tuo Nome (Master / Narratore):</label>
-            <input type="text" id="lupus-p2p-host-name-input" class="custom-input" placeholder="Es. Narratore, Marco..." maxlength="20" autocomplete="nickname">
+            <input type="text" id="lupus-p2p-host-name-input" class="custom-input" placeholder="Es. Simone, Narratore..." maxlength="20" autocomplete="nickname">
           </div>
 
           <div id="lupus-p2p-create-status" style="font-size: 0.85rem; color: #dfbaa6; margin-bottom: 12px;"></div>
@@ -548,7 +548,7 @@
 
           <div class="form-group">
             <label class="form-label" for="lupus-p2p-join-name-input">Il tuo Nome da Cittadino:</label>
-            <input type="text" id="lupus-p2p-join-name-input" class="custom-input" placeholder="Es. Sofia, Luca, Elena..." maxlength="20" autocomplete="nickname">
+            <input type="text" id="lupus-p2p-join-name-input" class="custom-input" placeholder="Es. Matteo, Alessandra, Giorgia..." maxlength="20" autocomplete="nickname">
           </div>
 
           <div id="lupus-p2p-join-status" style="font-size: 0.85rem; color: #dfbaa6; margin-bottom: 12px;"></div>
@@ -643,7 +643,7 @@
             </div>
             <div class="lupus-roles-toggles-grid">
               <label class="role-toggle-card">
-                <input type="checkbox" id="lupus-p2p-toggle-veggente" checked>
+                <input type="checkbox" id="lupus-p2p-toggle-veggente">
                 <div class="role-toggle-content">
                   <span class="role-toggle-icon">🔮</span>
                   <div class="role-toggle-text">
@@ -654,7 +654,7 @@
               </label>
 
               <label class="role-toggle-card">
-                <input type="checkbox" id="lupus-p2p-toggle-guardia" checked>
+                <input type="checkbox" id="lupus-p2p-toggle-guardia">
                 <div class="role-toggle-content">
                   <span class="role-toggle-icon">🛡️</span>
                   <div class="role-toggle-text">
@@ -665,7 +665,7 @@
               </label>
 
               <label class="role-toggle-card">
-                <input type="checkbox" id="lupus-p2p-toggle-strega" checked>
+                <input type="checkbox" id="lupus-p2p-toggle-strega">
                 <div class="role-toggle-content">
                   <span class="role-toggle-icon">🧙‍♀️</span>
                   <div class="role-toggle-text">
@@ -676,7 +676,7 @@
               </label>
 
               <label class="role-toggle-card">
-                <input type="checkbox" id="lupus-p2p-toggle-cupido" checked>
+                <input type="checkbox" id="lupus-p2p-toggle-cupido">
                 <div class="role-toggle-content">
                   <span class="role-toggle-icon">💘</span>
                   <div class="role-toggle-text">
@@ -812,35 +812,56 @@
          LUPUS IN FABULA - VISTA P2P 3: CARTA RUOLO SEGRETA SU SMARTPHONE
          ========================================================================= -->
     <section id="view-lupus-p2p-role" class="app-view" style="display: none;">
-      <div class="glass-card text-center">
-        <h2 class="card-title justify-center" style="font-size: 1.3rem;">Il tuo Ruolo Segreto 🤫</h2>
-        <p class="card-subtitle">
-          Assicurati che nessuno stia sbirciando il tuo schermo prima di rivelare la carta!
-        </p>
+      <div class="glass-card pass-phone-container text-center">
+        <div class="turn-indicator" id="lupus-p2p-role-badge">Il tuo Ruolo Segreto 🤫</div>
 
-        <!-- Carta Ruolo Segreta Visualizzata -->
-        <div class="lupus-tarot-card" style="margin: 18px auto; max-width: 380px;">
-          <div class="lupus-tarot-img-container">
-            <img id="lupus-p2p-role-img" class="lupus-tarot-img" src="img/contadino.webp" alt="Carta Ruolo">
-          </div>
-          <div class="lupus-card-body">
-            <div id="lupus-p2p-role-faction" class="lupus-faction-badge faction-villaggio">Villaggio 🏛️</div>
-            <h2 id="lupus-p2p-role-title" class="lupus-card-title">Contadino</h2>
-            <p id="lupus-p2p-role-desc" class="lupus-card-desc">Descrizione del ruolo...</p>
+        <div id="lupus-p2p-role-prompt-wrap">
+          <h2 class="pass-instruction" style="font-size: 1.3rem;">Identità Segreta</h2>
+          <p class="card-subtitle">
+            Assicurati che nessuno stia sbirciando prima di rivelare la tua identità segreta!
+          </p>
+        </div>
 
-            <!-- Box Alleati per i Lupi -->
-            <div id="lupus-p2p-role-allies-box" class="lupus-allies-box" style="display: none;">
-              <div class="lupus-allies-title">I tuoi compagni Lupi nel villaggio:</div>
-              <div id="lupus-p2p-role-allies-list"></div>
-            </div>
+        <!-- Tasto Tieni Premuto per Scoprire (Hold to Reveal) -->
+        <div class="hold-reveal-box" style="max-width: 440px; margin: 20px auto;">
+          <div class="btn-hold" id="lupus-p2p-hold-reveal-btn">
+            <div class="hold-icon">👆</div>
+            <div class="hold-text">TIENI PREMUTO PER VEDERE</div>
+            <div class="hold-subtext">Rilascia per nascondere subito</div>
+            <div class="hold-progress-bar" id="lupus-p2p-hold-progress-bar"></div>
           </div>
         </div>
 
-        <!-- Tasto di Conferma Presa Visione -->
-        <div style="max-width: 380px; margin: 0 auto;">
+        <!-- Tasto di Conferma Presa Visione (mostrato dopo aver visto la carta) -->
+        <div id="lupus-p2p-confirm-btn-container" style="display: none; max-width: 440px; margin: 18px auto 0;">
           <button type="button" class="btn btn-primary btn-block" id="lupus-p2p-btn-confirm-role" style="font-size: 0.95rem; padding: 14px;">
             ✅ Ho memorizzato il mio ruolo!
           </button>
+        </div>
+      </div>
+
+      <!-- Modale Carta Ruolo a Schermo Intero (visibile tenendo premuto) -->
+      <div id="lupus-p2p-secret-revealed-card" class="lupus-card-modal-overlay" style="display: none;">
+        <div class="lupus-card-modal-container">
+          <div class="lupus-modal-hold-hint">
+            <span>👆 Tieni premuto per leggere • Rilascia per chiudere</span>
+          </div>
+          <div id="lupus-p2p-card-box" class="lupus-tarot-card">
+            <div class="lupus-tarot-img-container">
+              <img id="lupus-p2p-role-img" class="lupus-tarot-img" src="img/contadino.webp" alt="Carta Ruolo">
+            </div>
+            <div class="lupus-card-body">
+              <div id="lupus-p2p-role-faction" class="lupus-faction-badge faction-villaggio">Villaggio 🏛️</div>
+              <h2 id="lupus-p2p-role-title" class="lupus-card-title">Contadino</h2>
+              <p id="lupus-p2p-role-desc" class="lupus-card-desc">Descrizione del ruolo...</p>
+
+              <!-- Box Alleati per i Lupi -->
+              <div id="lupus-p2p-role-allies-box" class="lupus-allies-box" style="display: none;">
+                <div class="lupus-allies-title">I tuoi compagni Lupi nel villaggio:</div>
+                <div id="lupus-p2p-role-allies-list"></div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -914,8 +935,14 @@
         <div class="form-label mt-3">Abitanti del Villaggio (Connessione e Presa Visione):</div>
         <div id="lupus-p2p-monitor-players-list" class="monitor-players-list"></div>
 
-        <div style="background: rgba(10, 12, 18, 0.6); border: 1px solid var(--df-border-iron); border-radius: 8px; padding: 12px; margin: 16px 0; font-size: 0.85rem; color: var(--df-text-ash);">
-          💡 <strong>Nota per il Master:</strong> Anche se qualcuno perde temporaneamente la connessione o blocca lo schermo, la partita può proseguire normalmente. L'importante è che ognuno conosca il suo ruolo segreto.
+        <!-- Tasto Tieni Premuto Master (se gioca anche nel villaggio) -->
+        <div id="lupus-p2p-master-own-role-box" style="display: none; margin: 16px auto; max-width: 440px;">
+          <div class="btn-hold" id="lupus-p2p-master-hold-reveal-btn">
+            <div class="hold-icon">👆🤫</div>
+            <div class="hold-text">TIENI PREMUTO PER IL TUO RUOLO (MASTER)</div>
+            <div class="hold-subtext">Rilascia per nascondere subito</div>
+            <div class="hold-progress-bar" id="lupus-p2p-master-hold-progress-bar"></div>
+          </div>
         </div>
 
         <!-- Pulsante di avvio della Guida del Narratore -->

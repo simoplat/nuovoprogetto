@@ -9,6 +9,13 @@ class LupusSetupUI {
 
   loadSavedPlayers() {
     try {
+      const version = localStorage.getItem("lupus_players_version");
+      if (version !== "v3") {
+        localStorage.setItem("lupus_players_version", "v3");
+        localStorage.removeItem("lupus_saved_players");
+        return null;
+      }
+
       const saved = localStorage.getItem("lupus_saved_players");
       if (saved) {
         const parsed = JSON.parse(saved);
@@ -181,6 +188,8 @@ class LupusSetupUI {
         }
       });
     }
+
+    this.renderSetupView();
   }
 
   renderSetupView() {
@@ -219,9 +228,14 @@ class LupusSetupUI {
       input.className = "player-input";
       input.value = name;
       input.maxLength = 22;
-      input.placeholder = `Nome giocatore ${index + 1}`;
+      const defaultList = (this.game && this.game.defaultPlayerNames) || [
+        "Simone", "Matteo", "Alessandra", "Giorgia", "Davide", "Leonardo",
+        "Pietro", "Cristian", "Francesca", "Daniele", "Riccardo", "Jacopo", "Noemi", "Francesco"
+      ];
+
+      input.placeholder = defaultList[index] || `Nome giocatore ${index + 1}`;
       input.addEventListener("input", (e) => {
-        this.game.players[index] = e.target.value.trim() || `Giocatore ${index + 1}`;
+        this.game.players[index] = e.target.value.trim() || defaultList[index] || `Giocatore ${index + 1}`;
         this.savePlayers();
       });
 
@@ -255,8 +269,16 @@ class LupusSetupUI {
   addNewPlayer() {
     if (this.game.players.length >= 20) return;
     Sound.playClick();
-    const newIdx = this.game.players.length + 1;
-    this.game.players.push(`Giocatore ${newIdx}`);
+    const defaultList = (this.game && this.game.defaultPlayerNames) || [
+      "Simone", "Matteo", "Alessandra", "Giorgia", "Davide", "Leonardo",
+      "Pietro", "Cristian", "Francesca", "Daniele", "Riccardo", "Jacopo", "Noemi", "Francesco"
+    ];
+    // Trova il primo nome dell'elenco predefinito non ancora presente
+    let nextName = defaultList.find(n => !this.game.players.some(p => (p || "").trim().toLowerCase() === n.toLowerCase()));
+    if (!nextName) {
+      nextName = `Giocatore ${this.game.players.length + 1}`;
+    }
+    this.game.players.push(nextName);
     this.savePlayers();
     this.renderPlayersList();
     this.ensureValidWolvesCount();
@@ -273,16 +295,23 @@ class LupusSetupUI {
 
   fillQuickNames() {
     Sound.playClick();
-    const italianNames = [
-      "Marco", "Sofia", "Luca", "Giulia", "Andrea", "Chiara",
-      "Matteo", "Elena", "Davide", "Valentina", "Lorenzo", "Federica",
-      "Alessandro", "Francesca", "Gabriele", "Sara", "Simone", "Martina", "Tommaso", "Alice"
+    const priorityNames = (this.game && this.game.defaultPlayerNames) || [
+      "Simone", "Matteo", "Alessandra", "Giorgia", "Davide", "Leonardo",
+      "Pietro", "Cristian", "Francesca", "Daniele", "Riccardo", "Jacopo", "Noemi", "Francesco"
     ];
-    const shuffled = [...italianNames].sort(() => 0.5 - Math.random());
+    const extraNames = [
+      "Marco", "Sofia", "Luca", "Giulia", "Andrea", "Chiara",
+      "Elena", "Valentina", "Lorenzo", "Federica", "Alessandro", "Gabriele", "Sara", "Martina", "Tommaso", "Alice"
+    ];
     const count = Math.max(4, this.game.players.length);
     this.game.players = [];
     for (let i = 0; i < count; i++) {
-      this.game.players.push(shuffled[i % shuffled.length]);
+      if (i < priorityNames.length) {
+        this.game.players.push(priorityNames[i]);
+      } else {
+        const extraIdx = (i - priorityNames.length) % extraNames.length;
+        this.game.players.push(extraNames[extraIdx]);
+      }
     }
     this.savePlayers();
     this.renderPlayersList();
