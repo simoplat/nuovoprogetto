@@ -109,9 +109,19 @@ class LupusP2PController {
       btnJoin.addEventListener("click", () => this.joinRoomAsClient());
     }
 
+    // Filtro input: Massimo 20 caratteri solo alfanumerici (lettere e numeri)
+    const filterAlphanumericName = (e) => {
+      const sanitized = e.target.value.replace(/[^a-zA-Z0-9]/g, "").slice(0, 20);
+      if (e.target.value !== sanitized) {
+        e.target.value = sanitized;
+      }
+    };
+
     // Invio con tasto Enter nei campi nome e codice
     const hostNameInput = document.getElementById("lupus-p2p-host-name-input");
     if (hostNameInput) {
+      hostNameInput.maxLength = 20;
+      hostNameInput.addEventListener("input", filterAlphanumericName);
       hostNameInput.addEventListener("keydown", (e) => {
         if (e.key === "Enter") this.createRoomAsHost();
       });
@@ -120,6 +130,8 @@ class LupusP2PController {
     const joinCodeInput = document.getElementById("lupus-p2p-join-code-input");
     const joinNameInput = document.getElementById("lupus-p2p-join-name-input");
     if (joinNameInput) {
+      joinNameInput.maxLength = 20;
+      joinNameInput.addEventListener("input", filterAlphanumericName);
       joinNameInput.addEventListener("keydown", (e) => {
         if (e.key === "Enter") this.joinRoomAsClient();
       });
@@ -248,8 +260,11 @@ class LupusP2PController {
 
   createRoomAsHost() {
     const nameInput = document.getElementById("lupus-p2p-host-name-input");
-    const name = (nameInput ? nameInput.value : "").trim() || "Simone";
+    const rawName = (nameInput ? nameInput.value : "").trim();
+    const cleanName = rawName.replace(/[^a-zA-Z0-9]/g, "").slice(0, 20);
+    const name = cleanName || "Simone";
     this.playerName = name;
+    if (nameInput) nameInput.value = name;
     try {
       localStorage.setItem("lupus_p2p_name", name);
     } catch (e) {}
@@ -391,7 +406,10 @@ class LupusP2PController {
       const unused = defaultJoinNames.find(n => !this.players.some(p => (p.name || "").toLowerCase() === n.toLowerCase()));
       if (unused) fallbackName = unused;
     }
-    const name = (nameInput ? nameInput.value : "").trim() || fallbackName;
+    const rawName = (nameInput ? nameInput.value : "").trim();
+    const cleanName = rawName.replace(/[^a-zA-Z0-9]/g, "").slice(0, 20);
+    const name = cleanName || fallbackName;
+    if (nameInput) nameInput.value = name;
 
     if (!code || code.length < 3) {
       alert("Inserisci un codice stanza valido (4 lettere)!");

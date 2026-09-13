@@ -19,7 +19,9 @@ class LupusSetupUI {
       const saved = localStorage.getItem("lupus_saved_players");
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length >= 4) return parsed;
+        if (Array.isArray(parsed) && parsed.length >= 4) {
+          return parsed.map(n => String(n).replace(/[^a-zA-Z0-9]/g, "").slice(0, 20));
+        }
       }
     } catch (e) {}
     return null;
@@ -227,7 +229,7 @@ class LupusSetupUI {
       input.type = "text";
       input.className = "player-input";
       input.value = name;
-      input.maxLength = 22;
+      input.maxLength = 20;
       const defaultList = (this.game && this.game.defaultPlayerNames) || [
         "Simone", "Matteo", "Alessandra", "Giorgia", "Davide", "Leonardo",
         "Pietro", "Cristian", "Francesca", "Daniele", "Riccardo", "Jacopo", "Noemi", "Francesco"
@@ -235,7 +237,11 @@ class LupusSetupUI {
 
       input.placeholder = defaultList[index] || `Nome giocatore ${index + 1}`;
       input.addEventListener("input", (e) => {
-        this.game.players[index] = e.target.value.trim() || defaultList[index] || `Giocatore ${index + 1}`;
+        const sanitized = e.target.value.replace(/[^a-zA-Z0-9]/g, "").slice(0, 20);
+        if (e.target.value !== sanitized) {
+          e.target.value = sanitized;
+        }
+        this.game.players[index] = sanitized || defaultList[index] || `Giocatore ${index + 1}`;
         this.savePlayers();
       });
 

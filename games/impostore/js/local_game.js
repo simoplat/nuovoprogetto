@@ -44,7 +44,9 @@ class LocalGameController {
       const saved = localStorage.getItem("impostore_saved_players");
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length >= 3) return parsed;
+        if (Array.isArray(parsed) && parsed.length >= 3) {
+          return parsed.map(n => String(n).replace(/[^a-zA-Z0-9]/g, "").slice(0, 20));
+        }
       }
     } catch (e) {}
     return null;
@@ -212,9 +214,13 @@ class LocalGameController {
       input.className = "player-input";
       input.value = name;
       input.placeholder = `Nome giocatore ${index + 1}`;
-      input.maxLength = 22;
+      input.maxLength = 20;
       input.addEventListener("input", (e) => {
-        this.players[index] = e.target.value.trim() || `Giocatore ${index + 1}`;
+        const sanitized = e.target.value.replace(/[^a-zA-Z0-9]/g, "").slice(0, 20);
+        if (e.target.value !== sanitized) {
+          e.target.value = sanitized;
+        }
+        this.players[index] = sanitized || `Giocatore ${index + 1}`;
         this.savePlayers();
       });
 

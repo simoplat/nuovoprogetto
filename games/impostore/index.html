@@ -297,7 +297,7 @@
         <div id="p2p-panel-create">
           <div class="form-group">
             <label class="form-label" for="p2p-host-name-input">Il tuo Nome (Host):</label>
-            <input type="text" id="p2p-host-name-input" class="custom-select custom-input" placeholder="Es. Marco, Sofia..." maxlength="20" autocomplete="nickname" autocapitalize="words" autocorrect="off" spellcheck="false" enterkeyhint="go">
+            <input type="text" id="p2p-host-name-input" class="custom-select custom-input" placeholder="Es. Marco, Sofia..." maxlength="20" pattern="[a-zA-Z0-9]{1,20}" title="Massimo 20 caratteri solo alfanumerici" autocomplete="nickname" autocapitalize="words" autocorrect="off" spellcheck="false" enterkeyhint="go">
           </div>
 
           <div id="p2p-create-status" style="font-size: 0.85rem; color: var(--accent-cyan); margin-bottom: 12px;"></div>
@@ -316,7 +316,7 @@
 
           <div class="form-group">
             <label class="form-label" for="p2p-join-name-input">Il tuo Nome:</label>
-            <input type="text" id="p2p-join-name-input" class="custom-select custom-input" placeholder="Es. Luca, Giulia..." maxlength="20" autocomplete="nickname" autocapitalize="words" autocorrect="off" spellcheck="false" enterkeyhint="go">
+            <input type="text" id="p2p-join-name-input" class="custom-select custom-input" placeholder="Es. Luca, Giulia..." maxlength="20" pattern="[a-zA-Z0-9]{1,20}" title="Massimo 20 caratteri solo alfanumerici" autocomplete="nickname" autocapitalize="words" autocorrect="off" spellcheck="false" enterkeyhint="go">
           </div>
 
           <div id="p2p-join-status" style="font-size: 0.85rem; color: var(--accent-cyan); margin-bottom: 12px;"></div>

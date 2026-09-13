@@ -529,7 +529,7 @@
         <div id="lupus-p2p-panel-create">
           <div class="form-group">
             <label class="form-label" for="lupus-p2p-host-name-input">Il tuo Nome (Master / Narratore):</label>
-            <input type="text" id="lupus-p2p-host-name-input" class="custom-input" placeholder="Es. Simone, Narratore..." maxlength="20" autocomplete="nickname">
+            <input type="text" id="lupus-p2p-host-name-input" class="custom-input" placeholder="Es. Simone, Narratore..." maxlength="20" pattern="[a-zA-Z0-9]{1,20}" title="Massimo 20 caratteri solo alfanumerici" autocomplete="nickname">
           </div>
 
           <div id="lupus-p2p-create-status" style="font-size: 0.85rem; color: #dfbaa6; margin-bottom: 12px;"></div>
@@ -548,7 +548,7 @@
 
           <div class="form-group">
             <label class="form-label" for="lupus-p2p-join-name-input">Il tuo Nome da Cittadino:</label>
-            <input type="text" id="lupus-p2p-join-name-input" class="custom-input" placeholder="Es. Matteo, Alessandra, Giorgia..." maxlength="20" autocomplete="nickname">
+            <input type="text" id="lupus-p2p-join-name-input" class="custom-input" placeholder="Es. Matteo, Alessandra, Giorgia..." maxlength="20" pattern="[a-zA-Z0-9]{1,20}" title="Massimo 20 caratteri solo alfanumerici" autocomplete="nickname">
           </div>
 
           <div id="lupus-p2p-join-status" style="font-size: 0.85rem; color: #dfbaa6; margin-bottom: 12px;"></div>

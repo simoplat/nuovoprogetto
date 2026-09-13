@@ -53,26 +53,27 @@ class P2PRoomManager {
 
     // Ripristina nome salvato
     try {
-      this.playerName = localStorage.getItem("partyhub_player_name") || "";
+      this.playerName = (localStorage.getItem("partyhub_player_name") || "").replace(/[^a-zA-Z0-9]/g, "").slice(0, 20);
     } catch (e) {}
   }
 
   getOrCreatePlayerId() {
-    let stored = "";
+    const key = "partyhub_stable_player_id";
+    let stored = null;
     try {
-      stored = sessionStorage.getItem("partyhub_player_id");
+      stored = localStorage.getItem(key);
     } catch (e) {}
     if (!stored) {
-      stored = "p_" + Math.random().toString(36).substring(2, 10) + "_" + Date.now().toString(36);
+      stored = "p_" + Math.random().toString(36).substring(2, 10) + Date.now().toString(36);
       try {
-        sessionStorage.setItem("partyhub_player_id", stored);
+        localStorage.setItem(key, stored);
       } catch (e) {}
     }
     return stored;
   }
 
   setPlayerName(name) {
-    this.playerName = (name || "").trim();
+    this.playerName = (name || "").replace(/[^a-zA-Z0-9]/g, "").slice(0, 20);
     try {
       localStorage.setItem("partyhub_player_name", this.playerName);
     } catch (e) {}
@@ -231,7 +232,8 @@ class P2PRoomManager {
   }
 
   handlePlayerJoin(conn, name, playerId) {
-    const peerName = (name || "Giocatore").trim().substring(0, 20);
+    const cleanName = (name || "").replace(/[^a-zA-Z0-9]/g, "").slice(0, 20);
+    const peerName = cleanName || "Giocatore";
     const existingPlayer = this.players.find(p => p.playerId && p.playerId === playerId);
 
     if (existingPlayer) {
@@ -279,7 +281,10 @@ class P2PRoomManager {
     existing.id = conn.peer;
     existing.peerId = conn.peer;
     existing.online = true;
-    if (name) existing.name = name;
+    if (name) {
+      const cleanName = (name || "").replace(/[^a-zA-Z0-9]/g, "").slice(0, 20);
+      if (cleanName) existing.name = cleanName;
+    }
 
     this.connections.set(conn.peer, {
       name: existing.name,

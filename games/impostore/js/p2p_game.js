@@ -162,8 +162,17 @@ class P2PGameController {
     }
 
     // Invio con tasto Enter sul campo nome (Join ed Host)
+    const filterAlphanumericName = (e) => {
+      const sanitized = e.target.value.replace(/[^a-zA-Z0-9]/g, "").slice(0, 20);
+      if (e.target.value !== sanitized) {
+        e.target.value = sanitized;
+      }
+    };
+
     const nameInputJoin = document.getElementById("p2p-join-name-input");
     if (nameInputJoin) {
+      nameInputJoin.maxLength = 20;
+      nameInputJoin.addEventListener("input", filterAlphanumericName);
       nameInputJoin.addEventListener("keydown", (e) => {
         if (e.key === "Enter") this.joinRoomAsClient();
       });
@@ -171,6 +180,8 @@ class P2PGameController {
 
     const nameInputHost = document.getElementById("p2p-host-name-input");
     if (nameInputHost) {
+      nameInputHost.maxLength = 20;
+      nameInputHost.addEventListener("input", filterAlphanumericName);
       nameInputHost.addEventListener("keydown", (e) => {
         if (e.key === "Enter") this.createRoomAsHost();
       });
@@ -378,14 +389,17 @@ class P2PGameController {
   // =========================================================================
   createRoomAsHost(customCode = null) {
     const nameInput = document.getElementById("p2p-host-name-input");
-    const name = nameInput ? nameInput.value.trim() : (this.playerName || "Host");
-    if (!name && !this.playerName) {
-      alert("Inserisci il tuo nome!");
+    const rawName = (nameInput ? nameInput.value : "").trim();
+    const cleanName = rawName.replace(/[^a-zA-Z0-9]/g, "").slice(0, 20);
+    const name = cleanName || (this.playerName ? this.playerName.replace(/[^a-zA-Z0-9]/g, "").slice(0, 20) : "Host");
+    if (!name) {
+      alert("Inserisci un nome valido (solo lettere e numeri, max 20 caratteri)!");
       return;
     }
 
     Sound.playClick();
-    this.playerName = name || this.playerName;
+    this.playerName = name;
+    if (nameInput) nameInput.value = name;
     try { localStorage.setItem("impostore_p2p_name", this.playerName); } catch (e) {}
 
     this.isHost = true;
@@ -535,7 +549,8 @@ class P2PGameController {
     if (!data || !data.type) return;
 
     if (data.type === "JOIN") {
-      const peerName = (data.name || `Giocatore ${this.players.length + 1}`).trim();
+      const cleanName = (data.name || "").replace(/[^a-zA-Z0-9]/g, "").slice(0, 20);
+      const peerName = cleanName || `Giocatore ${this.players.length + 1}`;
       const playerId = data.playerId || conn.peer;
       this.connections.set(conn.peer, { name: peerName, conn: conn, playerId: playerId });
 
@@ -565,7 +580,7 @@ class P2PGameController {
 
       this.renderP2PLobbyPlayers();
     } else if (data.type === "RECONNECT") {
-      const peerName = (data.name || "").trim();
+      const peerName = (data.name || "").replace(/[^a-zA-Z0-9]/g, "").slice(0, 20);
       const playerId = data.playerId;
       const existingPlayer = this.players.find(p => (playerId && p.playerId === playerId) || (peerName && p.name.toLowerCase() === peerName.toLowerCase()));
 
@@ -723,13 +738,15 @@ class P2PGameController {
     const nameInput = document.getElementById("p2p-join-name-input");
     const codeInput = document.getElementById("p2p-join-code-input");
 
-    const name = nameInput ? nameInput.value.trim() : "";
+    const rawName = (nameInput ? nameInput.value : "").trim();
+    const name = rawName.replace(/[^a-zA-Z0-9]/g, "").slice(0, 20);
     const code = codeInput ? codeInput.value.trim().toUpperCase() : "";
 
     if (!name) {
-      alert("Inserisci il tuo nome!");
+      alert("Inserisci un nome valido (solo lettere e numeri, max 20 caratteri)!");
       return;
     }
+    if (nameInput) nameInput.value = name;
     if (!code || code.length < 3) {
       alert("Inserisci il codice della stanza valido!");
       return;
