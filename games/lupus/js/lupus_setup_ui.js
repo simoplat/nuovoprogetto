@@ -168,6 +168,14 @@ class LupusSetupUI {
     const resetGameBtn = document.getElementById("lupus-btn-restart-game");
     if (resetGameBtn) {
       resetGameBtn.addEventListener("click", () => {
+        if (game.isP2PMode) {
+          if (confirm("Vuoi preparare una nuova partita e riassegnare i ruoli? Tutti i giocatori dovranno essere connessi.")) {
+            if (window.LupusP2PGame) {
+              window.LupusP2PGame.hostPrepareRematch();
+            }
+          }
+          return;
+        }
         if (confirm("Vuoi iniziare una nuova partita con gli stessi giocatori?")) {
           game.startGame();
         }

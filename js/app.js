@@ -43,7 +43,12 @@ class PartyHubApp {
     try {
       const params = new URLSearchParams(window.location.search);
       const roomCode = params.get("room");
+      const gameParam = params.get("game");
       if (roomCode) {
+        if (gameParam === "lupus") {
+          window.location.href = "games/lupus/index.html?room=" + encodeURIComponent(roomCode);
+          return;
+        }
         window.location.href = "games/impostore/index.html?room=" + encodeURIComponent(roomCode);
         return;
       } else {

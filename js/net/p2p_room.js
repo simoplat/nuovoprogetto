@@ -327,6 +327,31 @@ class P2PRoomManager {
     }
   }
 
+  removePlayer(playerId) {
+    if (!this.isHost) return false;
+    const idx = this.players.findIndex(p => p.playerId === playerId || p.id === playerId);
+    if (idx !== -1) {
+      const removed = this.players.splice(idx, 1)[0];
+      const peerId = removed.id || removed.peerId;
+      if (peerId && this.connections.has(peerId)) {
+        try {
+          const client = this.connections.get(peerId);
+          if (client && client.conn) {
+            client.conn.send({ type: "KICKED", reason: "Rimosso dall'Host" });
+            setTimeout(() => {
+              try { client.conn.close(); } catch (e) {}
+            }, 100);
+          }
+        } catch (e) {}
+        this.connections.delete(peerId);
+      }
+      this.broadcastPlayersUpdate();
+      this.emit("player_left", { player: removed, players: this.players });
+      return true;
+    }
+    return false;
+  }
+
   // =========================================================================
   // GESTIONE CLIENT
   // =========================================================================
@@ -421,6 +446,8 @@ class P2PRoomManager {
     } else if (data.type === "RECONNECT_SUCCESS") {
       this.players = data.players || [];
       this.emit("reconnect_success", data);
+    } else if (data.type === "KICKED") {
+      this.emit("kicked", { reason: data.reason || "Rimosso dalla stanza" });
     } else {
       this.emit("message", {
         type: data.type,

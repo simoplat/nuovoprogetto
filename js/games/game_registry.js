@@ -75,7 +75,7 @@ GlobalGameRegistry.register({
   colorTheme: "purple"
 });
 
-// 2. Registra Lupus in Fabula (Attivo al 100%, Solo Locale)
+// 2. Registra Lupus in Fabula (Attivo al 100%, Locale + Stanza Online P2P)
 GlobalGameRegistry.register({
   id: "lupus",
   title: "Lupus in Fabula",
@@ -83,9 +83,10 @@ GlobalGameRegistry.register({
   tagline: "Lupi, villaggio, inganni e misteri al calar della notte!",
   badge: "4-20 Giocatori",
   status: "active",
-  modes: ["local"],
+  modes: ["local", "p2p"],
   modeLabels: {
-    local: "Passa il Telefono 📱"
+    local: "Passa il Telefono 📱",
+    p2p: "Stanza Online P2P ⚡"
   },
   rulesSummary: "I Lupi Mannari sbranano gli abitanti ogni notte, mentre il Villaggio (Veggente, Strega, Cupido, Donna e Contadini) cerca di stanarli e mandarli al rogo!",
   colorTheme: "crimson"

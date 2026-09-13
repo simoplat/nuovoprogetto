@@ -20,6 +20,7 @@ class LupusGameController {
       "Marco", "Sofia", "Luca", "Giulia", "Matteo", "Elena"
     ];
     this.wolvesCount = 1;
+    this.isP2PMode = false;
 
     // Timer Discussione
     this.discussionMinutes = 3;

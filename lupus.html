@@ -5,7 +5,8 @@
   <meta http-equiv="refresh" content="0; url=games/lupus/index.html">
   <title>Reindirizzamento a Lupus in Fabula...</title>
   <script>
-    window.location.replace("games/lupus/index.html");
+    const search = window.location.search || "";
+    window.location.replace("games/lupus/index.html" + search);
   </script>
 </head>
 <body style="background: #06070a; color: #ede9e1; font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0;">

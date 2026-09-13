@@ -55,11 +55,17 @@ class LupusMasterUI {
         btnTitle = player.isAlive ? "Segna come Eliminato nella notte" : "Riporta in Vita";
       }
 
+      const connBadge = player.online !== undefined
+        ? (player.online
+            ? `<span class="conn-pill online" style="margin-left: 6px; font-size: 0.68rem;" title="Giocatore Connesso">🟢 Connesso</span>`
+            : `<span class="conn-pill offline" style="margin-left: 6px; font-size: 0.68rem;" title="Giocatore Disconnesso (il gioco continua)">⚪ Disconnesso</span>`)
+        : '';
+
       chip.innerHTML = `
         <div class="roster-chip-info">
           <span class="roster-chip-icon">${player.role.icon}</span>
           <div>
-            <div class="roster-chip-name">${player.name}${player.isLover ? ' <span style="font-size: 0.75rem;" title="Innamorato">❤️</span>' : ''}</div>
+            <div class="roster-chip-name">${player.name}${connBadge}${player.isLover ? ' <span style="font-size: 0.75rem;" title="Innamorato">❤️</span>' : ''}</div>
             <div class="roster-chip-role">${player.role.name}</div>
           </div>
         </div>
@@ -897,6 +903,12 @@ class LupusMasterUI {
       if (restartBtn) {
         restartBtn.addEventListener("click", () => {
           try { Sound.playClick(); } catch (e) {}
+          if (game.isP2PMode) {
+            if (window.LupusP2PGame) {
+              window.LupusP2PGame.hostPrepareRematch();
+            }
+            return;
+          }
           game.startGame();
         });
       }

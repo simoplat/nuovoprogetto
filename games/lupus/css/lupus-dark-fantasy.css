@@ -2120,3 +2120,581 @@ h1, h2, h3, h4,
     gap: 12px;
   }
 }
+
+/* ==========================================================================
+   LUPUS IN FABULA - MODALITÀ STANZA ONLINE P2P & DESIGN SYSTEM ESTESO
+   ========================================================================== */
+
+/* Griglia Selezione Modalità (Passa il Telefono vs Stanza P2P) */
+.mode-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  margin: 20px 0;
+}
+
+@media (min-width: 600px) {
+  .mode-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.mode-card {
+  background: var(--df-bg-elevated);
+  border: 1px solid var(--df-border-iron);
+  border-radius: 12px;
+  padding: 22px 18px;
+  text-align: left;
+  cursor: pointer;
+  position: relative;
+  transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: var(--df-shadow-card);
+  display: flex;
+  flex-direction: column;
+}
+
+.mode-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--df-border-gold);
+  background: var(--df-bg-card-hover);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.85);
+}
+
+.mode-card.featured {
+  border-color: var(--df-border-brass);
+}
+
+.mode-badge {
+  display: inline-block;
+  font-family: var(--df-font-serif);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 4px;
+  background: rgba(133, 109, 69, 0.2);
+  color: #dfbaa6;
+  border: 1px solid var(--df-border-gold);
+  margin-bottom: 12px;
+  align-self: flex-start;
+}
+
+.mode-badge.badge-p2p {
+  background: rgba(145, 34, 34, 0.2);
+  color: #f0caca;
+  border-color: var(--df-wolf-border);
+}
+
+.mode-icon {
+  font-size: 2.4rem;
+  margin-bottom: 10px;
+  line-height: 1;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.8));
+}
+
+.mode-title {
+  font-family: var(--df-font-serif);
+  font-size: 1.18rem;
+  font-weight: 800;
+  color: var(--df-text-bone);
+  margin-bottom: 8px;
+  letter-spacing: 0.04em;
+}
+
+.mode-desc {
+  font-family: var(--df-font-body);
+  font-size: 0.92rem;
+  color: var(--df-text-ash);
+  line-height: 1.45;
+  flex-grow: 1;
+}
+
+/* Tabs Dark Fantasy (Crea Stanza vs Entra con PIN) */
+.tab-container {
+  display: flex;
+  gap: 8px;
+  background: #0b0d13;
+  padding: 4px;
+  border-radius: 8px;
+  border: 1px solid var(--df-border-iron);
+  margin-bottom: 20px;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 10px 14px;
+  font-family: var(--df-font-serif);
+  font-size: 0.84rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: transparent;
+  color: var(--df-text-ash);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tab-btn.active {
+  background: var(--df-bg-elevated);
+  color: var(--df-text-bone);
+  border: 1px solid var(--df-border-gold);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+}
+
+.tab-btn:hover:not(.active) {
+  color: var(--df-text-parchment);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+/* Campi Input Dark Fantasy */
+.custom-input {
+  width: 100%;
+  background: #0b0d13;
+  border: 1px solid var(--df-border-iron);
+  border-radius: 6px;
+  padding: 12px 14px;
+  color: var(--df-text-bone);
+  font-family: var(--df-font-body);
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.custom-input:focus {
+  border-color: var(--df-border-gold);
+  box-shadow: 0 0 0 2px rgba(133, 109, 69, 0.25);
+}
+
+.custom-input::placeholder {
+  color: var(--df-text-dim);
+}
+
+/* Badge di Connessione (🟢 Connesso / ⚪ Disconnesso) */
+.conn-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--df-font-serif);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 3px 8px;
+  border-radius: 4px;
+  line-height: 1.2;
+}
+
+.conn-pill.online {
+  background: rgba(34, 197, 94, 0.12);
+  color: #86efac;
+  border: 1px solid rgba(34, 197, 94, 0.35);
+}
+
+.conn-pill.offline {
+  background: rgba(148, 163, 184, 0.1);
+  color: #94a3b8;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+/* Box Codice Stanza e QR Code */
+.p2p-code-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  background: #090b10;
+  border: 2px dashed var(--df-border-gold);
+  padding: 8px 18px;
+  border-radius: 8px;
+  margin-bottom: 14px;
+}
+
+.p2p-code-text {
+  font-family: var(--df-font-serif);
+  font-size: 1.85rem;
+  font-weight: 900;
+  letter-spacing: 4px;
+  color: #f7ede0;
+}
+
+.qr-box-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 12px;
+  background: #ffffff;
+  border-radius: 8px;
+  max-width: 190px;
+  margin: 0 auto 12px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.8);
+}
+
+.qr-box-container canvas,
+.qr-box-container img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.lan-url-display {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--df-border-iron);
+  border-radius: 6px;
+  font-size: 0.82rem;
+  color: var(--df-text-ash);
+  word-break: break-all;
+}
+
+/* Lobby Players Grid */
+.lobby-players-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+@media (min-width: 500px) {
+  .lobby-players-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.lobby-player-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #11141c;
+  border: 1px solid var(--df-border-iron);
+  border-radius: 8px;
+  padding: 10px 12px;
+  transition: border-color 0.15s ease;
+}
+
+.lobby-player-card:hover {
+  border-color: var(--df-border-iron-light);
+}
+
+.lobby-player-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.lobby-player-name {
+  font-family: var(--df-font-serif);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--df-text-bone);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lobby-player-host-badge {
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  background: rgba(133, 109, 69, 0.3);
+  color: #dfbaa6;
+  border: 1px solid var(--df-border-gold);
+  border-radius: 3px;
+  font-family: var(--df-font-serif);
+}
+
+/* Monitor di Conferma Ruolo (per il Master) */
+.seen-status-box {
+  background: #0c0e15;
+  border: 1px solid var(--df-border-iron);
+  border-radius: 10px;
+  padding: 16px;
+  margin: 16px 0;
+}
+
+.seen-title {
+  font-family: var(--df-font-serif);
+  font-size: 0.88rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--df-text-bone);
+}
+
+.seen-counter-badge {
+  font-family: var(--df-font-serif);
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: #dfbaa6;
+  background: #161a24;
+  border: 1px solid var(--df-border-gold);
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+
+.seen-progress-track {
+  width: 100%;
+  height: 8px;
+  background: #161a24;
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 8px 0;
+  border: 1px solid var(--df-border-iron);
+}
+
+.seen-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #665233, #ab8c58);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.seen-missing-container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.84rem;
+  color: var(--df-text-ash);
+}
+
+.missing-label {
+  font-family: var(--df-font-serif);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--df-text-ash);
+}
+
+.missing-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.missing-chip {
+  background: rgba(145, 34, 34, 0.2);
+  border: 1px solid var(--df-wolf-border);
+  color: #f0caca;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-family: var(--df-font-body);
+}
+
+.missing-chip.is-you {
+  border-color: var(--df-border-gold);
+  background: rgba(133, 109, 69, 0.3);
+  color: #dfbaa6;
+}
+
+.seen-all-ready-msg {
+  font-family: var(--df-font-serif);
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #86efac;
+  text-align: center;
+  padding: 8px;
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  border-radius: 6px;
+}
+
+/* Griglia Monitor Master con Status Singoli Giocatori */
+.monitor-players-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 14px 0;
+}
+
+.monitor-player-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: #11141c;
+  border: 1px solid var(--df-border-iron);
+  border-radius: 8px;
+}
+
+.monitor-player-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.monitor-player-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.monitor-seen-badge {
+  font-family: var(--df-font-serif);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.monitor-seen-badge.confirmed {
+  background: rgba(34, 197, 94, 0.15);
+  color: #86efac;
+  border: 1px solid rgba(34, 197, 94, 0.4);
+}
+
+.monitor-seen-badge.waiting {
+  background: rgba(148, 163, 184, 0.1);
+  color: #cbd5e1;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+/* ==========================================================================
+   SCHERMATA: "ADESSO POSA IL TELEFONO ED ASCOLTA LE INDICAZIONI DEL MASTER"
+   ========================================================================== */
+.lupus-sleep-screen {
+  text-align: center;
+  padding: 28px 16px;
+  animation: fadeIn 0.4s ease-out;
+}
+
+.lupus-sleep-moon {
+  font-size: 4rem;
+  line-height: 1;
+  margin-bottom: 16px;
+  filter: drop-shadow(0 0 25px rgba(223, 186, 166, 0.35));
+  animation: pulseMoon 4s ease-in-out infinite alternate;
+}
+
+@keyframes pulseMoon {
+  0% { transform: scale(0.96); filter: drop-shadow(0 0 15px rgba(223, 186, 166, 0.25)); }
+  100% { transform: scale(1.04); filter: drop-shadow(0 0 35px rgba(223, 186, 166, 0.5)); }
+}
+
+.lupus-sleep-title {
+  font-family: var(--df-font-serif);
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: #f7ede0;
+  letter-spacing: 0.05em;
+  line-height: 1.35;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+
+.lupus-sleep-desc {
+  font-family: var(--df-font-body);
+  font-size: 1.05rem;
+  color: var(--df-text-parchment);
+  line-height: 1.55;
+  max-width: 440px;
+  margin: 0 auto 20px;
+}
+
+.lupus-sleep-box {
+  background: rgba(10, 12, 18, 0.85);
+  border: 1px solid var(--df-border-brass);
+  border-radius: 10px;
+  padding: 16px;
+  margin: 18px auto 22px;
+  max-width: 440px;
+  text-align: left;
+  box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.7);
+}
+
+.lupus-sleep-box-title {
+  font-family: var(--df-font-serif);
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #dfbaa6;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  letter-spacing: 0.05em;
+}
+
+.lupus-sleep-box-text {
+  font-size: 0.92rem;
+  color: var(--df-text-ash);
+  line-height: 1.45;
+}
+
+.lupus-sleep-hint {
+  font-size: 0.82rem;
+  color: var(--df-text-dim);
+  margin-top: 14px;
+  line-height: 1.4;
+}
+
+/* Pulsante Glow animato quando tutti i ruoli sono confermati */
+.pulse-glow {
+  animation: buttonPulseGlow 1.8s infinite alternate;
+}
+
+@keyframes buttonPulseGlow {
+  0% {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.7), 0 0 0 0 rgba(171, 140, 88, 0.4);
+  }
+  100% {
+    box-shadow: 0 4px 22px rgba(0, 0, 0, 0.85), 0 0 16px 4px rgba(171, 140, 88, 0.6);
+  }
+}
+
+/* Banner Rematch & Riconnessione Giocatori */
+.lupus-rematch-banner {
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.lupus-rematch-banner.warning {
+  background: rgba(145, 34, 34, 0.2);
+  border: 1px solid var(--df-wolf-border);
+  color: #f0caca;
+}
+
+.lupus-rematch-banner.success {
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(34, 197, 94, 0.4);
+  color: #86efac;
+}
+
+.lupus-rematch-banner-title {
+  font-family: var(--df-font-serif);
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-kick-player {
+  background: transparent;
+  border: 1px solid var(--df-border-iron);
+  color: var(--df-text-ash);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  margin-left: 6px;
+}
+
+.btn-kick-player:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: #ef4444;
+  color: #fca5a5;
+}
+
+
