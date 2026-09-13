@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>La Ruota della Fortuna 🎡 - TV Studio & P2P Party Game</title>
+  <meta name="description" content="La Ruota della Fortuna in versione TV Studio: tabellone luminoso sequenziale a 4 righe, svelamento lettere 3D, ruota a pioli e multiplayer P2P.">
+  <meta name="theme-color" content="#040814">
+
+  <!-- Google Fonts: Outfit & Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Stili base e Studio TV -->
+  <link rel="stylesheet" href="../../css/style.css">
+  <link rel="stylesheet" href="css/ruota.css">
+</head>
+<body class="ruota-studio-body">
+
+  <!-- Header dello Studio Televisivo -->
+  <header class="ruota-header">
+    <div class="ruota-brand" id="btn-back-hub" title="Torna al Party Game Hub">
+      <span class="ruota-brand-icon">🎡</span>
+      <div>
+        <h1 class="ruota-brand-title">LA RUOTA DELLA FORTUNA</h1>
+        <div class="ruota-brand-sub">TV STUDIO MULTIPLAYER P2P</div>
+      </div>
+    </div>
+    <div style="display: flex; gap: 8px; align-items: center;">
+      <button type="button" class="icon-btn" id="btn-share-room" title="Condividi Stanza e QR Code">📱</button>
+      <button type="button" class="icon-btn" id="btn-audio-toggle" title="Attiva/Disattiva Audio">🔊</button>
+    </div>
+  </header>
+
+  <main style="padding: 12px; max-width: 1200px; margin: 0 auto; width: 100%;">
+
+    <!-- =========================================================================
+         VISTA 1: SELEZIONE MODALITÀ (Master P2P / Entra Giocatore / Locale TV)
+         ========================================================================= -->
+    <section id="view-setup" class="ruota-view">
+      <div class="glass-card text-center" style="max-width: 760px; margin: 30px auto;">
+        <span style="font-size: 3.5rem; display: block; margin-bottom: 8px;">🎡</span>
+        <h2 class="card-title justify-center" style="font-size: 1.85rem; color: #facc15;">
+          Benvenuti alla Ruota della Fortuna!
+        </h2>
+        <p class="card-subtitle" style="font-size: 1.05rem;">
+          Tabellone TV studio con caselle luminose, animazione di svelamento con campana, ruota a pioli e frasi misteriose. Scegli come giocare:
+        </p>
+
+        <div class="mode-grid" style="margin-top: 24px;">
+          <!-- 1. Master Regia P2P -->
+          <button type="button" class="mode-card featured" id="btn-mode-host" style="border-color: #facc15;">
+            <span class="mode-badge" style="background: linear-gradient(135deg, #f59e0b, #e11d48);">👑 Schermo TV / Master</span>
+            <div class="mode-icon">📺</div>
+            <div class="mode-title">Master della Manche</div>
+            <div class="mode-desc">
+              Crea la stanza. Scegli la frase dal catalogo o creane una personalizzata. Mostra il tabellone gigante a tutti (su TV, PC o tablet)!
+            </div>
+          </button>
+
+          <!-- 2. Giocatore Concorrente P2P -->
+          <button type="button" class="mode-card" id="btn-mode-join" style="border-color: #00f2fe;">
+            <span class="mode-badge" style="background: linear-gradient(135deg, #00f2fe, #3b82f6);">⚡ Concorrente P2P</span>
+            <div class="mode-icon">📱</div>
+            <div class="mode-title">Entra come Giocatore</div>
+            <div class="mode-desc">
+              Collegati dal tuo smartphone con il codice PIN a 4 cifre o QR. Gira la ruota al tuo turno e chiama le lettere!
+            </div>
+          </button>
+
+          <!-- 3. Modalità Locale / TV Salotto -->
+          <button type="button" class="mode-card" id="btn-mode-local" style="border-color: #10b981;">
+            <span class="mode-badge" style="background: linear-gradient(135deg, #10b981, #059669);">👥 Salotto / 1 Dispositivo</span>
+            <div class="mode-icon">🛋️</div>
+            <div class="mode-title">Tutti sullo Stesso Schermo</div>
+            <div class="mode-desc">
+              Niente connessione extra: giocate tutti insieme su un unico tablet o PC passando il turno a voce.
+            </div>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================================
+         VISTA 1-B: SETUP MASTER P2P
+         ========================================================================= -->
+    <section id="view-host-setup" class="ruota-view" style="display: none;">
+      <div class="glass-card" style="max-width: 520px; margin: 40px auto;">
+        <h2 class="card-title">👑 Crea Stanza Master</h2>
+        <p class="card-subtitle">Inserisci il tuo nome per inaugurare la nuova puntata della Ruota.</p>
+
+        <div class="form-group">
+          <label class="form-label" for="host-name-input">Il tuo Nome (Conduttore / Master):</label>
+          <input type="text" id="host-name-input" class="custom-input" placeholder="Es. Gerry, Mike, Marco..." value="Conduttore">
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-top: 24px;">
+          <button type="button" class="btn btn-secondary" onclick="window.ruotaApp.switchView('view-setup')">Indietro</button>
+          <button type="button" class="btn btn-primary w-full" id="btn-create-room">Crea Stanza & Apri Tabellone 🚀</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================================
+         VISTA 1-C: JOIN CONCORRENTE P2P
+         ========================================================================= -->
+    <section id="view-join" class="ruota-view" style="display: none;">
+      <div class="glass-card" style="max-width: 520px; margin: 40px auto;">
+        <h2 class="card-title">⚡ Connettiti alla Partita</h2>
+        <p class="card-subtitle">Inserisci il codice PIN visualizzato sullo schermo del Master.</p>
+
+        <div class="form-group">
+          <label class="form-label" for="join-pin-input">Codice Stanza (4 caratteri):</label>
+          <input type="text" id="join-pin-input" class="custom-input text-center" placeholder="Es. ABCD" maxlength="4" style="text-transform: uppercase; font-size: 1.5rem; letter-spacing: 4px; font-weight: 800;">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="join-name-input">Il tuo Nome Concorrente:</label>
+          <input type="text" id="join-name-input" class="custom-input" placeholder="Es. Luca, Sofia, Andrea..." maxlength="16">
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-top: 24px;">
+          <button type="button" class="btn btn-secondary" onclick="window.ruotaApp.switchView('view-setup')">Indietro</button>
+          <button type="button" class="btn btn-primary w-full" id="btn-join-room">Entra in Partita 🎯</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================================
+         VISTA 2: SCHERMO DI GIOCO PRINCIPALE (TABELLONE TV + RUOTA + GIOCO)
+         ========================================================================= -->
+    <section id="view-game" class="ruota-view" style="display: none;">
+
+      <!-- Banner Stato Manche / Annuncio TV -->
+      <div id="ruota-status-banner" style="background: linear-gradient(135deg, rgba(14, 25, 58, 0.95), rgba(5, 12, 30, 0.95)); border: 1px solid rgba(0, 242, 254, 0.35); border-radius: 14px; padding: 10px 18px; text-align: center; font-size: 1.05rem; font-weight: 700; color: #f8fafc; margin-bottom: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);">
+        In attesa della prima frase...
+      </div>
+
+      <!-- SCENOGRAFIA TABELLONE TV (Fedele alla foto con anelli ciano) -->
+      <div class="ruota-board-stage">
+        <div class="ruota-studio-backdrop-rings"></div>
+        <div id="ruota-board-container" style="width: 100%; display: flex; justify-content: center;">
+          <!-- Generato dinamicamente da RuotaBoard -->
+        </div>
+
+        <!-- Banner Tema / Categoria sotto il tabellone -->
+        <div class="ruota-category-display">
+          <span class="ruota-category-label">TEMA:</span>
+          <span class="ruota-category-text" id="ruota-category-text">IN ATTESA DELLA FRASE</span>
+        </div>
+      </div>
+
+      <!-- SCOREBOARD CONCORRENTI -->
+      <div id="ruota-scoreboard-container" class="ruota-scoreboard">
+        <!-- Generato dinamicamente da RuotaApp -->
+      </div>
+
+      <!-- SEZIONE CENTRALE: RUOTA DELLA FORTUNA E CONTROLLI -->
+      <div class="grid-2-col" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; margin-top: 14px; align-items: start;">
+        
+        <!-- Ruota Interattiva -->
+        <div class="glass-card ruota-wheel-section">
+          <div id="ruota-spin-result" class="ruota-spin-result-banner" style="color: #94a3b8;">
+            Gira la ruota per accumulare punti!
+          </div>
+
+          <div class="ruota-canvas-wrapper">
+            <canvas id="ruota-canvas" width="360" height="360"></canvas>
+          </div>
+
+          <div style="display: flex; gap: 12px; justify-content: center; width: 100%; flex-wrap: wrap;">
+            <button type="button" class="btn-ruota-spin" id="btn-spin-wheel" disabled>
+              🎡 GIRA LA RUOTA!
+            </button>
+            <button type="button" class="btn-ruota-solve" id="btn-open-solve-modal" disabled>
+              💡 Dai la Soluzione
+            </button>
+          </div>
+
+          <!-- Quick Emotes Bar -->
+          <div class="ruota-emotes-bar">
+            <button type="button" class="emote-btn" data-emoji="👏" title="Applausi">👏</button>
+            <button type="button" class="emote-btn" data-emoji="🎉" title="Festa">🎉</button>
+            <button type="button" class="emote-btn" data-emoji="😱" title="Fiato sospeso">😱</button>
+            <button type="button" class="emote-btn" data-emoji="🔥" title="Fuoco">🔥</button>
+            <button type="button" class="emote-btn" data-emoji="💀" title="Bancarotta">💀</button>
+          </div>
+        </div>
+
+        <!-- Tastiera delle Lettere Chiamate -->
+        <div class="glass-card" style="display: flex; flex-direction: column; justify-content: space-between;">
+          <div>
+            <div class="card-header" style="margin-bottom: 10px;">
+              <h3 style="font-size: 1.15rem; font-weight: 800; color: #00f2fe; display: flex; align-items: center; gap: 8px;">
+                ⌨️ Chiama una Lettera
+              </h3>
+              <span style="font-size: 0.75rem; color: #94a3b8;">Viola: Vocali | Grigio: Consonanti</span>
+            </div>
+            <p style="font-size: 0.85rem; color: #cbd5e1; margin-bottom: 12px;">
+              Gira prima la ruota per sbloccare la tastiera e chiamare la tua consonante!
+            </p>
+
+            <div id="ruota-keyboard-container" class="ruota-keyboard">
+              <!-- Generato dinamicamente -->
+            </div>
+          </div>
+
+          <div style="margin-top: 20px; padding: 10px 14px; background: rgba(0, 0, 0, 0.35); border-radius: 10px; display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 0.85rem; color: #94a3b8;">Codice Stanza:</span>
+            <strong id="ruota-room-pin-display" style="font-size: 1.1rem; color: #00f2fe; letter-spacing: 2px;">----</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- =========================================================================
+           PANNELLO REGIA / MASTER (Mostrato solo all'Host o in modalità Locale)
+           ========================================================================= -->
+      <div id="master-admin-deck" class="master-control-panel" style="display: none;">
+        <div class="master-panel-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+          <span style="display: flex; align-items: center; gap: 8px;">👑 Console di Regia del Master</span>
+          <button type="button" class="btn btn-secondary btn-sm" id="btn-toggle-master-body" style="font-size: 0.8rem;">
+            👁️ Nascondi Regia (Anti-Spoiler)
+          </button>
+        </div>
+
+        <div id="master-panel-body">
+          <p style="font-size: 0.88rem; color: #94a3b8; margin-bottom: 14px;">
+            Imposta la frase misteriosa per la manche. Usa il separatore <code>|</code> se vuoi decidere manualmente dove andare a capo tra le 4 righe, oppure lascia fare all'algoritmo automatico.
+          </p>
+
+          <div class="grid-2-col" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px;">
+            <!-- Selezione Categoria -->
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label" for="master-category-select">Categoria / Tema Catalogo:</label>
+              <select id="master-category-select" class="custom-select"></select>
+            </div>
+
+            <!-- Tema Personalizzato -->
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label" for="master-custom-category">Titolo Tema Mostrato a Schermo:</label>
+              <input type="text" id="master-custom-category" class="custom-input" placeholder="Es. PROVERBI, CINEMA, STORIA..." value="PERSONAGGI CELEBRI">
+            </div>
+          </div>
+
+          <!-- Frase personalizzata -->
+          <div class="form-group" style="margin-top: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <label class="form-label" for="master-phrase-input" style="margin-bottom: 0;">Frase Misteriosa (massimo 52 caratteri su 4 righe):</label>
+              <button type="button" class="btn btn-secondary btn-sm" id="btn-random-phrase">🎲 Frase Casuale</button>
+            </div>
+            <input type="text" id="master-phrase-input" class="custom-input" placeholder="Es. CRISTOFORO COLOMBO SCOPRE L'AMERICA" value="CRISTOFORO COLOMBO SCOPRE L'AMERICA">
+          </div>
+
+          <!-- Anteprima in Tempo Reale delle 4 Righe -->
+          <div style="margin-top: 8px;">
+            <span style="font-size: 0.8rem; font-weight: 700; color: #00f2fe;">ANTEPRIMA RIGHE TABELLONE TV:</span>
+            <div id="master-phrase-preview" class="master-phrase-preview-grid">
+              <!-- Popolato in live typing -->
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap;">
+            <button type="button" class="btn btn-primary" id="btn-load-board">
+              📺 Carica sul Tabellone & Inizia Manche!
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="window.ruotaApp.passTurn()">
+              ⏭️ Passa Turno Manuale
+            </button>
+            <button type="button" class="btn btn-danger" onclick="window.ruotaApp.board.revealAll()">
+              ✨ Svela Tutte le Lettere
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </section>
+  </main>
+
+  <!-- =========================================================================
+       MODALE: TENTA LA SOLUZIONE
+       ========================================================================= -->
+  <div id="modal-solve-phrase" class="ruota-modal-overlay" style="display: none;">
+    <div class="ruota-modal-card">
+      <span style="font-size: 2.8rem; display: block; margin-bottom: 6px;">💡</span>
+      <h3>Dai la Soluzione!</h3>
+      <p style="font-size: 0.9rem; color: #94a3b8; margin-bottom: 18px;">
+        Se indovini la frase esatta vinci tutti i punti accumulati! Attenzione: un errore farà passare il turno.
+      </p>
+
+      <input type="text" id="solve-phrase-input" class="custom-input text-center" placeholder="Scrivi la frase completa..." style="font-size: 1.15rem; font-weight: 800; text-transform: uppercase;">
+
+      <div style="display: flex; gap: 10px; margin-top: 20px;">
+        <button type="button" class="btn btn-secondary w-full" id="btn-cancel-solve">Annulla</button>
+        <button type="button" class="btn btn-primary w-full" id="btn-submit-solve">Conferma Soluzione 🎯</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       MODALE: CONDIVISIONE STANZA E QR CODE
+       ========================================================================= -->
+  <div id="modal-share-room" class="ruota-modal-overlay" style="display: none;">
+    <div class="ruota-modal-card" style="max-width: 440px;">
+      <span style="font-size: 2.5rem; display: block; margin-bottom: 6px;">📱</span>
+      <h3>Connetti i Concorrenti</h3>
+      <p style="font-size: 0.88rem; color: #94a3b8; margin-bottom: 16px;">
+        Inquadra il QR Code con lo smartphone o inserisci il codice PIN per giocare insieme:
+      </p>
+
+      <div id="ruota-qrcode-container" style="display: flex; justify-content: center; margin: 16px 0; background: #031022; padding: 14px; border-radius: 12px; border: 1px solid rgba(0, 242, 254, 0.3);"></div>
+
+      <input type="text" id="ruota-share-link" class="custom-input text-center" readonly style="font-size: 0.85rem; color: #00f2fe; margin-bottom: 16px;" onclick="this.select()">
+
+      <button type="button" class="btn btn-secondary w-full" id="btn-close-share">Chiudi</button>
+    </div>
+  </div>
+
+  <!-- SCRIPTS & ENGINE -->
+  <script src="../../js/peerjs.min.js"></script>
+  <script src="../../js/qrcode.min.js"></script>
+  <script src="../../js/net/p2p_room.js"></script>
+  <script src="js/ruota_sound.js"></script>
+  <script src="js/ruota_phrases.js"></script>
+  <script src="js/ruota_board.js"></script>
+  <script src="js/ruota_wheel.js"></script>
+  <script src="js/ruota_p2p.js"></script>
+  <script src="js/ruota_app.js"></script>
+
+</body>
+</html>

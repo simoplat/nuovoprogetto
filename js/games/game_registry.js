@@ -92,6 +92,23 @@ GlobalGameRegistry.register({
   colorTheme: "crimson"
 });
 
+// 3. Registra La Ruota della Fortuna (Attivo al 100%, TV Studio + P2P)
+GlobalGameRegistry.register({
+  id: "ruota",
+  title: "La Ruota della Fortuna",
+  icon: "🎡",
+  tagline: "Gira la ruota, indovina le lettere e svela la frase sul tabellone luminoso!",
+  badge: "2-16 Giocatori",
+  status: "active",
+  modes: ["local", "p2p"],
+  modeLabels: {
+    local: "Schermo TV / Tabellone 📺",
+    p2p: "Stanza Online P2P ⚡"
+  },
+  rulesSummary: "Il Master sceglie la frase misteriosa. I concorrenti girano la ruota per accumulare punti, chiamano le consonanti e comprano vocali. Il tabellone TV si illumina casella per casella con rintocchi prima di svelare la lettera! Chi indovina per primo la soluzione vince!",
+  colorTheme: "amber"
+});
+
 // 3. Slot per Gioco Futuro: Chi Sono?
 GlobalGameRegistry.register({
   id: "chisono",

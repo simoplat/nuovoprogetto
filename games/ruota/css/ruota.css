@@ -1,0 +1,751 @@
+/* ==========================================================================
+   LA RUOTA DELLA FORTUNA - STUDIO TV DESIGN SYSTEM & TABELLONE LUMINOSO
+   ========================================================================== */
+
+:root {
+  --studio-bg: #040814;
+  --studio-surface: #0a1128;
+  --studio-card: rgba(14, 25, 58, 0.8);
+  --studio-card-border: rgba(0, 242, 254, 0.25);
+  
+  --board-outer-bezel: #e2e8f0;
+  --board-bezel-shadow: 0 0 35px rgba(0, 242, 254, 0.45);
+  --board-inner-bg: #031022;
+  --cell-empty-bg: linear-gradient(145deg, #0a4d68, #05263a);
+  --cell-empty-border: #031c2e;
+  --cell-hidden-bg: #f8fafc;
+  --cell-hidden-border: #1e293b;
+  
+  --cell-glow-gold: #facc15;
+  --cell-glow-gold-intense: #fef08a;
+  --cell-glow-cyan: #00f2fe;
+
+  --wheel-shadow: 0 0 40px rgba(0, 0, 0, 0.8), 0 0 30px rgba(0, 242, 254, 0.25);
+}
+
+/* ==========================================================================
+   LAYOUT GENERALE DELLO STUDIO
+   ========================================================================== */
+
+.ruota-studio-body {
+  background: var(--studio-bg);
+  background-image: 
+    radial-gradient(ellipse at 50% 15%, rgba(0, 242, 254, 0.15) 0%, transparent 60%),
+    radial-gradient(ellipse at 85% 80%, rgba(168, 85, 247, 0.12) 0%, transparent 50%),
+    radial-gradient(circle at 15% 75%, rgba(245, 158, 11, 0.08) 0%, transparent 45%);
+  color: #f8fafc;
+  min-height: 100vh;
+  min-height: 100dvh;
+  font-family: 'Outfit', 'Plus Jakarta Sans', system-ui, sans-serif;
+  overflow-x: hidden;
+}
+
+.ruota-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  background: rgba(10, 17, 40, 0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(0, 242, 254, 0.2);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.ruota-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+}
+
+.ruota-brand-icon {
+  font-size: 2rem;
+  filter: drop-shadow(0 0 10px rgba(250, 204, 21, 0.6));
+}
+
+.ruota-brand-title {
+  font-size: 1.25rem;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+  background: linear-gradient(135deg, #fef08a, #f59e0b, #00f2fe);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-transform: uppercase;
+}
+
+.ruota-brand-sub {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #94a3b8;
+  letter-spacing: 1px;
+}
+
+/* ==========================================================================
+   SCENOGRAFIA DEL TABELLONE TV (Fedele alla foto con anelli ciano)
+   ========================================================================== */
+
+.ruota-board-stage {
+  position: relative;
+  width: 100%;
+  max-width: 980px;
+  margin: 16px auto;
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Anelli neon ciano sullo sfondo dello studio */
+.ruota-studio-backdrop-rings {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 108%;
+  height: 125%;
+  pointer-events: none;
+  border-radius: 9999px;
+  border: 4px solid rgba(0, 242, 254, 0.25);
+  box-shadow: 
+    0 0 35px rgba(0, 242, 254, 0.3),
+    inset 0 0 35px rgba(0, 242, 254, 0.2);
+  z-index: 0;
+}
+
+.ruota-studio-backdrop-rings::before {
+  content: '';
+  position: absolute;
+  top: -12px;
+  left: -12px;
+  right: -12px;
+  bottom: -12px;
+  border-radius: 9999px;
+  border: 2px solid rgba(0, 242, 254, 0.15);
+}
+
+/* Cornice esterna ottagonale / a gradino del tabellone */
+.ruota-tv-frame {
+  position: relative;
+  z-index: 1;
+  background: var(--board-inner-bg);
+  border: 7px solid var(--board-outer-bezel);
+  border-radius: 20px;
+  padding: 12px 16px;
+  box-shadow: 
+    0 0 25px rgba(255, 255, 255, 0.4),
+    0 0 50px rgba(0, 242, 254, 0.45),
+    inset 0 0 30px rgba(0, 0, 0, 0.9);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Griglia delle 4 righe */
+.ruota-grid-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+}
+
+.ruota-row {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+}
+
+/* Casella del tabellone */
+.ruota-cell {
+  width: 48px;
+  height: 56px;
+  perspective: 600px;
+  position: relative;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .ruota-cell {
+    width: 24px;
+    height: 30px;
+  }
+  .ruota-row {
+    gap: 3px;
+  }
+  .ruota-grid-container {
+    gap: 3px;
+  }
+  .ruota-tv-frame {
+    border-width: 4px;
+    padding: 6px 8px;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .ruota-cell {
+    width: 38px;
+    height: 46px;
+  }
+  .ruota-row {
+    gap: 4px;
+  }
+  .ruota-grid-container {
+    gap: 4px;
+  }
+}
+
+/* Flipper 3D per svelamento */
+.cell-flipper {
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  border-radius: 4px;
+}
+
+.cell-front, .cell-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cell-front {
+  transform: rotateY(0deg);
+  z-index: 2;
+}
+
+.cell-back {
+  transform: rotateY(180deg);
+  z-index: 1;
+  background: #ffffff;
+  border: 2px solid #0f172a;
+  box-shadow: 
+    inset 0 0 3px rgba(0, 0, 0, 0.2),
+    0 1px 3px rgba(0, 0, 0, 0.35);
+}
+
+/* STATO 1: Casella vuota / inattiva (vetro teal retroilluminato come nella foto) */
+.ruota-cell.cell-empty .cell-front {
+  background: linear-gradient(145deg, #095475 0%, #032d42 100%);
+  border: 1.5px solid #082133;
+  box-shadow: 
+    inset 0 0 8px rgba(0, 242, 254, 0.4),
+    inset 0 1px 2px rgba(255, 255, 255, 0.2);
+}
+
+.ruota-cell.cell-empty .cell-back {
+  display: none;
+}
+
+/* STATO 2: Casella attiva coperta (bianca con bordo nero deciso) */
+.ruota-cell.cell-hidden .cell-front {
+  background: #f1f5f9;
+  border: 2px solid #0f172a;
+  box-shadow: 
+    inset 0 0 4px rgba(0, 0, 0, 0.15),
+    0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* STATO 3: Casella che si ILLUMINA (Il momento clou TV prima di rivelare la lettera!) */
+.ruota-cell.cell-illuminated .cell-front {
+  background: radial-gradient(circle, var(--cell-glow-gold-intense) 20%, var(--cell-glow-gold) 85%);
+  border: 2px solid #ffffff;
+  box-shadow: 
+    0 0 25px var(--cell-glow-gold),
+    0 0 45px rgba(250, 204, 21, 0.8),
+    inset 0 0 12px #ffffff;
+  animation: pulse-tv-glow 0.38s ease-in-out infinite alternate;
+}
+
+@keyframes pulse-tv-glow {
+  0% {
+    transform: scale(1);
+    filter: brightness(1.1);
+  }
+  100% {
+    transform: scale(1.08);
+    filter: brightness(1.4);
+    box-shadow: 
+      0 0 35px var(--cell-glow-gold),
+      0 0 60px rgba(250, 204, 21, 1),
+      inset 0 0 16px #ffffff;
+  }
+}
+
+/* STATO 4: Casella rivelata con rotazione 3D e lettera */
+.ruota-cell.cell-revealed .cell-flipper {
+  transform: rotateY(180deg);
+}
+
+.cell-letter {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 900;
+  font-size: 1.75rem;
+  color: #09090b;
+  line-height: 1;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .cell-letter {
+    font-size: 0.85rem;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .cell-letter {
+    font-size: 1.35rem;
+  }
+}
+
+/* Punteggiatura / apostrofo */
+.ruota-cell.cell-punctuation .cell-back {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+.ruota-cell.cell-punctuation .cell-letter {
+  color: #ffffff;
+  font-size: 1.8rem;
+  filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.8));
+}
+
+/* Categoria Banner sotto il tabellone */
+.ruota-category-display {
+  margin-top: 12px;
+  background: linear-gradient(135deg, rgba(14, 25, 58, 0.9), rgba(5, 12, 30, 0.95));
+  border: 1px solid rgba(0, 242, 254, 0.4);
+  padding: 8px 24px;
+  border-radius: 30px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 242, 254, 0.2);
+}
+
+.ruota-category-label {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: #00f2fe;
+  font-weight: 700;
+}
+
+.ruota-category-text {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+/* ==========================================================================
+   SEZIONE RUOTA DELLA FORTUNA INTERATTIVA
+   ========================================================================== */
+
+.ruota-wheel-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 16px;
+  position: relative;
+}
+
+.ruota-canvas-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(var(--wheel-shadow));
+}
+
+#ruota-canvas {
+  border-radius: 50%;
+  cursor: pointer;
+  touch-action: none;
+}
+
+/* Banner risultato dello spin */
+.ruota-spin-result-banner {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 20px;
+  border-radius: 12px;
+  font-size: 1.15rem;
+  font-weight: 800;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.result-points {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: #ffffff;
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
+}
+
+.result-bankrupt {
+  background: linear-gradient(135deg, #ff0055, #990033);
+  color: #ffffff;
+  box-shadow: 0 0 25px rgba(255, 0, 85, 0.6);
+  animation: shake 0.4s ease;
+}
+
+.result-pass {
+  background: linear-gradient(135deg, #ea580c, #c2410c);
+  color: #ffffff;
+  box-shadow: 0 0 20px rgba(234, 88, 12, 0.5);
+}
+
+.result-jolly {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #ffffff;
+  box-shadow: 0 0 25px rgba(245, 158, 11, 0.6);
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-8px); }
+  75% { transform: translateX(8px); }
+}
+
+/* ==========================================================================
+   SCOREBOARD & TURN INDICATOR
+   ========================================================================== */
+
+.ruota-scoreboard {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  max-width: 100%;
+  padding: 8px 12px;
+  justify-content: center;
+}
+
+.ruota-player-card {
+  background: rgba(14, 25, 58, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  padding: 10px 16px;
+  min-width: 140px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.25s ease;
+  position: relative;
+}
+
+.ruota-player-card.active-turn {
+  background: linear-gradient(135deg, rgba(0, 242, 254, 0.2), rgba(168, 85, 247, 0.25));
+  border-color: #00f2fe;
+  box-shadow: 0 0 25px rgba(0, 242, 254, 0.35);
+  transform: translateY(-2px);
+}
+
+.player-turn-badge {
+  position: absolute;
+  top: -8px;
+  background: #facc15;
+  color: #000;
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.player-name {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #ffffff;
+  white-space: nowrap;
+}
+
+.player-score {
+  font-weight: 900;
+  font-size: 1.25rem;
+  color: #facc15;
+}
+
+/* ==========================================================================
+   TASTIERA DELLE LETTERE
+   ========================================================================== */
+
+.ruota-keyboard {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+  max-width: 580px;
+  margin: 10px auto;
+  padding: 0 8px;
+}
+
+.keyboard-row {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+}
+
+.key-btn {
+  width: 42px;
+  height: 48px;
+  background: #1e293b;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 1.15rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.18s ease;
+  user-select: none;
+}
+
+.key-btn:hover:not(:disabled) {
+  background: #334155;
+  border-color: #00f2fe;
+  transform: translateY(-2px);
+}
+
+.key-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.key-btn.key-vowel {
+  background: #2e1065;
+  border-color: #a855f7;
+}
+
+.key-btn.key-used-present {
+  background: #065f46;
+  border-color: #10b981;
+  color: #d1fae5;
+}
+
+.key-btn.key-used-absent {
+  background: #3f1522;
+  border-color: #ff0055;
+  color: #fda4af;
+  text-decoration: line-through;
+}
+
+@media (max-width: 600px) {
+  .key-btn {
+    width: 32px;
+    height: 40px;
+    font-size: 0.95rem;
+  }
+  .keyboard-row {
+    gap: 4px;
+  }
+}
+
+/* ==========================================================================
+   PANNELLO MASTER & REGIA
+   ========================================================================== */
+
+.master-control-panel {
+  background: rgba(10, 17, 40, 0.85);
+  border: 1px solid rgba(0, 242, 254, 0.25);
+  border-radius: 18px;
+  padding: 20px;
+  max-width: 850px;
+  margin: 16px auto;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.master-panel-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #00f2fe;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.master-phrase-preview-grid {
+  background: #030a16;
+  border: 2px dashed rgba(0, 242, 254, 0.3);
+  border-radius: 10px;
+  padding: 10px;
+  font-family: monospace;
+  font-size: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 10px 0;
+  text-align: center;
+  color: #94a3b8;
+}
+
+.preview-row {
+  letter-spacing: 3px;
+}
+
+.preview-row.valid {
+  color: #38bdf8;
+}
+
+.preview-row.overflow {
+  color: #ff0055;
+  font-weight: bold;
+}
+
+/* Modale della Soluzione */
+.ruota-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(10px);
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.ruota-modal-card {
+  background: #0d1527;
+  border: 2px solid #00f2fe;
+  border-radius: 20px;
+  padding: 28px;
+  max-width: 500px;
+  width: 100%;
+  box-shadow: 0 0 40px rgba(0, 242, 254, 0.35);
+  text-align: center;
+}
+
+.ruota-modal-card h3 {
+  font-size: 1.5rem;
+  font-weight: 900;
+  margin-bottom: 8px;
+  color: #facc15;
+}
+
+/* Pulsanti d'azione */
+.btn-ruota-spin {
+  background: linear-gradient(135deg, #f59e0b, #e11d48);
+  color: #ffffff;
+  font-size: 1.35rem;
+  font-weight: 900;
+  padding: 16px 36px;
+  border-radius: 35px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 6px 25px rgba(245, 158, 11, 0.5);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-ruota-spin:hover:not(:disabled) {
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: 0 10px 35px rgba(245, 158, 11, 0.7);
+}
+
+.btn-ruota-spin:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-ruota-solve {
+  background: linear-gradient(135deg, #10b981, #0284c7);
+  color: #ffffff;
+  font-size: 1.1rem;
+  font-weight: 800;
+  padding: 12px 28px;
+  border-radius: 30px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 18px rgba(16, 185, 129, 0.4);
+  transition: all 0.2s ease;
+}
+
+.btn-ruota-solve:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(16, 185, 129, 0.6);
+}
+
+/* Quick Emote Reactions Bar */
+.ruota-emotes-bar {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.emote-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  font-size: 1.35rem;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.emote-btn:hover {
+  transform: scale(1.2);
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Floating Emote Animation */
+.floating-emote {
+  position: fixed;
+  bottom: 80px;
+  font-size: 2.5rem;
+  pointer-events: none;
+  animation: floatUp 2.2s ease-out forwards;
+  z-index: 1000;
+}
+
+@keyframes floatUp {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(0.6);
+  }
+  50% {
+    opacity: 0.9;
+    transform: translateY(-120px) scale(1.2);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-240px) scale(1);
+  }
+}

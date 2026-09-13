@@ -182,6 +182,12 @@ class PartyHubApp {
           this.lupusGame.renderSetupView();
         }
       }
+    } else if (gameId === "ruota") {
+      try {
+        window.location.href = "games/ruota/index.html";
+      } catch (e) {
+        window.location.href = "ruota.html";
+      }
     } else {
       const registry = window.GameRegistry || window.GlobalGameRegistry;
       const game = registry ? registry.get(gameId) : null;
