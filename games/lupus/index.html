@@ -622,20 +622,6 @@
             </div>
           </div>
 
-          <!-- Master Gioca nel Villaggio Toggle -->
-          <div class="form-group">
-            <div class="flex-between">
-              <div>
-                <label class="form-label" style="margin-bottom: 2px;">👑 Il Master gioca come cittadino:</label>
-                <div style="font-size: 0.8rem; color: var(--df-text-ash);">Se attivo, anche il Master riceve un ruolo segreto</div>
-              </div>
-              <label class="toggle-switch">
-                <input type="checkbox" id="lupus-p2p-master-plays-toggle" checked>
-                <span class="toggle-slider"></span>
-              </label>
-            </div>
-          </div>
-
           <!-- Toggles Ruoli Speciali -->
           <div class="form-group">
             <div class="form-label">
@@ -934,16 +920,6 @@
         <!-- Lista Dettagliata Abitanti con Stato Connessione e Carta -->
         <div class="form-label mt-3">Abitanti del Villaggio (Connessione e Presa Visione):</div>
         <div id="lupus-p2p-monitor-players-list" class="monitor-players-list"></div>
-
-        <!-- Tasto Tieni Premuto Master (se gioca anche nel villaggio) -->
-        <div id="lupus-p2p-master-own-role-box" style="display: none; margin: 16px auto; max-width: 440px;">
-          <div class="btn-hold" id="lupus-p2p-master-hold-reveal-btn">
-            <div class="hold-icon">👆🤫</div>
-            <div class="hold-text">TIENI PREMUTO PER IL TUO RUOLO (MASTER)</div>
-            <div class="hold-subtext">Rilascia per nascondere subito</div>
-            <div class="hold-progress-bar" id="lupus-p2p-master-hold-progress-bar"></div>
-          </div>
-        </div>
 
         <!-- Pulsante di avvio della Guida del Narratore -->
         <button type="button" class="btn btn-primary btn-block mt-4" id="lupus-p2p-btn-start-master-guide">

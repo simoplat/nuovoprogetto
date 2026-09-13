@@ -47,7 +47,7 @@ class LupusP2PController {
       necromante: false
     };
 
-    this.hostPlaysInVillage = true; // Il Master riceve anche lui un ruolo o fa solo da narratore esterno
+    this.hostPlaysInVillage = false; // Il Master fa solo da Narratore/Moderatore esterno e non gioca nel villaggio
 
     // Giocatori e Ruoli
     this.players = []; // [{ id, peerId, playerId, name, isHost, online }]
@@ -166,16 +166,6 @@ class LupusP2PController {
       }
     });
 
-    // Toggle Master gioca come cittadino
-    const masterPlaysToggle = document.getElementById("lupus-p2p-master-plays-toggle");
-    if (masterPlaysToggle) {
-      masterPlaysToggle.checked = this.hostPlaysInVillage;
-      masterPlaysToggle.addEventListener("change", () => {
-        this.hostPlaysInVillage = masterPlaysToggle.checked;
-        this.validateRolesAndSummary();
-      });
-    }
-
     // 7. Tasto Distribuisci Ruoli (Host)
     const btnDistribute = document.getElementById("lupus-p2p-btn-distribute-roles");
     if (btnDistribute) {
@@ -220,30 +210,6 @@ class LupusP2PController {
         secretCard.addEventListener("pointercancel", endHold);
         secretCard.addEventListener("touchcancel", endHold);
       }
-    }
-
-    // 9b. Hold-to-Reveal per il Master (quando gioca nel villaggio)
-    const masterHoldBtn = document.getElementById("lupus-p2p-master-hold-reveal-btn");
-    if (masterHoldBtn) {
-      const startMasterHold = (e) => {
-        if (e.cancelable && e.type === "touchstart") e.preventDefault();
-        this.onHoldStart(true);
-      };
-      const endMasterHold = () => {
-        if (!this.isHolding) return;
-        this.onHoldEnd();
-      };
-
-      masterHoldBtn.addEventListener("pointerdown", startMasterHold);
-      window.addEventListener("pointerup", endMasterHold);
-      window.addEventListener("pointercancel", endMasterHold);
-
-      masterHoldBtn.addEventListener("touchstart", startMasterHold, { passive: false });
-      window.addEventListener("touchend", endMasterHold);
-      window.addEventListener("touchcancel", endMasterHold);
-
-      masterHoldBtn.addEventListener("mousedown", startMasterHold);
-      window.addEventListener("mouseup", endMasterHold);
     }
 
     // 10. Tasto Rivedi Carta nella schermata "Posa il telefono"
@@ -685,17 +651,11 @@ class LupusP2PController {
   }
 
   getEffectivePlayerCount() {
-    if (!this.isHost) return this.players.length;
-    return this.hostPlaysInVillage
-      ? this.players.length
-      : this.players.filter(p => !p.isHost).length;
+    return this.players.filter(p => !p.isHost).length;
   }
 
   getEffectivePlayers() {
-    if (!this.isHost) return this.players;
-    return this.hostPlaysInVillage
-      ? this.players
-      : this.players.filter(p => !p.isHost);
+    return this.players.filter(p => !p.isHost);
   }
 
   validateRolesAndSummary() {
@@ -994,7 +954,7 @@ class LupusP2PController {
         isLover: false,
         isTransformed: false,
         online: p.online !== false,
-        isHost: !!p.isHost
+        isHost: false
       };
     });
 
@@ -1018,16 +978,11 @@ class LupusP2PController {
         allies: allies
       };
 
-      if (assign.isHost) {
-        // Assegnazione locale per l'Host
-        this.myRoleData = rolePacket;
-      } else {
-        // Invio remoto al client
-        this.room.sendTo(assign.peerId, {
-          type: "LUPUS_ROLE_ASSIGNMENT",
-          roleData: rolePacket
-        });
-      }
+      // Invio remoto al client
+      this.room.sendTo(assign.peerId, {
+        type: "LUPUS_ROLE_ASSIGNMENT",
+        roleData: rolePacket
+      });
     });
 
     // Resetta conferme e stato rematch
@@ -1130,17 +1085,13 @@ class LupusP2PController {
     this.renderPlayerRoleCard();
   }
 
-  onHoldStart(isMaster = false) {
+  onHoldStart() {
     if (this.isHolding || !this.myRoleData) return;
     this.isHolding = true;
-    this.isHoldingMaster = !!isMaster;
     this.holdStartTime = Date.now();
 
-    const holdBtnId = isMaster ? "lupus-p2p-master-hold-reveal-btn" : "lupus-p2p-hold-reveal-btn";
-    const pBarId = isMaster ? "lupus-p2p-master-hold-progress-bar" : "lupus-p2p-hold-progress-bar";
-
-    const holdBtn = document.getElementById(holdBtnId);
-    const progressBar = document.getElementById(pBarId);
+    const holdBtn = document.getElementById("lupus-p2p-hold-reveal-btn");
+    const progressBar = document.getElementById("lupus-p2p-hold-progress-bar");
     if (holdBtn) holdBtn.classList.add("holding");
 
     try { Sound.playHoldTick(); } catch (e) {}
@@ -1154,12 +1105,12 @@ class LupusP2PController {
 
       if (elapsed >= this.holdRequiredMs) {
         clearInterval(this.holdProgressInterval);
-        this.revealCardContent(this.isHoldingMaster);
+        this.revealCardContent();
       }
     }, 25);
   }
 
-  revealCardContent(isMaster = false) {
+  revealCardContent() {
     if (!this.myRoleData) return;
     this.renderPlayerRoleCard();
     const modal = document.getElementById("lupus-p2p-secret-revealed-card");
@@ -1171,16 +1122,11 @@ class LupusP2PController {
 
   onHoldEnd() {
     if (!this.isHolding) return;
-    const isMaster = this.isHoldingMaster;
     this.isHolding = false;
-    this.isHoldingMaster = false;
     clearInterval(this.holdProgressInterval);
 
-    const holdBtnId = isMaster ? "lupus-p2p-master-hold-reveal-btn" : "lupus-p2p-hold-reveal-btn";
-    const pBarId = isMaster ? "lupus-p2p-master-hold-progress-bar" : "lupus-p2p-hold-progress-bar";
-
-    const holdBtn = document.getElementById(holdBtnId);
-    const progressBar = document.getElementById(pBarId);
+    const holdBtn = document.getElementById("lupus-p2p-hold-reveal-btn");
+    const progressBar = document.getElementById("lupus-p2p-hold-progress-bar");
     const modal = document.getElementById("lupus-p2p-secret-revealed-card");
     const confirmContainer = document.getElementById("lupus-p2p-confirm-btn-container");
 
@@ -1190,14 +1136,8 @@ class LupusP2PController {
 
     if (modal && modal.style.display !== "none") {
       modal.style.display = "none";
-      if (!isMaster && confirmContainer) {
+      if (confirmContainer) {
         confirmContainer.style.display = "block";
-      } else if (isMaster) {
-        const hostAssign = this.assignments.find(a => a.isHost);
-        if (hostAssign && !this.confirmedPlayers.has(hostAssign.playerId)) {
-          this.confirmedPlayers.add(hostAssign.playerId);
-          this.updateMasterMonitorUI();
-        }
       }
     }
   }
@@ -1252,13 +1192,6 @@ class LupusP2PController {
       });
     }
 
-    // Se il client è anche l'Host, registra subito la conferma
-    if (this.isHost) {
-      const hostAssign = this.assignments.find(a => a.isHost);
-      if (hostAssign) this.confirmedPlayers.add(hostAssign.playerId);
-      this.updateMasterMonitorUI();
-    }
-
     // Mostra la schermata richiesta: "Adesso posa il telefono ed ascolta le indicazioni del master"
     this.app.switchView("view-lupus-p2p-ready");
   }
@@ -1269,11 +1202,6 @@ class LupusP2PController {
 
   updateMasterMonitorUI() {
     if (!this.isHost) return;
-
-    const masterRoleBox = document.getElementById("lupus-p2p-master-own-role-box");
-    if (masterRoleBox) {
-      masterRoleBox.style.display = (this.hostPlaysInVillage && this.myRoleData) ? "block" : "none";
-    }
 
     const totalCount = this.assignments.length;
     const confirmedCount = this.confirmedPlayers.size;
@@ -1352,15 +1280,7 @@ class LupusP2PController {
         nameDiv.style.fontFamily = "var(--df-font-serif)";
         nameDiv.style.fontSize = "0.95rem";
         nameDiv.style.color = "var(--df-text-bone)";
-        nameDiv.textContent = a.name + (a.isHost ? " " : "");
-
-        if (a.isHost) {
-          const hostBadge = document.createElement("span");
-          hostBadge.className = "lobby-player-host-badge";
-          hostBadge.style.fontSize = "0.65rem";
-          hostBadge.textContent = "Master";
-          nameDiv.appendChild(hostBadge);
-        }
+        nameDiv.textContent = a.name;
 
         const roleDiv = document.createElement("div");
         roleDiv.style.fontSize = "0.78rem";
