@@ -73,7 +73,7 @@ test_html_content = '''<!DOCTYPE html>
         lupus.confirmRogoVote();
 
         const gameoverContent = doc.getElementById("lupus-gameover-content");
-        if (!gameoverContent.innerHTML.includes("TRIONFO DEL GIULLARE")) {
+        if (!gameoverContent.textContent.includes("TRIONFO DEL GIULLARE")) {
           throw new Error("Giullare victory screen not displayed when burned at rogo");
         }
 

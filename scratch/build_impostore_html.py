@@ -245,11 +245,11 @@ impostore_html = f'''<!DOCTYPE html>
         const audioBtn = document.getElementById("btn-audio-toggle");
         if (audioBtn) {{
           if (Sound.enabled) {{
-            audioBtn.innerHTML = "🔊";
+            audioBtn.textContent = "🔊";
             audioBtn.classList.add("active");
             audioBtn.title = "Audio Attivo";
           }} else {{
-            audioBtn.innerHTML = "🔇";
+            audioBtn.textContent = "🔇";
             audioBtn.classList.remove("active");
             audioBtn.title = "Audio Disattivato";
           }}

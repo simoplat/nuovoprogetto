@@ -7,6 +7,46 @@ class LupusNightWidgets {
     this.game = game;
   }
 
+  setWidgetSafeHTML(container, htmlString) {
+    container.replaceChildren();
+    if (!htmlString) return;
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(htmlString, "text/html");
+    const walk = (node) => {
+      if (node.nodeType === Node.TEXT_NODE) {
+        return document.createTextNode(node.textContent);
+      }
+      if (node.nodeType === Node.ELEMENT_NODE) {
+        const tag = node.tagName.toLowerCase();
+        const allowed = ["div", "span", "p", "strong", "em", "b", "i", "u", "button", "br", "small"];
+        if (allowed.includes(tag)) {
+          const el = document.createElement(tag);
+          if (node.className) el.className = node.className;
+          if (node.id) el.id = node.id;
+          if (node.hasAttribute("style")) el.setAttribute("style", node.getAttribute("style"));
+          if (node.hasAttribute("title")) el.setAttribute("title", node.getAttribute("title"));
+          if (node.hasAttribute("type")) el.setAttribute("type", node.getAttribute("type"));
+          for (const attr of node.attributes) {
+            if (attr.name.startsWith("data-") || attr.name === "aria-label") {
+              el.setAttribute(attr.name, attr.value);
+            }
+          }
+          for (const child of node.childNodes) {
+            const walked = walk(child);
+            if (walked) el.appendChild(walked);
+          }
+          return el;
+        }
+        return document.createTextNode(node.textContent);
+      }
+      return null;
+    };
+    for (const child of doc.body.childNodes) {
+      const walked = walk(child);
+      if (walked) container.appendChild(walked);
+    }
+  }
+
   renderNightActionWidget(stepSubtype) {
     const game = this.game;
     const actionWidget = document.getElementById("lupus-step-action-widget");
@@ -18,7 +58,7 @@ class LupusNightWidgets {
     }
 
     if (stepSubtype === "intro") {
-      actionWidget.innerHTML = `
+      this.setWidgetSafeHTML(actionWidget, `
         <div class="lupus-action-widget" style="text-align: center;">
           <div style="font-size: 2rem; margin-bottom: 6px;">🌙💤</div>
           <div style="font-size: 0.95rem; font-weight: 700; color: #fff; margin-bottom: 4px;">Tutti gli abitanti dormono</div>
@@ -26,7 +66,7 @@ class LupusNightWidgets {
             Tocca <strong>Avanti ➡️</strong> per chiamare i ruoli speciali uno alla volta.
           </div>
         </div>
-      `;
+      `);
       return;
     }
 
@@ -53,13 +93,13 @@ class LupusNightWidgets {
         statusText = `<span style="color: #fca5a5;">⚠️ Seleziona 2 persone per poter premere Avanti (${currentSelected.length}/2 scelti)</span>`;
       }
 
-      actionWidget.innerHTML = `
+      this.setWidgetSafeHTML(actionWidget, `
         <div class="lupus-action-widget">
           <div class="lupus-action-prompt">💘 Tocca i due giocatori scelti da Cupido come Innamorati:</div>
           <div class="lupus-action-grid">${chipsHtml}</div>
           <div class="lupus-action-status">${statusText}</div>
         </div>
-      `;
+      `);
 
       actionWidget.querySelectorAll(".lupus-action-card").forEach(card => {
         card.addEventListener("click", () => {
@@ -124,13 +164,13 @@ class LupusNightWidgets {
         statusText = `💃 Rifugio: <strong>${host?.name}</strong> ${isHostWolf ? '⚠️ (È un LUPO! La Donna morirà all\'Alba)' : '(Innocente)'} - Puoi premere Avanti.`;
       }
 
-      actionWidget.innerHTML = `
+      this.setWidgetSafeHTML(actionWidget, `
         <div class="lupus-action-widget">
           <div class="lupus-action-prompt">💃 Tocca la persona da cui la Donna si rifugia stanotte:</div>
           <div class="lupus-action-grid">${homeCard}${candidatesHtml}</div>
           <div class="lupus-action-status">${statusText}</div>
         </div>
-      `;
+      `);
 
       actionWidget.querySelectorAll(".lupus-action-card").forEach(card => {
         card.addEventListener("click", () => {
@@ -193,7 +233,7 @@ class LupusNightWidgets {
         statusMsg = `<div class="lupus-action-status" style="margin-top: 10px;"><span style="color: #6ee7b7;">✅ Controllo Luna Piena eseguito - Puoi premere Avanti</span></div>`;
       }
 
-      actionWidget.innerHTML = `
+      this.setWidgetSafeHTML(actionWidget, `
         <div class="lupus-action-widget">
           <div class="lupus-moon-box">
             <div style="font-size: 1.05rem; font-weight: 800; color: #e9d5ff; margin-bottom: 6px;">
@@ -219,7 +259,7 @@ class LupusNightWidgets {
             ${statusMsg}
           </div>
         </div>
-      `;
+      `);
 
       const rollBtn = actionWidget.querySelector("#lupus-btn-roll-moon");
       if (rollBtn) {
@@ -274,13 +314,13 @@ class LupusNightWidgets {
         statusText = `<span style="color: #fca5a5;">⚠️ I Lupi devono scegliere per forza un abitante da sbranare per poter premere Avanti</span>`;
       }
 
-      actionWidget.innerHTML = `
+      this.setWidgetSafeHTML(actionWidget, `
         <div class="lupus-action-widget">
           <div class="lupus-action-prompt">🐺 Tocca la vittima che i Lupi indicano di voler sbranare:</div>
           <div class="lupus-action-grid">${cardsHtml}</div>
           <div class="lupus-action-status">${statusText}</div>
         </div>
-      `;
+      `);
 
       actionWidget.querySelectorAll(".lupus-action-card").forEach(card => {
         card.addEventListener("click", () => {
@@ -328,13 +368,13 @@ class LupusNightWidgets {
         statusText = "🚫 Nessun giocatore silenziato per questa notte - Puoi premere Avanti.";
       }
 
-      actionWidget.innerHTML = `
+      this.setWidgetSafeHTML(actionWidget, `
         <div class="lupus-action-widget">
           <div class="lupus-action-prompt">🐺🔮 Tocca il giocatore da silenziare/bloccare:</div>
           <div class="lupus-action-grid">${noneCard}${cardsHtml}</div>
           <div class="lupus-action-status">${statusText}</div>
         </div>
-      `;
+      `);
 
       actionWidget.querySelectorAll(".lupus-action-card").forEach(card => {
         card.addEventListener("click", () => {
@@ -382,13 +422,13 @@ class LupusNightWidgets {
         statusText = "🚫 Il Lupo Bianco non sbrana nessun compagno stanotte - Puoi premere Avanti.";
       }
 
-      actionWidget.innerHTML = `
+      this.setWidgetSafeHTML(actionWidget, `
         <div class="lupus-action-widget">
           <div class="lupus-action-prompt">🐺❄️ Il Lupo Bianco sceglie se sbranare un compagno lupo alle spalle:</div>
           <div class="lupus-action-grid">${passCard}${cardsHtml}</div>
           <div class="lupus-action-status">${statusText}</div>
         </div>
-      `;
+      `);
 
       actionWidget.querySelectorAll(".lupus-action-card").forEach(card => {
         card.addEventListener("click", () => {
@@ -408,7 +448,7 @@ class LupusNightWidgets {
       if (isSilenced) {
         // Se silenziata, impostiamo automaticamente guardTarget a null
         game.nightActions.guardTarget = null;
-        actionWidget.innerHTML = `
+        this.setWidgetSafeHTML(actionWidget, `
           <div class="lupus-action-widget">
             <div class="lupus-silenced-alert">
               ⛔ <strong>POTERE BLOCCATO DAL LUPO STREGONE!</strong><br>
@@ -416,7 +456,7 @@ class LupusNightWidgets {
             </div>
             <div class="lupus-action-status"><span style="color: #6ee7b7;">✅ Puoi premere Avanti.</span></div>
           </div>
-        `;
+        `);
         return;
       }
 
@@ -455,13 +495,13 @@ class LupusNightWidgets {
         statusText = "🚫 Nessuna protezione assegnata stanotte - Puoi premere Avanti.";
       }
 
-      actionWidget.innerHTML = `
+      this.setWidgetSafeHTML(actionWidget, `
         <div class="lupus-action-widget">
           <div class="lupus-action-prompt">🛡️ La Guardia indica chi proteggere per questa notte (anche se stessa):</div>
           <div class="lupus-action-grid">${noneCard}${cardsHtml}</div>
           <div class="lupus-action-status">${statusText}</div>
         </div>
-      `;
+      `);
 
       actionWidget.querySelectorAll(".lupus-action-card").forEach(card => {
         card.addEventListener("click", () => {
@@ -480,7 +520,7 @@ class LupusNightWidgets {
 
       if (isSilenced) {
         game.nightActions.seerTarget = null;
-        actionWidget.innerHTML = `
+        this.setWidgetSafeHTML(actionWidget, `
           <div class="lupus-action-widget">
             <div class="lupus-silenced-alert">
               ⛔ <strong>POTERE BLOCCATO DAL LUPO STREGONE!</strong><br>
@@ -488,7 +528,7 @@ class LupusNightWidgets {
             </div>
             <div class="lupus-action-status"><span style="color: #6ee7b7;">✅ Puoi premere Avanti.</span></div>
           </div>
-        `;
+        `);
         return;
       }
 
@@ -565,14 +605,14 @@ class LupusNightWidgets {
         statusMsg = `<div class="lupus-action-status"><span style="color: #fca5a5;">⚠️ Seleziona il giocatore scrutato (o 'Nessuno') per poter premere Avanti</span></div>`;
       }
 
-      actionWidget.innerHTML = `
+      this.setWidgetSafeHTML(actionWidget, `
         <div class="lupus-action-widget">
           <div class="lupus-action-prompt">🔮 Tocca il giocatore indicato dal Veggente per scoprire la risposta:</div>
           <div class="lupus-action-grid">${noneCard}${cardsHtml}</div>
           ${statusMsg}
           ${resultHtml}
         </div>
-      `;
+      `);
 
       actionWidget.querySelectorAll(".lupus-action-card").forEach(card => {
         card.addEventListener("click", () => {
@@ -591,7 +631,7 @@ class LupusNightWidgets {
 
       if (isSilenced) {
         game.nightActions.beccamortoSeen = true;
-        actionWidget.innerHTML = `
+        this.setWidgetSafeHTML(actionWidget, `
           <div class="lupus-action-widget">
             <div class="lupus-silenced-alert">
               ⛔ <strong>POTERE BLOCCATO DAL LUPO STREGONE!</strong><br>
@@ -599,7 +639,7 @@ class LupusNightWidgets {
             </div>
             <div class="lupus-action-status"><span style="color: #6ee7b7;">✅ Puoi premere Avanti.</span></div>
           </div>
-        `;
+        `);
         return;
       }
 
@@ -609,7 +649,7 @@ class LupusNightWidgets {
 
       if (deadPlayers.length === 0) {
         game.nightActions.beccamortoSeen = true;
-        actionWidget.innerHTML = `
+        this.setWidgetSafeHTML(actionWidget, `
           <div class="lupus-action-widget">
             <div style="text-align: center; padding: 14px; color: #94a3b8; font-size: 0.95rem;">
               ⚰️ Nessun abitante è ancora morto nel villaggio. Il Beccamorto richiude gli occhi senza visioni.
@@ -618,7 +658,7 @@ class LupusNightWidgets {
               <span style="color: #6ee7b7;">✅ Nessun defunto da consultare - Puoi premere Avanti</span>
             </div>
           </div>
-        `;
+        `);
         return;
       }
 
@@ -708,7 +748,7 @@ class LupusNightWidgets {
         statusMsg = `<div class="lupus-action-status" style="margin-top: 10px;"><span style="color: #6ee7b7;">✅ Identità comunicata al Beccamorto per questo round - Puoi premere Avanti</span></div>`;
       }
 
-      actionWidget.innerHTML = `
+      this.setWidgetSafeHTML(actionWidget, `
         <div class="lupus-action-widget">
           <div class="lupus-action-prompt">
             ⚰️ Il Beccamorto indica <strong>un solo morto</strong> di cui scoprire l'identità:
@@ -720,7 +760,7 @@ class LupusNightWidgets {
           ${revelationHtml}
           ${statusMsg}
         </div>
-      `;
+      `);
 
       // Event listener sui defunti
       actionWidget.querySelectorAll(".lupus-action-card").forEach(card => {
@@ -758,7 +798,7 @@ class LupusNightWidgets {
       if (isSilenced) {
         game.nightActions.witchHealTarget = null;
         game.nightActions.witchKill = null;
-        actionWidget.innerHTML = `
+        this.setWidgetSafeHTML(actionWidget, `
           <div class="lupus-action-widget">
             <div class="lupus-silenced-alert">
               ⛔ <strong>POTERE BLOCCATO DAL LUPO STREGONE!</strong><br>
@@ -766,7 +806,7 @@ class LupusNightWidgets {
             </div>
             <div class="lupus-action-status"><span style="color: #6ee7b7;">✅ Puoi premere Avanti.</span></div>
           </div>
-        `;
+        `);
         return;
       }
 
@@ -890,7 +930,7 @@ class LupusNightWidgets {
         `;
       }
 
-      actionWidget.innerHTML = `
+      this.setWidgetSafeHTML(actionWidget, `
         <div class="lupus-action-widget">
           <div class="lupus-action-prompt">
             🧙‍♀️ Gestione Pozioni della Strega:
@@ -929,7 +969,7 @@ class LupusNightWidgets {
             </button>
           </div>
         </div>
-      `;
+      `);
 
       // Button: Skip both
       const skipBothBtn = actionWidget.querySelector("#lupus-strega-skip-both");
@@ -985,7 +1025,7 @@ class LupusNightWidgets {
       const isSilenced = necromantePlayer && (game.nightActions.stregoneTarget === necromantePlayer.id);
 
       if (isSilenced) {
-        actionWidget.innerHTML = `
+        this.setWidgetSafeHTML(actionWidget, `
           <div class="lupus-action-widget">
             <div class="lupus-silenced-alert">
               ⛔ <strong>POTERE BLOCCATO DAL LUPO STREGONE!</strong><br>
@@ -993,7 +1033,7 @@ class LupusNightWidgets {
             </div>
             <div class="lupus-action-status"><span style="color: #6ee7b7;">✅ Puoi premere Avanti.</span></div>
           </div>
-        `;
+        `);
         return;
       }
 
@@ -1002,7 +1042,7 @@ class LupusNightWidgets {
       const isChosen = (selectedId !== undefined);
 
       if (deadPlayers.length === 0) {
-        actionWidget.innerHTML = `
+        this.setWidgetSafeHTML(actionWidget, `
           <div class="lupus-action-widget">
             <div style="text-align: center; padding: 14px; color: #94a3b8; font-size: 0.95rem;">
               ⚰️ Nessun abitante è ancora sepolto nel cimitero. Il Necromante conserva la sua carica per i prossimi round.
@@ -1011,7 +1051,7 @@ class LupusNightWidgets {
               <span style="color: #6ee7b7;">✅ Nessun defunto nel cimitero - Puoi premere Avanti</span>
             </div>
           </div>
-        `;
+        `);
         return;
       }
 
@@ -1045,13 +1085,13 @@ class LupusNightWidgets {
         statusText = `⏳ Il Necromante ha deciso di <strong>passare</strong> stanotte (carica conservata) - Puoi premere Avanti.`;
       }
 
-      actionWidget.innerHTML = `
+      this.setWidgetSafeHTML(actionWidget, `
         <div class="lupus-action-widget">
           <div class="lupus-action-prompt">🕯️💀 Il Necromante indica chi resuscitare dall'Oltretomba (1 sola volta a partita) o passa:</div>
           <div class="lupus-action-grid">${passCard}${cardsHtml}</div>
           <div class="lupus-action-status">${statusText}</div>
         </div>
-      `;
+      `);
 
       actionWidget.querySelectorAll(".lupus-action-card").forEach(card => {
         card.addEventListener("click", () => {

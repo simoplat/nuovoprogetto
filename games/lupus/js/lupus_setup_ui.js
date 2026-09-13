@@ -204,7 +204,7 @@ class LupusSetupUI {
     if (!container) return;
 
     if (countEl) countEl.textContent = this.game.players.length;
-    container.innerHTML = "";
+    container.replaceChildren();
 
     this.game.players.forEach((name, index) => {
       const row = document.createElement("div");
@@ -228,7 +228,7 @@ class LupusSetupUI {
       const deleteBtn = document.createElement("button");
       deleteBtn.type = "button";
       deleteBtn.className = "player-delete-btn";
-      deleteBtn.innerHTML = "✖";
+      deleteBtn.textContent = "✖";
       deleteBtn.title = "Rimuovi giocatore";
       deleteBtn.disabled = this.game.players.length <= 4;
       deleteBtn.addEventListener("click", () => {
@@ -353,12 +353,30 @@ class LupusSetupUI {
 
     if (normalWolves < 0) {
       summaryBox.className = "lupus-summary-box error";
-      summaryBox.innerHTML = `
-        <div style="color: var(--accent-danger); font-weight: 700;">⚠️ Troppi Lupi Speciali selezionati!</div>
-        <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">
-          Hai attivato <strong>${specialWolvesCount}</strong> lupi con poteri speciali, ma il totale lupi è impostato a <strong>${wolves}</strong>. Aumenta il numero di lupi o disattiva un lupo speciale per continuare.
-        </div>
-      `;
+      summaryBox.replaceChildren();
+
+      const errTitle = document.createElement("div");
+      errTitle.style.color = "var(--accent-danger)";
+      errTitle.style.fontWeight = "700";
+      errTitle.textContent = "⚠️ Troppi Lupi Speciali selezionati!";
+
+      const errDesc = document.createElement("div");
+      errDesc.style.fontSize = "0.85rem";
+      errDesc.style.color = "var(--text-secondary)";
+      errDesc.style.marginTop = "4px";
+
+      const strongSpec = document.createElement("strong");
+      strongSpec.textContent = String(specialWolvesCount);
+
+      const strongTot = document.createElement("strong");
+      strongTot.textContent = String(wolves);
+
+      errDesc.append(
+        "Hai attivato ", strongSpec, " lupi con poteri speciali, ma il totale lupi è impostato a ",
+        strongTot, ". Aumenta il numero di lupi o disattiva un lupo speciale per continuare."
+      );
+
+      summaryBox.append(errTitle, errDesc);
       if (startBtn) startBtn.disabled = true;
       return;
     }
@@ -380,47 +398,75 @@ class LupusSetupUI {
 
     if (peasants < 0) {
       summaryBox.className = "lupus-summary-box error";
-      summaryBox.innerHTML = `
-        <div style="color: var(--accent-danger); font-weight: 700;">⚠️ Troppi ruoli speciali per il Villaggio!</div>
-        <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">
-          Con ${total} giocatori e ${wolves} lupi in totale, puoi attivare al massimo ${Math.max(0, total - wolves)} figure speciali non-lupo. Disattivane qualcuna per procedere.
-        </div>
-      `;
+      summaryBox.replaceChildren();
+
+      const errTitle = document.createElement("div");
+      errTitle.style.color = "var(--accent-danger)";
+      errTitle.style.fontWeight = "700";
+      errTitle.textContent = "⚠️ Troppi ruoli speciali per il Villaggio!";
+
+      const errDesc = document.createElement("div");
+      errDesc.style.fontSize = "0.85rem";
+      errDesc.style.color = "var(--text-secondary)";
+      errDesc.style.marginTop = "4px";
+      errDesc.textContent = `Con ${total} giocatori e ${wolves} lupi in totale, puoi attivare al massimo ${Math.max(0, total - wolves)} figure speciali non-lupo. Disattivane qualcuna per procedere.`;
+
+      summaryBox.append(errTitle, errDesc);
       if (startBtn) startBtn.disabled = true;
       return;
     }
 
     if (startBtn) startBtn.disabled = false;
     summaryBox.className = "lupus-summary-box";
+    summaryBox.replaceChildren();
 
-    const parts = [];
+    const sumHeader = document.createElement("div");
+    sumHeader.style.fontSize = "0.82rem";
+    sumHeader.style.color = "var(--text-muted)";
+    sumHeader.style.textTransform = "uppercase";
+    sumHeader.style.letterSpacing = "0.8px";
+    sumHeader.textContent = `Composizione Villaggio (${total} Giocatori • ${wolves} Lupi Totali):`;
 
-    // Composizione Branco dei Lupi
+    const sumContent = document.createElement("div");
+    sumContent.style.fontSize = "0.95rem";
+    sumContent.style.marginTop = "5px";
+    sumContent.style.lineHeight = "1.5";
+    sumContent.style.color = "var(--text-primary)";
+
+    // Sezione Branco Lupi
+    const wolfPart = document.createElement("span");
     const wolfBreakdown = [];
     if (normalWolves > 0) {
-      wolfBreakdown.push(`<strong>${normalWolves}</strong> Lup${normalWolves === 1 ? "o" : "i"} Normal${normalWolves === 1 ? "e" : "i"} 🐺`);
+      const strongW = document.createElement("strong");
+      strongW.textContent = String(normalWolves);
+      wolfPart.append(`Branco Lupi (${wolves}): `, strongW, ` Lup${normalWolves === 1 ? "o" : "i"} Normal${normalWolves === 1 ? "e" : "i"} 🐺`);
+    } else {
+      wolfPart.append(`Branco Lupi (${wolves}): `);
     }
     if (activeSpecialWolves.length > 0) {
-      wolfBreakdown.push(activeSpecialWolves.join(", "));
+      if (normalWolves > 0) wolfPart.append(", ");
+      wolfPart.append(activeSpecialWolves.join(", "));
     }
-    parts.push(`Branco Lupi (${wolves}): ${wolfBreakdown.join(", ")}`);
+    sumContent.append(wolfPart);
 
-    // Figure Speciali Villaggio
+    // Sezione Figure Speciali
     if (activeVillageSpecials.length > 0) {
-      parts.push(activeVillageSpecials.join(", "));
+      sumContent.append(" • ", activeVillageSpecials.join(", "));
     }
 
-    // Contadini
+    // Sezione Contadini
+    const peasantSpan = document.createElement("span");
     if (peasants > 0) {
-      parts.push(`<strong>${peasants}</strong> Contadin${peasants === 1 ? "o" : "i"} 👨‍🌾`);
+      const strongP = document.createElement("strong");
+      strongP.textContent = String(peasants);
+      peasantSpan.append(strongP, ` Contadin${peasants === 1 ? "o" : "i"} 👨‍🌾`);
     } else {
-      parts.push(`<span style="color: var(--accent-warning);">0 Contadini</span>`);
+      peasantSpan.style.color = "var(--accent-warning)";
+      peasantSpan.textContent = "0 Contadini";
     }
+    sumContent.append(" • ", peasantSpan);
 
-    summaryBox.innerHTML = `
-      <div style="font-size: 0.82rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px;">Composizione Villaggio (${total} Giocatori • ${wolves} Lupi Totali):</div>
-      <div style="font-size: 0.95rem; margin-top: 5px; line-height: 1.5; color: var(--text-primary);">${parts.join(" &bull; ")}</div>
-    `;
+    summaryBox.append(sumHeader, sumContent);
   }
 
   renderTurnReveal() {
@@ -451,9 +497,9 @@ class LupusSetupUI {
 
     if (nextTurnBtn) {
       if (this.game.currentTurnIndex < this.game.assignments.length - 1) {
-        nextTurnBtn.innerHTML = "✅ Ho visto! Passa al prossimo giocatore";
+        nextTurnBtn.textContent = "✅ Ho visto! Passa al prossimo giocatore";
       } else {
-        nextTurnBtn.innerHTML = "📜 Ho visto! Vai alla Guida del Narratore";
+        nextTurnBtn.textContent = "📜 Ho visto! Vai alla Guida del Narratore";
       }
     }
 
@@ -526,7 +572,10 @@ class LupusSetupUI {
 
     if (promptWrap) promptWrap.style.display = "none";
     if (progressEl) {
-      progressEl.innerHTML = `👤 <strong>${current.name}</strong> • Giocatore ${game.currentTurnIndex + 1} di ${game.assignments.length}`;
+      progressEl.replaceChildren();
+      const strongName = document.createElement("strong");
+      strongName.textContent = current.name;
+      progressEl.append("👤 ", strongName, ` • Giocatore ${game.currentTurnIndex + 1} di ${game.assignments.length}`);
     }
 
     const imgEl = document.getElementById("lupus-card-img");
@@ -575,12 +624,19 @@ class LupusSetupUI {
             ? "🐺 Branco con cui fingi alleanza (Lupi):"
             : "🐺 Compagni del Branco (Lupi):";
         }
+        alliesList.replaceChildren();
         if (otherWolves.length > 0) {
-          alliesList.innerHTML = otherWolves.map(name => `
-            <span class="lupus-ally-pill">🐺 ${name} (Lupo)</span>
-          `).join(" ");
+          otherWolves.forEach(name => {
+            const pill = document.createElement("span");
+            pill.className = "lupus-ally-pill";
+            pill.textContent = `🐺 ${name} (Lupo)`;
+            alliesList.append(pill, " ");
+          });
         } else {
-          alliesList.innerHTML = `<span class="lupus-ally-pill solo">Sei l'unico Lupo del branco! 🐺</span>`;
+          const pill = document.createElement("span");
+          pill.className = "lupus-ally-pill solo";
+          pill.textContent = "Sei l'unico Lupo del branco! 🐺";
+          alliesList.append(pill);
         }
       }
     } else {

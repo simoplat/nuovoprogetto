@@ -612,53 +612,67 @@ class LupusGameController {
     const aliveWolves = alive.filter(p => wolfThreatRoles.includes(p.roleKey) || (p.roleKey === "infiltrato" && p.isTransformed));
     const aliveNonWolves = alive.filter(p => !wolfThreatRoles.includes(p.roleKey) && !(p.roleKey === "infiltrato" && p.isTransformed));
 
+    const renderBanner = (className, icon, title, titleColor, desc) => {
+      if (!banner) return;
+      banner.style.display = "block";
+      banner.className = `lupus-victory-banner ${className}`;
+      banner.replaceChildren();
+
+      const iconDiv = document.createElement("div");
+      iconDiv.style.fontSize = "2.2rem";
+      iconDiv.style.marginBottom = "6px";
+      iconDiv.textContent = icon;
+
+      const titleH3 = document.createElement("h3");
+      titleH3.style.fontSize = "1.4rem";
+      titleH3.style.color = titleColor;
+      titleH3.style.fontWeight = "900";
+      titleH3.textContent = title;
+
+      const descP = document.createElement("p");
+      descP.style.fontSize = "0.9rem";
+      descP.style.color = "var(--text-secondary)";
+      descP.style.marginTop = "4px";
+      descP.textContent = desc;
+
+      banner.append(iconDiv, titleH3, descP);
+    };
+
     // 0. Estinzione Totale: nessun superstite rimasto in vita
     if (alive.length === 0) {
-      if (banner) {
-        banner.style.display = "block";
-        banner.className = "lupus-victory-banner wolves-win";
-        banner.innerHTML = `
-          <div style="font-size: 2.2rem; margin-bottom: 6px;">🪦💀</div>
-          <h3 style="font-size: 1.4rem; color: #94a3b8; font-weight: 900;">NESSUN VINCITORE! (ESTINZIONE TOTALE)</h3>
-          <p style="font-size: 0.9rem; color: var(--text-secondary); margin-top: 4px;">
-            Tutti gli abitanti del villaggio e i lupi sono caduti. Non ci sono superstiti, nessuno ha vinto la partita!
-          </p>
-        `;
-      }
+      renderBanner(
+        "wolves-win",
+        "🪦💀",
+        "NESSUN VINCITORE! (ESTINZIONE TOTALE)",
+        "#94a3b8",
+        "Tutti gli abitanti del villaggio e i lupi sono caduti. Non ci sono superstiti, nessuno ha vinto la partita!"
+      );
       try { Sound.playGameOver(); } catch (e) {}
       return "nessuno";
     }
 
     // 1. Lupo Bianco: ultimo in assoluto (unico superstite di tutta la partita)
     if (alive.length === 1 && alive[0].roleKey === "lupo_bianco") {
-      if (banner) {
-        banner.style.display = "block";
-        banner.className = "lupus-victory-banner solitario-wins";
-        banner.innerHTML = `
-          <div style="font-size: 2.2rem; margin-bottom: 6px;">🐺❄️👑</div>
-          <h3 style="font-size: 1.4rem; color: #38bdf8; font-weight: 900;">IL LUPO BIANCO HA VINTO DA SOLO!</h3>
-          <p style="font-size: 0.9rem; color: var(--text-secondary); margin-top: 4px;">
-            Il Lupo Bianco è l'ultimo e unico sopravvissuto della partita! Ha sterminato sia il branco che il villaggio.
-          </p>
-        `;
-      }
+      renderBanner(
+        "solitario-wins",
+        "🐺❄️👑",
+        "IL LUPO BIANCO HA VINTO DA SOLO!",
+        "#38bdf8",
+        "Il Lupo Bianco è l'ultimo e unico sopravvissuto della partita! Ha sterminato sia il branco che il villaggio."
+      );
       try { Sound.playSuccess(); } catch (e) {}
       return "lupo_bianco";
     }
 
     // 2. Tutti i lupi morti -> Vittoria Villaggio!
     if (aliveWolves.length === 0) {
-      if (banner) {
-        banner.style.display = "block";
-        banner.className = "lupus-victory-banner village-wins";
-        banner.innerHTML = `
-          <div style="font-size: 2.2rem; margin-bottom: 6px;">🎉👨‍🌾</div>
-          <h3 style="font-size: 1.4rem; color: #10b981; font-weight: 900;">IL VILLAGGIO HA VINTO!</h3>
-          <p style="font-size: 0.9rem; color: var(--text-secondary); margin-top: 4px;">
-            Tutti i Lupi Mannari sono stati individuati ed eliminati! Il villaggio è finalmente al sicuro.
-          </p>
-        `;
-      }
+      renderBanner(
+        "village-wins",
+        "🎉👨‍🌾",
+        "IL VILLAGGIO HA VINTO!",
+        "#10b981",
+        "Tutti i Lupi Mannari sono stati individuati ed eliminati! Il villaggio è finalmente al sicuro."
+      );
       try { Sound.playSuccess(); } catch (e) {}
       return "villaggio";
     }
@@ -666,17 +680,13 @@ class LupusGameController {
     // 3. I Lupi vincono quando eguagliano o superano i non-lupi
     const packWolves = alive.filter(p => ["lupo", "lupo_stregone", "cane_nero"].includes(p.roleKey) || (p.roleKey === "infiltrato" && p.isTransformed));
     if (packWolves.length > 0 && aliveWolves.length >= aliveNonWolves.length) {
-      if (banner) {
-        banner.style.display = "block";
-        banner.className = "lupus-victory-banner wolves-win";
-        banner.innerHTML = `
-          <div style="font-size: 2.2rem; margin-bottom: 6px;">🐺🩸</div>
-          <h3 style="font-size: 1.4rem; color: var(--accent-danger); font-weight: 900;">I LUPI HANNO VINTO!</h3>
-          <p style="font-size: 0.9rem; color: var(--text-secondary); margin-top: 4px;">
-            I Lupi Mannari eguagliano o superano i cittadini rimasti. Il villaggio è caduto nelle fauci del branco!
-          </p>
-        `;
-      }
+      renderBanner(
+        "wolves-win",
+        "🐺🩸",
+        "I LUPI HANNO VINTO!",
+        "var(--accent-danger)",
+        "I Lupi Mannari eguagliano o superano i cittadini rimasti. Il villaggio è caduto nelle fauci del branco!"
+      );
       try { Sound.playGameOver(); } catch (e) {}
       return "lupi";
     }

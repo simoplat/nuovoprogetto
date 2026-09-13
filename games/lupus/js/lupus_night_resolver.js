@@ -491,40 +491,74 @@ class LupusNightResolver {
     const dawnWidget = document.getElementById("lupus-dawn-summary-widget");
     if (!dawnWidget) return;
     dawnWidget.style.display = "block";
+    dawnWidget.replaceChildren();
+
+    const card = document.createElement("div");
+    card.className = "lupus-dawn-card";
 
     if (!game.dawnReport || game.dawnReport.length === 0) {
-      dawnWidget.innerHTML = `
-        <div class="lupus-dawn-card">
-          <div class="lupus-dawn-title">🌅 Risoluzione Notte ${game.nightCount}</div>
-          <div class="lupus-dawn-event peaceful">☀️ Calcolo esiti della notte in corso...</div>
-        </div>
-      `;
+      const title = document.createElement("div");
+      title.className = "lupus-dawn-title";
+      title.textContent = `🌅 Risoluzione Notte ${game.nightCount}`;
+
+      const peaceful = document.createElement("div");
+      peaceful.className = "lupus-dawn-event peaceful";
+      peaceful.textContent = "☀️ Calcolo esiti della notte in corso...";
+
+      card.append(title, peaceful);
+      dawnWidget.append(card);
       return;
     }
 
-    const eventsHtml = game.dawnReport.map(ev => `
-      <div class="lupus-dawn-event ${ev.type}">
-        <span style="font-size: 1.25rem; line-height: 1;">${ev.icon}</span>
-        <div>${ev.text}</div>
-      </div>
-    `).join("");
+    const title = document.createElement("div");
+    title.className = "lupus-dawn-title";
+
+    const titleSpan = document.createElement("span");
+    titleSpan.textContent = `🌅 Esito Ufficiale della Notte ${game.nightCount}`;
 
     const deadCount = game.lastRoundDeaths ? game.lastRoundDeaths.length : 0;
+    const countSpan = document.createElement("span");
+    countSpan.style.fontSize = "0.8rem";
+    countSpan.style.marginLeft = "auto";
+    countSpan.style.color = deadCount > 0 ? '#fca5a5' : '#6ee7b7';
+    countSpan.style.fontWeight = "700";
+    countSpan.textContent = deadCount === 0 ? 'Nessun Caduto' : `${deadCount} Cadut${deadCount === 1 ? 'o' : 'i'}`;
 
-    dawnWidget.innerHTML = `
-      <div class="lupus-dawn-card">
-        <div class="lupus-dawn-title">
-          <span>🌅 Esito Ufficiale della Notte ${game.nightCount}</span>
-          <span style="font-size: 0.8rem; margin-left: auto; color: ${deadCount > 0 ? '#fca5a5' : '#6ee7b7'}; font-weight: 700;">
-            ${deadCount === 0 ? 'Nessun Caduto' : `${deadCount} Cadut${deadCount === 1 ? 'o' : 'i'}`}
-          </span>
-        </div>
-        ${eventsHtml}
-        <div style="font-size: 0.82rem; color: #94a3b8; margin-top: 10px; text-align: center; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 8px;">
-          📢 <span class="narrator-speech">Il Narratore legge ad alta voce l'esito qui sopra al villaggio.</span> Il Registro Abitanti è stato aggiornato in automatico.
-        </div>
-      </div>
-    `;
+    title.append(titleSpan, countSpan);
+    card.append(title);
+
+    game.dawnReport.forEach(ev => {
+      const evDiv = document.createElement("div");
+      evDiv.className = `lupus-dawn-event ${ev.type}`;
+
+      const iconSpan = document.createElement("span");
+      iconSpan.style.fontSize = "1.25rem";
+      iconSpan.style.lineHeight = "1";
+      iconSpan.textContent = ev.icon;
+
+      const textDiv = document.createElement("div");
+      textDiv.textContent = ev.text;
+
+      evDiv.append(iconSpan, textDiv);
+      card.append(evDiv);
+    });
+
+    const noteDiv = document.createElement("div");
+    noteDiv.style.fontSize = "0.82rem";
+    noteDiv.style.color = "#94a3b8";
+    noteDiv.style.marginTop = "10px";
+    noteDiv.style.textAlign = "center";
+    noteDiv.style.borderTop = "1px solid rgba(255,255,255,0.08)";
+    noteDiv.style.paddingTop = "8px";
+
+    const speechSpan = document.createElement("span");
+    speechSpan.className = "narrator-speech";
+    speechSpan.textContent = "Il Narratore legge ad alta voce l'esito qui sopra al villaggio.";
+
+    noteDiv.append("📢 ", speechSpan, " Il Registro Abitanti è stato aggiornato in automatico.");
+    card.append(noteDiv);
+
+    dawnWidget.append(card);
   }
 }
 

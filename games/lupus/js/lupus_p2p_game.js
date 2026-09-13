@@ -479,40 +479,55 @@ class LupusP2PController {
     // Lista dei giocatori connessi in tempo reale
     const listEl = document.getElementById("lupus-p2p-lobby-players-list");
     if (listEl) {
-      listEl.innerHTML = "";
+      listEl.replaceChildren();
       this.players.forEach(p => {
         const card = document.createElement("div");
         card.className = `lobby-player-card ${p.online === false ? 'is-offline' : ''}`;
         const isOnline = p.online !== false;
 
-        card.innerHTML = `
-          <div class="lobby-player-info">
-            <span style="font-size: 1.2rem;">👤</span>
-            <div class="lobby-player-name">${p.name}</div>
-            ${p.isHost ? '<span class="lobby-player-host-badge">👑 Master</span>' : ''}
-          </div>
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <span class="conn-pill ${isOnline ? 'online' : 'offline'}">
-              ${isOnline ? '🟢 Connesso' : '⚪ Disconnesso'}
-            </span>
-            ${this.isHost && !p.isHost ? `
-              <button type="button" class="btn-kick-player" title="Rimuovi ${p.name} dalla stanza">
-                ❌
-              </button>
-            ` : ''}
-          </div>
-        `;
+        const infoDiv = document.createElement("div");
+        infoDiv.className = "lobby-player-info";
 
-        if (this.isHost && !p.isHost) {
-          const kickBtn = card.querySelector(".btn-kick-player");
-          if (kickBtn) {
-            kickBtn.addEventListener("click", (e) => {
-              e.stopPropagation();
-              this.hostRemovePlayer(p.playerId || p.id, p.name);
-            });
-          }
+        const iconSpan = document.createElement("span");
+        iconSpan.style.fontSize = "1.2rem";
+        iconSpan.textContent = "👤";
+
+        const nameDiv = document.createElement("div");
+        nameDiv.className = "lobby-player-name";
+        nameDiv.textContent = p.name;
+
+        infoDiv.append(iconSpan, nameDiv);
+        if (p.isHost) {
+          const hostBadge = document.createElement("span");
+          hostBadge.className = "lobby-player-host-badge";
+          hostBadge.textContent = "👑 Master";
+          infoDiv.appendChild(hostBadge);
         }
 
+        const actionsDiv = document.createElement("div");
+        actionsDiv.style.display = "flex";
+        actionsDiv.style.alignItems = "center";
+        actionsDiv.style.gap = "8px";
+
+        const connPill = document.createElement("span");
+        connPill.className = `conn-pill ${isOnline ? 'online' : 'offline'}`;
+        connPill.textContent = isOnline ? "🟢 Connesso" : "⚪ Disconnesso";
+        actionsDiv.appendChild(connPill);
+
+        if (this.isHost && !p.isHost) {
+          const kickBtn = document.createElement("button");
+          kickBtn.type = "button";
+          kickBtn.className = "btn-kick-player";
+          kickBtn.title = `Rimuovi ${p.name} dalla stanza`;
+          kickBtn.textContent = "❌";
+          kickBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            this.hostRemovePlayer(p.playerId || p.id, p.name);
+          });
+          actionsDiv.appendChild(kickBtn);
+        }
+
+        card.append(infoDiv, actionsDiv);
         listEl.appendChild(card);
       });
     }
@@ -534,7 +549,7 @@ class LupusP2PController {
   renderQRCode() {
     const qrContainer = document.getElementById("lupus-p2p-qrcode-container");
     if (!qrContainer) return;
-    qrContainer.innerHTML = "";
+    qrContainer.replaceChildren();
 
     const roomUrl = this.getRoomDirectUrl();
     if (typeof QRCode !== "undefined") {
@@ -652,40 +667,83 @@ class LupusP2PController {
       if (hasDisconnected) {
         rematchBanner.style.display = "flex";
         rematchBanner.className = "lupus-rematch-banner warning";
-        rematchBanner.innerHTML = `
-          <div class="lupus-rematch-banner-title">
-            ⚠️ Giocatori Disconnessi (${disconnectedPlayers.length})
-          </div>
-          <div>
-            Tutti i giocatori devono essere connessi prima di poter distribuire o riassegnare i ruoli!
-          </div>
-          <div style="display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0;">
-            ${disconnectedPlayers.map(p => `
-              <span style="display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; background: rgba(239,68,68,0.2); border: 1px solid rgba(239,68,68,0.4); color: #fca5a5;">
-                ⚪ ${p.name} (Disconnesso)
-              </span>
-            `).join("")}
-          </div>
-          <div style="font-size: 0.82rem; color: var(--df-text-ash); margin-top: 4px;">
-            💡 Opzioni per il Master:
-            <ul style="margin: 4px 0 0 16px; padding: 0;">
-              <li><strong>Attendi:</strong> chiedi ai giocatori di sbloccare il proprio telefono o ricaricare la pagina.</li>
-              <li><strong>Rimuovi:</strong> se un giocatore non gioca più, usa <strong>❌</strong> nella lista in alto per eliminarlo dalla stanza.</li>
-              <li><strong>Oppure:</strong> clicca in basso <em>"Esci dalla Stanza"</em> per tornare al menu principale.</li>
-            </ul>
-          </div>
-        `;
+
+        const titleDiv = document.createElement("div");
+        titleDiv.className = "lupus-rematch-banner-title";
+        titleDiv.textContent = `⚠️ Giocatori Disconnessi (${disconnectedPlayers.length})`;
+
+        const descDiv = document.createElement("div");
+        descDiv.textContent = "Tutti i giocatori devono essere connessi prima di poter distribuire o riassegnare i ruoli!";
+
+        const chipsDiv = document.createElement("div");
+        chipsDiv.style.display = "flex";
+        chipsDiv.style.flexWrap = "wrap";
+        chipsDiv.style.gap = "6px";
+        chipsDiv.style.margin = "6px 0";
+        disconnectedPlayers.forEach(p => {
+          const chip = document.createElement("span");
+          chip.style.display = "inline-flex";
+          chip.style.alignItems = "center";
+          chip.style.gap = "4px";
+          chip.style.padding = "2px 8px";
+          chip.style.borderRadius = "4px";
+          chip.style.fontSize = "0.8rem";
+          chip.style.background = "rgba(239,68,68,0.2)";
+          chip.style.border = "1px solid rgba(239,68,68,0.4)";
+          chip.style.color = "#fca5a5";
+          chip.textContent = `⚪ ${p.name} (Disconnesso)`;
+          chipsDiv.appendChild(chip);
+        });
+
+        const guideDiv = document.createElement("div");
+        guideDiv.style.fontSize = "0.82rem";
+        guideDiv.style.color = "var(--df-text-ash)";
+        guideDiv.style.marginTop = "4px";
+        guideDiv.append(document.createTextNode("💡 Opzioni per il Master:"));
+
+        const ul = document.createElement("ul");
+        ul.style.margin = "4px 0 0 16px";
+        ul.style.padding = "0";
+
+        const li1 = document.createElement("li");
+        const st1 = document.createElement("strong");
+        st1.textContent = "Attendi: ";
+        li1.append(st1, document.createTextNode("chiedi ai giocatori di sbloccare il proprio telefono o ricaricare la pagina."));
+
+        const li2 = document.createElement("li");
+        const st2 = document.createElement("strong");
+        st2.textContent = "Rimuovi: ";
+        const stX = document.createElement("strong");
+        stX.textContent = "❌";
+        li2.append(st2, document.createTextNode("se un giocatore non gioca più, usa "), stX, document.createTextNode(" nella lista in alto per eliminarlo dalla stanza."));
+
+        const li3 = document.createElement("li");
+        const st3 = document.createElement("strong");
+        st3.textContent = "Oppure: ";
+        const emQuit = document.createElement("em");
+        emQuit.textContent = '"Esci dalla Stanza"';
+        li3.append(st3, document.createTextNode("clicca in basso "), emQuit, document.createTextNode(" per tornare al menu principale."));
+
+        ul.append(li1, li2, li3);
+        guideDiv.appendChild(ul);
+
+        rematchBanner.replaceChildren(titleDiv, descDiv, chipsDiv, guideDiv);
       } else if (this.isRematchMode) {
         rematchBanner.style.display = "flex";
         rematchBanner.className = "lupus-rematch-banner success";
-        rematchBanner.innerHTML = `
-          <div class="lupus-rematch-banner-title">🟢 Tutti i giocatori sono connessi!</div>
-          <div style="font-size: 0.86rem;">
-            Tutti gli abitanti del villaggio (${totalCount}) sono online e pronti a ricevere la nuova carta ruolo.
-          </div>
-        `;
+
+        const titleDiv = document.createElement("div");
+        titleDiv.className = "lupus-rematch-banner-title";
+        titleDiv.textContent = "🟢 Tutti i giocatori sono connessi!";
+
+        const descDiv = document.createElement("div");
+        descDiv.style.fontSize = "0.86rem";
+        descDiv.textContent = `Tutti gli abitanti del villaggio (${totalCount}) sono online e pronti a ricevere la nuova carta ruolo.`;
+
+        rematchBanner.replaceChildren(titleDiv, descDiv);
       } else {
         rematchBanner.style.display = "none";
+        rematchBanner.replaceChildren();
       }
     }
 
@@ -723,36 +781,81 @@ class LupusP2PController {
     if (summaryBox) {
       if (hasDisconnected) {
         summaryBox.className = "lupus-summary-box warning";
-        summaryBox.innerHTML = `
-          <div style="font-weight: 700; color: #f0caca;">⚠️ Impossibile distribuire: ${disconnectedPlayers.length} giocatore/i disconnesso/i</div>
-          <div style="font-size: 0.85rem; color: var(--df-text-ash); margin-top: 4px;">
-            Attendi che tutti i giocatori si riconnettano per ricevere il proprio ruolo segreto sul telefono.
-          </div>
-        `;
+        const title = document.createElement("div");
+        title.style.fontWeight = "700";
+        title.style.color = "#f0caca";
+        title.textContent = `⚠️ Impossibile distribuire: ${disconnectedPlayers.length} giocatore/i disconnesso/i`;
+
+        const sub = document.createElement("div");
+        sub.style.fontSize = "0.85rem";
+        sub.style.color = "var(--df-text-ash)";
+        sub.style.marginTop = "4px";
+        sub.textContent = "Attendi che tutti i giocatori si riconnettano per ricevere il proprio ruolo segreto sul telefono.";
+
+        summaryBox.replaceChildren(title, sub);
       } else if (totalCount < 4) {
         summaryBox.className = "lupus-summary-box warning";
-        summaryBox.innerHTML = `
-          <div style="font-weight: 700; color: #f0caca;">⚠️ Servono almeno 4 giocatori per giocare a Lupus in Fabula!</div>
-          <div style="font-size: 0.85rem; color: var(--df-text-ash); margin-top: 4px;">Attualmente connessi: <strong>${totalCount}</strong> giocatori. Condividi il PIN o il QR code per invitare amici.</div>
-        `;
+        const title = document.createElement("div");
+        title.style.fontWeight = "700";
+        title.style.color = "#f0caca";
+        title.textContent = "⚠️ Servono almeno 4 giocatori per giocare a Lupus in Fabula!";
+
+        const sub = document.createElement("div");
+        sub.style.fontSize = "0.85rem";
+        sub.style.color = "var(--df-text-ash)";
+        sub.style.marginTop = "4px";
+
+        const strong = document.createElement("strong");
+        strong.textContent = totalCount;
+
+        sub.append(
+          document.createTextNode("Attualmente connessi: "),
+          strong,
+          document.createTextNode(" giocatori. Condividi il PIN o il QR code per invitare amici.")
+        );
+        summaryBox.replaceChildren(title, sub);
       } else if (totalFixed > totalCount) {
         summaryBox.className = "lupus-summary-box danger";
-        summaryBox.innerHTML = `
-          <div style="font-weight: 700; color: #f0caca;">⚠️ Troppe figure speciali per ${totalCount} giocatori!</div>
-          <div style="font-size: 0.85rem; color: var(--df-text-ash); margin-top: 4px;">Figure selezionate: ${totalFixed}. Riduci le figure o attendi altri partecipanti.</div>
-        `;
+        const title = document.createElement("div");
+        title.style.fontWeight = "700";
+        title.style.color = "#f0caca";
+        title.textContent = `⚠️ Troppe figure speciali per ${totalCount} giocatori!`;
+
+        const sub = document.createElement("div");
+        sub.style.fontSize = "0.85rem";
+        sub.style.color = "var(--df-text-ash)";
+        sub.style.marginTop = "4px";
+        sub.textContent = `Figure selezionate: ${totalFixed}. Riduci le figure o attendi altri partecipanti.`;
+
+        summaryBox.replaceChildren(title, sub);
       } else {
         summaryBox.className = "lupus-summary-box success";
-        summaryBox.innerHTML = `
-          <div style="font-weight: 700; color: #dfbaa6; margin-bottom: 6px;">
-            Composizione Villaggio (${totalCount} Abitanti):
-          </div>
-          <div style="display: flex; flex-wrap: wrap; gap: 8px; font-size: 0.84rem;">
-            <span class="lupus-summary-chip chip-wolf">🐺 ${totalWolves} Lupi (${normalWolves} base + ${specialWolves} spec.)</span>
-            <span class="lupus-summary-chip chip-special">✨ ${specialVillageAndSolo} Figure Speciali</span>
-            <span class="lupus-summary-chip chip-villager">🌾 ${villagersCount} Contadini</span>
-          </div>
-        `;
+        const title = document.createElement("div");
+        title.style.fontWeight = "700";
+        title.style.color = "#dfbaa6";
+        title.style.marginBottom = "6px";
+        title.textContent = `Composizione Villaggio (${totalCount} Abitanti):`;
+
+        const chipsWrap = document.createElement("div");
+        chipsWrap.style.display = "flex";
+        chipsWrap.style.flexWrap = "wrap";
+        chipsWrap.style.gap = "8px";
+        chipsWrap.style.fontSize = "0.84rem";
+
+        const wolfChip = document.createElement("span");
+        wolfChip.className = "lupus-summary-chip chip-wolf";
+        wolfChip.textContent = `🐺 ${totalWolves} Lupi (${normalWolves} base + ${specialWolves} spec.)`;
+
+        const specChip = document.createElement("span");
+        specChip.className = "lupus-summary-chip chip-special";
+        specChip.textContent = `✨ ${specialVillageAndSolo} Figure Speciali`;
+
+        const vilChip = document.createElement("span");
+        vilChip.className = "lupus-summary-chip chip-villager";
+        vilChip.textContent = `🌾 ${villagersCount} Contadini`;
+
+        chipsWrap.append(wolfChip, specChip, vilChip);
+        summaryBox.replaceChildren(title, chipsWrap);
       }
     }
 
@@ -760,13 +863,13 @@ class LupusP2PController {
       startBtn.disabled = !isValid;
       if (hasDisconnected) {
         const connectedCount = totalCount - disconnectedPlayers.length;
-        startBtn.innerHTML = `⏳ In attesa che tutti si riconnettano (${connectedCount}/${totalCount})...`;
+        startBtn.textContent = `⏳ In attesa che tutti si riconnettano (${connectedCount}/${totalCount})...`;
       } else if (totalCount < 4) {
-        startBtn.innerHTML = `⏳ In attesa di partecipanti (${totalCount}/4)...`;
+        startBtn.textContent = `⏳ In attesa di partecipanti (${totalCount}/4)...`;
       } else if (totalFixed > totalCount) {
-        startBtn.innerHTML = "⚠️ Riduci Ruoli Speciali";
+        startBtn.textContent = "⚠️ Riduci Ruoli Speciali";
       } else {
-        startBtn.innerHTML = "🎴 Distribuisci Ruoli ai Giocatori";
+        startBtn.textContent = "🎴 Distribuisci Ruoli ai Giocatori";
       }
     }
   }
@@ -935,9 +1038,16 @@ class LupusP2PController {
     if (alliesBox && alliesList) {
       if (data.allies && data.allies.length > 0) {
         alliesBox.style.display = "block";
-        alliesList.innerHTML = data.allies.map(a => `<span class="lupus-ally-chip">🐺 ${a}</span>`).join(" ");
+        alliesList.replaceChildren();
+        data.allies.forEach(a => {
+          const chip = document.createElement("span");
+          chip.className = "lupus-ally-chip";
+          chip.textContent = `🐺 ${a}`;
+          alliesList.appendChild(chip);
+        });
       } else {
         alliesBox.style.display = "none";
+        alliesList.replaceChildren();
       }
     }
 
@@ -945,7 +1055,7 @@ class LupusP2PController {
     const confirmBtn = document.getElementById("lupus-p2p-btn-confirm-role");
     if (confirmBtn) {
       confirmBtn.disabled = false;
-      confirmBtn.innerHTML = "✅ Ho memorizzato il mio ruolo!";
+      confirmBtn.textContent = "✅ Ho memorizzato il mio ruolo!";
     }
   }
 
@@ -1003,9 +1113,16 @@ class LupusP2PController {
     if (alliesBox && alliesList) {
       if (data.allies && data.allies.length > 0) {
         alliesBox.style.display = "block";
-        alliesList.innerHTML = data.allies.map(a => `<span class="lupus-ally-chip">🐺 ${a}</span>`).join(" ");
+        alliesList.replaceChildren();
+        data.allies.forEach(a => {
+          const chip = document.createElement("span");
+          chip.className = "lupus-ally-chip";
+          chip.textContent = `🐺 ${a}`;
+          alliesList.appendChild(chip);
+        });
       } else {
         alliesBox.style.display = "none";
+        alliesList.replaceChildren();
       }
     }
   }
@@ -1066,13 +1183,13 @@ class LupusP2PController {
       if (startGuideBtn) {
         startGuideBtn.disabled = false;
         startGuideBtn.classList.add("pulse-glow");
-        startGuideBtn.innerHTML = "🐺 Tutti Pronti: Avvia Guida del Narratore";
+        startGuideBtn.textContent = "🐺 Tutti Pronti: Avvia Guida del Narratore";
       }
     } else {
       if (missingContainer) missingContainer.style.display = "flex";
       if (allReadyEl) allReadyEl.style.display = "none";
       if (missingChipsEl) {
-        missingChipsEl.innerHTML = "";
+        missingChipsEl.replaceChildren();
         missingAssignments.forEach(a => {
           const chip = document.createElement("span");
           chip.className = "missing-chip";
@@ -1084,7 +1201,7 @@ class LupusP2PController {
         startGuideBtn.disabled = false; // L'host può comunque forzare l'avvio se confermano a voce
         startGuideBtn.classList.remove("pulse-glow");
         const remaining = missingAssignments.length;
-        startGuideBtn.innerHTML = remaining === 1
+        startGuideBtn.textContent = remaining === 1
           ? "⏳ In attesa di 1 giocatore (o avvia ora)"
           : `⏳ In attesa di ${remaining} giocatori (o avvia ora)`;
       }
@@ -1093,7 +1210,7 @@ class LupusP2PController {
     // Lista dettagliata con Nome, Stato Connessione e Stato Carta
     const monitorListEl = document.getElementById("lupus-p2p-monitor-players-list");
     if (monitorListEl) {
-      monitorListEl.innerHTML = "";
+      monitorListEl.replaceChildren();
       this.assignments.forEach(a => {
         // Sincronizza stato online dal network
         const peerRecord = this.players.find(p => (p.playerId && p.playerId === a.playerId) || p.id === a.peerId);
@@ -1103,25 +1220,50 @@ class LupusP2PController {
         const row = document.createElement("div");
         row.className = "monitor-player-row";
 
-        row.innerHTML = `
-          <div class="monitor-player-left">
-            <span style="font-size: 1.2rem;">${a.role ? a.role.icon : '👤'}</span>
-            <div>
-              <div style="font-weight: 700; font-family: var(--df-font-serif); font-size: 0.95rem; color: var(--df-text-bone);">
-                ${a.name} ${a.isHost ? '<span class="lobby-player-host-badge" style="font-size: 0.65rem;">Master</span>' : ''}
-              </div>
-              <div style="font-size: 0.78rem; color: var(--df-text-ash);">${a.role ? a.role.name : 'Ruolo Assegnato'}</div>
-            </div>
-          </div>
-          <div class="monitor-player-right">
-            <span class="conn-pill ${a.online ? 'online' : 'offline'}">
-              ${a.online ? '🟢 Connesso' : '⚪ Disconnesso'}
-            </span>
-            <span class="monitor-seen-badge ${isConfirmed ? 'confirmed' : 'waiting'}">
-              ${isConfirmed ? '✅ Ruolo Visto' : '⏳ In attesa'}
-            </span>
-          </div>
-        `;
+        const leftDiv = document.createElement("div");
+        leftDiv.className = "monitor-player-left";
+
+        const iconSpan = document.createElement("span");
+        iconSpan.style.fontSize = "1.2rem";
+        iconSpan.textContent = a.role ? a.role.icon : "👤";
+
+        const textDiv = document.createElement("div");
+        const nameDiv = document.createElement("div");
+        nameDiv.style.fontWeight = "700";
+        nameDiv.style.fontFamily = "var(--df-font-serif)";
+        nameDiv.style.fontSize = "0.95rem";
+        nameDiv.style.color = "var(--df-text-bone)";
+        nameDiv.textContent = a.name + (a.isHost ? " " : "");
+
+        if (a.isHost) {
+          const hostBadge = document.createElement("span");
+          hostBadge.className = "lobby-player-host-badge";
+          hostBadge.style.fontSize = "0.65rem";
+          hostBadge.textContent = "Master";
+          nameDiv.appendChild(hostBadge);
+        }
+
+        const roleDiv = document.createElement("div");
+        roleDiv.style.fontSize = "0.78rem";
+        roleDiv.style.color = "var(--df-text-ash)";
+        roleDiv.textContent = a.role ? a.role.name : "Ruolo Assegnato";
+
+        textDiv.append(nameDiv, roleDiv);
+        leftDiv.append(iconSpan, textDiv);
+
+        const rightDiv = document.createElement("div");
+        rightDiv.className = "monitor-player-right";
+
+        const connPill = document.createElement("span");
+        connPill.className = `conn-pill ${a.online ? 'online' : 'offline'}`;
+        connPill.textContent = a.online ? "🟢 Connesso" : "⚪ Disconnesso";
+
+        const seenBadge = document.createElement("span");
+        seenBadge.className = `monitor-seen-badge ${isConfirmed ? 'confirmed' : 'waiting'}`;
+        seenBadge.textContent = isConfirmed ? "✅ Ruolo Visto" : "⏳ In attesa";
+
+        rightDiv.append(connPill, seenBadge);
+        row.append(leftDiv, rightDiv);
         monitorListEl.appendChild(row);
       });
     }

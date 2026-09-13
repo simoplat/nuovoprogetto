@@ -350,7 +350,7 @@ class P2PGameController {
     if (!select) return;
 
     const currentVal = select.value || this.category || "random";
-    select.innerHTML = "";
+    select.replaceChildren();
     const cats = getAvailableCategories();
     cats.forEach(c => {
       const opt = document.createElement("option");
@@ -498,7 +498,7 @@ class P2PGameController {
     // Genera QR Code con l'URL effettivo (NON localhost)
     const qrContainer = document.getElementById("p2p-qrcode-container");
     if (qrContainer && window.QRCode) {
-      qrContainer.innerHTML = "";
+      qrContainer.replaceChildren();
       try {
         new window.QRCode(qrContainer, {
           text: roomUrl,
@@ -524,9 +524,9 @@ class P2PGameController {
     navigator.clipboard.writeText(roomUrl).then(() => {
       const btn = document.getElementById("p2p-copy-link-btn");
       if (btn) {
-        const orig = btn.innerHTML;
-        btn.innerHTML = "✅ Link Copiato!";
-        setTimeout(() => { btn.innerHTML = orig; }, 2000);
+        const orig = btn.textContent;
+        btn.textContent = "✅ Link Copiato!";
+        setTimeout(() => { btn.textContent = orig; }, 2000);
       }
     });
   }
@@ -1111,7 +1111,7 @@ class P2PGameController {
     if (countEl) countEl.textContent = this.players.length;
 
     if (!listEl) return;
-    listEl.innerHTML = "";
+    listEl.replaceChildren();
 
     this.players.forEach(p => {
       const isOnline = p.online !== false;
@@ -1370,7 +1370,7 @@ class P2PGameController {
       hostDiscBtn.style.display = this.isHost ? "inline-flex" : "none";
       hostDiscBtn.classList.remove("pulse-glow");
       hostDiscBtn.disabled = true;
-      hostDiscBtn.innerHTML = "⏳ In attesa che tutti vedano la carta...";
+      hostDiscBtn.textContent = "⏳ In attesa che tutti vedano la carta...";
     }
 
     if (this.isHost) {
@@ -1443,35 +1443,59 @@ class P2PGameController {
     }
 
     card.className = `secret-card ${this.mySecret.isImpostor ? "impostor" : "innocent"}`;
+    card.replaceChildren();
 
     if (this.mySecret.isImpostor) {
       Sound.playImpostorReveal();
-      let clueHtml = "";
+      const badge = document.createElement("div");
+      badge.className = "secret-badge";
+      badge.textContent = "Allerta Intrusione ⚠️";
+
+      const title = document.createElement("div");
+      title.className = "impostor-title";
+      title.textContent = "SEI L'IMPOSTORE!";
+
+      card.append(badge, title);
+
       if (this.mySecret.clue) {
-        clueHtml = `
-          <div class="impostor-clue-box">
-            <div class="impostor-clue-label">💡 Indizio sul Contesto:</div>
-            <div class="impostor-clue-text">"${this.mySecret.clue}"</div>
-          </div>
-        `;
+        const clueBox = document.createElement("div");
+        clueBox.className = "impostor-clue-box";
+
+        const clueLabel = document.createElement("div");
+        clueLabel.className = "impostor-clue-label";
+        clueLabel.textContent = "💡 Indizio sul Contesto:";
+
+        const clueText = document.createElement("div");
+        clueText.className = "impostor-clue-text";
+        clueText.textContent = `"${this.mySecret.clue}"`;
+
+        clueBox.append(clueLabel, clueText);
+        card.append(clueBox);
       }
 
-      card.innerHTML = `
-        <div class="secret-badge">Allerta Intrusione ⚠️</div>
-        <div class="impostor-title">SEI L'IMPOSTORE!</div>
-        ${clueHtml}
-        <p class="impostor-warning">
-          Non conosci la parola esatta! Ascolta gli altri, ${this.mySecret.clue ? "usa l'indizio per bluffare" : "bluffa con astuzia"} e cerca di non farti scoprire.
-        </p>
-      `;
+      const warning = document.createElement("p");
+      warning.className = "impostor-warning";
+      warning.textContent = `Non conosci la parola esatta! Ascolta gli altri, ${this.mySecret.clue ? "usa l'indizio per bluffare" : "bluffa con astuzia"} e cerca di non farti scoprire.`;
+      card.append(warning);
     } else {
       Sound.playInnocentReveal();
-      card.innerHTML = `
-        <div class="secret-badge">Cittadino Innocente 🛡️</div>
-        <div class="secret-word-title">La tua parola segreta è:</div>
-        <div class="secret-word-value">${this.mySecret.word}</div>
-        <div class="secret-category">Categoria: ${this.mySecret.category}</div>
-      `;
+      const badge = document.createElement("div");
+      badge.className = "secret-badge";
+      badge.textContent = "Cittadino Innocente 🛡️";
+
+      const wordTitle = document.createElement("div");
+      wordTitle.className = "secret-word-title";
+      wordTitle.textContent = "La tua parola segreta è:";
+
+      const wordVal = document.createElement("div");
+      wordVal.className = "secret-word-value";
+      wordVal.textContent = this.mySecret.word;
+
+      const catEl = document.createElement("div");
+      catEl.className = "secret-category";
+      catEl.textContent = `Categoria: ${this.mySecret.category}`;
+
+      card.append(badge, wordTitle, wordVal, catEl);
     }
 
     card.style.display = "block";
@@ -1520,7 +1544,7 @@ class P2PGameController {
       if (this.isHost && hostDiscBtn) {
         hostDiscBtn.disabled = false;
         hostDiscBtn.classList.add("pulse-glow");
-        hostDiscBtn.innerHTML = "🗣️ Tutti Hanno Visto: Inizia Discussione";
+        hostDiscBtn.textContent = "🗣️ Tutti Hanno Visto: Inizia Discussione";
       }
     } else {
       if (missingContainer) missingContainer.style.display = "flex";
@@ -1529,13 +1553,13 @@ class P2PGameController {
         hostDiscBtn.disabled = true;
         hostDiscBtn.classList.remove("pulse-glow");
         const remainingCount = missingPlayers.length;
-        hostDiscBtn.innerHTML = remainingCount === 1
+        hostDiscBtn.textContent = remainingCount === 1
           ? "⏳ In attesa di 1 giocatore..."
           : `⏳ In attesa di ${remainingCount} giocatori...`;
       }
 
       if (missingChipsEl) {
-        missingChipsEl.innerHTML = "";
+        missingChipsEl.replaceChildren();
         missingPlayers.forEach(name => {
           const chip = document.createElement("span");
           const isMe = name === this.playerName;
@@ -1683,11 +1707,11 @@ class P2PGameController {
     if (submitBtn) {
       submitBtn.disabled = true;
       submitBtn.classList.remove("pulse-glow");
-      submitBtn.innerHTML = "🗳️ Seleziona un giocatore";
+      submitBtn.textContent = "🗳️ Seleziona un giocatore";
     }
 
     if (!container) return;
-    container.innerHTML = "";
+    container.replaceChildren();
     this.selectedVotePlayerId = null;
 
     const activePlayers = this.players.filter(p => p.online !== false);
@@ -1737,7 +1761,7 @@ class P2PGameController {
           if (submitBtn) {
             submitBtn.disabled = false;
             submitBtn.classList.add("pulse-glow");
-            submitBtn.innerHTML = `🗳️ Conferma Voto per ${p.name}`;
+            submitBtn.textContent = `🗳️ Conferma Voto per ${p.name}`;
           }
         });
       }
@@ -1760,7 +1784,7 @@ class P2PGameController {
     if (submitBtn) {
       submitBtn.disabled = true;
       submitBtn.classList.remove("pulse-glow");
-      submitBtn.innerHTML = `✅ Voto Inviato (${votedName})`;
+      submitBtn.textContent = `✅ Voto Inviato (${votedName})`;
     }
 
     // Aggiorna l'aspetto visivo delle card
@@ -1861,7 +1885,7 @@ class P2PGameController {
       if (allReadyEl) allReadyEl.style.display = "none";
 
       if (missingChipsEl) {
-        missingChipsEl.innerHTML = "";
+        missingChipsEl.replaceChildren();
         missingVoters.forEach(name => {
           const chip = document.createElement("span");
           const isMe = name === this.playerName;
@@ -1999,7 +2023,14 @@ class P2PGameController {
         titleEl.className = "game-over-title citizens-win";
       }
       if (iconEl) iconEl.textContent = "🎉";
-      if (descEl) descEl.innerHTML = `<strong>${data.votedName}</strong> era davvero <strong>L'IMPOSTORE!</strong> Complimenti!`;
+      if (descEl) {
+        descEl.replaceChildren();
+        const strongName = document.createElement("strong");
+        strongName.textContent = data.votedName;
+        const strongVerdict = document.createElement("strong");
+        strongVerdict.textContent = "L'IMPOSTORE!";
+        descEl.append(strongName, " era davvero ", strongVerdict, " Complimenti!");
+      }
     } else {
       Sound.playImpostorReveal();
       if (titleEl) {
@@ -2007,7 +2038,12 @@ class P2PGameController {
         titleEl.className = "game-over-title impostor-wins";
       }
       if (iconEl) iconEl.textContent = "😈";
-      if (descEl) descEl.innerHTML = `<strong>${data.votedName}</strong> era innocente! Gli impostori hanno ingannato il gruppo.`;
+      if (descEl) {
+        descEl.replaceChildren();
+        const strongName = document.createElement("strong");
+        strongName.textContent = data.votedName;
+        descEl.append(strongName, " era innocente! Gli impostori hanno ingannato il gruppo.");
+      }
     }
 
     // Mostra il riepilogo dei voti espressi
@@ -2016,21 +2052,34 @@ class P2PGameController {
     if (tallySection && tallyListEl) {
       if (data.voteTally && Array.isArray(data.voteTally) && data.voteTally.length > 0) {
         tallySection.style.display = "block";
-        tallyListEl.innerHTML = data.voteTally.map(item => `
-          <div class="vote-tally-item ${item.isAccused ? "is-accused" : ""}">
-            <span>${item.name} ${item.isAccused ? "🎯 (Accusato)" : ""}</span>
-            <span class="vote-tally-badge">${item.votes} ${item.votes === 1 ? "voto" : "voti"}</span>
-          </div>
-        `).join("");
+        tallyListEl.replaceChildren();
+        data.voteTally.forEach(item => {
+          const row = document.createElement("div");
+          row.className = `vote-tally-item ${item.isAccused ? "is-accused" : ""}`;
+
+          const nameSpan = document.createElement("span");
+          nameSpan.textContent = `${item.name} ${item.isAccused ? "🎯 (Accusato)" : ""}`;
+
+          const badgeSpan = document.createElement("span");
+          badgeSpan.className = "vote-tally-badge";
+          badgeSpan.textContent = `${item.votes} ${item.votes === 1 ? "voto" : "voti"}`;
+
+          row.append(nameSpan, badgeSpan);
+          tallyListEl.appendChild(row);
+        });
       } else {
         tallySection.style.display = "none";
       }
     }
 
     if (impostorsListEl && data.impostors) {
-      impostorsListEl.innerHTML = data.impostors.map(name => `
-        <div class="impostor-pill">🕵️ ${name}</div>
-      `).join("");
+      impostorsListEl.replaceChildren();
+      data.impostors.forEach(name => {
+        const pill = document.createElement("div");
+        pill.className = "impostor-pill";
+        pill.textContent = `🕵️ ${name}`;
+        impostorsListEl.appendChild(pill);
+      });
     }
 
     if (wordEl) {

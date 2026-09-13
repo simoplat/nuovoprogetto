@@ -183,7 +183,7 @@ class LocalGameController {
     const catSelect = document.getElementById("local-category-select");
     if (!catSelect) return;
 
-    catSelect.innerHTML = "";
+    catSelect.replaceChildren();
     const categories = getAvailableCategories();
     categories.forEach(cat => {
       const opt = document.createElement("option");
@@ -198,7 +198,7 @@ class LocalGameController {
     const container = document.getElementById("local-players-list");
     if (!container) return;
 
-    container.innerHTML = "";
+    container.replaceChildren();
     this.players.forEach((name, index) => {
       const row = document.createElement("div");
       row.className = "player-row";
@@ -221,7 +221,7 @@ class LocalGameController {
       const deleteBtn = document.createElement("button");
       deleteBtn.type = "button";
       deleteBtn.className = "player-delete-btn";
-      deleteBtn.innerHTML = "✖";
+      deleteBtn.textContent = "✖";
       deleteBtn.title = "Rimuovi giocatore";
       deleteBtn.disabled = this.players.length <= 3;
       deleteBtn.addEventListener("click", () => {
@@ -448,34 +448,59 @@ class LocalGameController {
 
     secretCard.className = `secret-card ${current.isImpostor ? "impostor" : "innocent"}`;
 
+    secretCard.replaceChildren();
+
     if (current.isImpostor) {
       Sound.playImpostorReveal();
-      let clueHtml = "";
+      const badge = document.createElement("div");
+      badge.className = "secret-badge";
+      badge.textContent = "Allerta Intrusione ⚠️";
+
+      const title = document.createElement("div");
+      title.className = "impostor-title";
+      title.textContent = "SEI L'IMPOSTORE!";
+
+      secretCard.append(badge, title);
+
       if (this.enableClue && current.clue) {
-        clueHtml = `
-          <div class="impostor-clue-box">
-            <div class="impostor-clue-label">💡 Indizio sul Contesto:</div>
-            <div class="impostor-clue-text">"${current.clue}"</div>
-          </div>
-        `;
+        const clueBox = document.createElement("div");
+        clueBox.className = "impostor-clue-box";
+
+        const clueLabel = document.createElement("div");
+        clueLabel.className = "impostor-clue-label";
+        clueLabel.textContent = "💡 Indizio sul Contesto:";
+
+        const clueText = document.createElement("div");
+        clueText.className = "impostor-clue-text";
+        clueText.textContent = `"${current.clue}"`;
+
+        clueBox.append(clueLabel, clueText);
+        secretCard.append(clueBox);
       }
 
-      secretCard.innerHTML = `
-        <div class="secret-badge">Allerta Intrusione ⚠️</div>
-        <div class="impostor-title">SEI L'IMPOSTORE!</div>
-        ${clueHtml}
-        <p class="impostor-warning">
-          Non conosci la parola esatta! Ascolta attentamente gli altri, ${this.enableClue ? "sfrutta l'indizio per bluffare" : "bluffa con astuzia"} e non farti scoprire dal gruppo.
-        </p>
-      `;
+      const warning = document.createElement("p");
+      warning.className = "impostor-warning";
+      warning.textContent = `Non conosci la parola esatta! Ascolta attentamente gli altri, ${this.enableClue ? "sfrutta l'indizio per bluffare" : "bluffa con astuzia"} e non farti scoprire dal gruppo.`;
+      secretCard.append(warning);
     } else {
       Sound.playInnocentReveal();
-      secretCard.innerHTML = `
-        <div class="secret-badge">Cittadino Innocente 🛡️</div>
-        <div class="secret-word-title">La tua parola segreta è:</div>
-        <div class="secret-word-value">${current.word}</div>
-        <div class="secret-category">Categoria: ${current.category}</div>
-      `;
+      const badge = document.createElement("div");
+      badge.className = "secret-badge";
+      badge.textContent = "Cittadino Innocente 🛡️";
+
+      const wordTitle = document.createElement("div");
+      wordTitle.className = "secret-word-title";
+      wordTitle.textContent = "La tua parola segreta è:";
+
+      const wordVal = document.createElement("div");
+      wordVal.className = "secret-word-value";
+      wordVal.textContent = current.word;
+
+      const catEl = document.createElement("div");
+      catEl.className = "secret-category";
+      catEl.textContent = `Categoria: ${current.category}`;
+
+      secretCard.append(badge, wordTitle, wordVal, catEl);
     }
 
     secretCard.style.display = "block";
@@ -564,7 +589,7 @@ class LocalGameController {
   updateTimerControls() {
     const toggleBtn = document.getElementById("timer-toggle-btn");
     if (toggleBtn) {
-      toggleBtn.innerHTML = this.isTimerRunning ? "⏸️ Pausa" : "▶️ Riprendi";
+      toggleBtn.textContent = this.isTimerRunning ? "⏸️ Pausa" : "▶️ Riprendi";
     }
   }
 
@@ -580,7 +605,7 @@ class LocalGameController {
     const confirmBtn = document.getElementById("confirm-vote-btn");
     if (!container) return;
 
-    container.innerHTML = "";
+    container.replaceChildren();
     this.votedPlayer = null;
     if (confirmBtn) confirmBtn.disabled = true;
 
@@ -637,7 +662,12 @@ class LocalGameController {
       }
       if (iconEl) iconEl.textContent = "🎉";
       if (descEl) {
-        descEl.innerHTML = `<strong>${this.votedPlayer.name}</strong> è stato scoperto: <strong>ERA L'IMPOSTORE!</strong>`;
+        descEl.replaceChildren();
+        const strongName = document.createElement("strong");
+        strongName.textContent = this.votedPlayer.name;
+        const strongVerdict = document.createElement("strong");
+        strongVerdict.textContent = "ERA L'IMPOSTORE!";
+        descEl.append(strongName, " è stato scoperto: ", strongVerdict);
       }
     } else {
       Sound.playImpostorReveal();
@@ -647,14 +677,21 @@ class LocalGameController {
       }
       if (iconEl) iconEl.textContent = "😈";
       if (descEl) {
-        descEl.innerHTML = `<strong>${this.votedPlayer.name}</strong> era innocente! Gli impostori sono riusciti a ingannare il gruppo.`;
+        descEl.replaceChildren();
+        const strongName = document.createElement("strong");
+        strongName.textContent = this.votedPlayer.name;
+        descEl.append(strongName, " era innocente! Gli impostori sono riusciti a ingannare il gruppo.");
       }
     }
 
     if (impostorsListEl) {
-      impostorsListEl.innerHTML = impostorPlayers.map(p => `
-        <div class="impostor-pill">🕵️ ${p.name}</div>
-      `).join("");
+      impostorsListEl.replaceChildren();
+      impostorPlayers.forEach(p => {
+        const pill = document.createElement("div");
+        pill.className = "impostor-pill";
+        pill.textContent = `🕵️ ${p.name}`;
+        impostorsListEl.append(pill);
+      });
     }
 
     if (wordEl) {

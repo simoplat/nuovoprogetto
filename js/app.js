@@ -69,7 +69,7 @@ class PartyHubApp {
     if (!gridEl || !registry) return;
 
     const games = registry.getAll();
-    gridEl.innerHTML = "";
+    gridEl.replaceChildren();
 
     games.forEach(game => {
       const card = document.createElement("div");
@@ -77,56 +77,79 @@ class PartyHubApp {
       card.className = `game-card ${isActive ? "active" : "coming-soon"}`;
       card.id = `hub-game-card-${game.id}`;
 
-      // Etichette modalità
-      const modesHtml = (game.modes || []).map(m => {
-        const label = (game.modeLabels && game.modeLabels[m]) || (m === "local" ? "📱 Passa il Telefono" : "⚡ Stanza Online");
-        return `<span class="game-mode-pill">${label}</span>`;
-      }).join("");
+      const content = document.createElement("div");
 
-      card.innerHTML = `
-        <div>
-          <div class="game-card-header">
-            <span class="game-card-icon">${game.icon}</span>
-            <span class="game-card-badge ${isActive ? "badge-active" : "badge-soon"}">
-              ${isActive ? (game.badge || "Disponibile") : "In Arrivo ⏳"}
-            </span>
-          </div>
-          <h3 class="game-card-title">${game.title}</h3>
-          <p class="game-card-tagline">${game.tagline}</p>
-          <div class="game-card-modes">${modesHtml}</div>
-        </div>
-        <div class="game-card-footer">
-          ${isActive ? `
-            <button type="button" class="btn btn-primary btn-sm btn-play-game" data-game="${game.id}">
-              Gioca Ora 🚀
-            </button>
-            <button type="button" class="btn btn-secondary btn-sm btn-info-game" data-game="${game.id}" title="Regole e Info">
-              📖 Regole
-            </button>
-          ` : `
-            <button type="button" class="btn btn-secondary btn-sm btn-info-game w-full" data-game="${game.id}">
-              Dettagli & Regole 📖
-            </button>
-          `}
-        </div>
-      `;
+      const header = document.createElement("div");
+      header.className = "game-card-header";
 
-      // Event listener per avvio o info
-      const playBtn = card.querySelector(".btn-play-game");
-      if (playBtn) {
+      const iconSpan = document.createElement("span");
+      iconSpan.className = "game-card-icon";
+      iconSpan.textContent = game.icon;
+
+      const badgeSpan = document.createElement("span");
+      badgeSpan.className = `game-card-badge ${isActive ? "badge-active" : "badge-soon"}`;
+      badgeSpan.textContent = isActive ? (game.badge || "Disponibile") : "In Arrivo ⏳";
+
+      header.append(iconSpan, badgeSpan);
+
+      const titleEl = document.createElement("h3");
+      titleEl.className = "game-card-title";
+      titleEl.textContent = game.title;
+
+      const taglineEl = document.createElement("p");
+      taglineEl.className = "game-card-tagline";
+      taglineEl.textContent = game.tagline;
+
+      const modesContainer = document.createElement("div");
+      modesContainer.className = "game-card-modes";
+      (game.modes || []).forEach(m => {
+        const pill = document.createElement("span");
+        pill.className = "game-mode-pill";
+        pill.textContent = (game.modeLabels && game.modeLabels[m]) || (m === "local" ? "📱 Passa il Telefono" : "⚡ Stanza Online");
+        modesContainer.append(pill);
+      });
+
+      content.append(header, titleEl, taglineEl, modesContainer);
+
+      const footer = document.createElement("div");
+      footer.className = "game-card-footer";
+      if (isActive) {
+        const playBtn = document.createElement("button");
+        playBtn.type = "button";
+        playBtn.className = "btn btn-primary btn-sm btn-play-game";
+        playBtn.dataset.game = game.id;
+        playBtn.textContent = "Gioca Ora 🚀";
         playBtn.addEventListener("click", (e) => {
           e.stopPropagation();
           this.selectGame(game.id);
         });
-      }
 
-      const infoBtn = card.querySelector(".btn-info-game");
-      if (infoBtn) {
+        const infoBtn = document.createElement("button");
+        infoBtn.type = "button";
+        infoBtn.className = "btn btn-secondary btn-sm btn-info-game";
+        infoBtn.dataset.game = game.id;
+        infoBtn.title = "Regole e Info";
+        infoBtn.textContent = "📖 Regole";
         infoBtn.addEventListener("click", (e) => {
           e.stopPropagation();
           this.openGameInfoModal(game);
         });
+
+        footer.append(playBtn, infoBtn);
+      } else {
+        const infoBtn = document.createElement("button");
+        infoBtn.type = "button";
+        infoBtn.className = "btn btn-secondary btn-sm btn-info-game w-full";
+        infoBtn.dataset.game = game.id;
+        infoBtn.textContent = "Dettagli & Regole 📖";
+        infoBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          this.openGameInfoModal(game);
+        });
+        footer.append(infoBtn);
       }
+
+      card.append(content, footer);
 
       card.addEventListener("click", () => {
         if (isActive) {
@@ -241,32 +264,43 @@ class PartyHubApp {
     if (summaryEl) summaryEl.textContent = game.rulesSummary || game.tagline || "";
 
     if (modesEl) {
-      modesEl.innerHTML = (game.modes || []).map(m => {
+      modesEl.replaceChildren();
+      (game.modes || []).forEach(m => {
         const label = (game.modeLabels && game.modeLabels[m]) || (m === "local" ? "Passa il Telefono" : "Stanza Online P2P");
-        return `<div class="game-mode-pill" style="padding: 8px 12px; font-size: 0.85rem;">✅ <strong>${label}</strong></div>`;
-      }).join("");
+        const pill = document.createElement("div");
+        pill.className = "game-mode-pill";
+        pill.style.padding = "8px 12px";
+        pill.style.fontSize = "0.85rem";
+        const strong = document.createElement("strong");
+        strong.textContent = label;
+        pill.append("✅ ", strong);
+        modesEl.append(pill);
+      });
     }
 
     if (actionEl) {
+      actionEl.replaceChildren();
       if (game.status === "active") {
-        actionEl.innerHTML = `
-          <button type="button" class="btn btn-primary btn-block" id="modal-btn-play-game">
-            🚀 Inizia a Giocare a ${game.title}
-          </button>
-        `;
-        const btn = document.getElementById("modal-btn-play-game");
-        if (btn) {
-          btn.onclick = () => {
-            modal.classList.remove("open");
-            this.selectGame(game.id);
-          };
-        }
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "btn btn-primary btn-block";
+        btn.id = "modal-btn-play-game";
+        btn.textContent = `🚀 Inizia a Giocare a ${game.title}`;
+        btn.onclick = () => {
+          modal.classList.remove("open");
+          this.selectGame(game.id);
+        };
+        actionEl.append(btn);
       } else {
-        actionEl.innerHTML = `
-          <div style="text-align: center; color: var(--text-muted); font-size: 0.85rem; padding: 10px; background: rgba(0,0,0,0.2); border-radius: var(--radius-md);">
-            ⏳ Questo gioco sarà disponibile nei prossimi aggiornamenti del Party Game Hub!
-          </div>
-        `;
+        const soonBox = document.createElement("div");
+        soonBox.style.textAlign = "center";
+        soonBox.style.color = "var(--text-muted)";
+        soonBox.style.fontSize = "0.85rem";
+        soonBox.style.padding = "10px";
+        soonBox.style.background = "rgba(0,0,0,0.2)";
+        soonBox.style.borderRadius = "var(--radius-md)";
+        soonBox.textContent = "⏳ Questo gioco sarà disponibile nei prossimi aggiornamenti del Party Game Hub!";
+        actionEl.append(soonBox);
       }
     }
 
@@ -397,11 +431,11 @@ class PartyHubApp {
     const audioBtn = document.getElementById("btn-audio-toggle");
     if (audioBtn) {
       if (Sound.enabled) {
-        audioBtn.innerHTML = "🔊";
+        audioBtn.textContent = "🔊";
         audioBtn.classList.add("active");
         audioBtn.title = "Audio Attivo";
       } else {
-        audioBtn.innerHTML = "🔇";
+        audioBtn.textContent = "🔇";
         audioBtn.classList.remove("active");
         audioBtn.title = "Audio Disattivato";
       }

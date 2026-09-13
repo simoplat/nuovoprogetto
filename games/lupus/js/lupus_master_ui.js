@@ -35,7 +35,7 @@ class LupusMasterUI {
       }
     }
 
-    grid.innerHTML = "";
+    grid.replaceChildren();
     game.assignments.forEach(player => {
       const chip = document.createElement("div");
       chip.className = `lupus-roster-chip ${player.isAlive ? "alive" : "dead"} ${isStatusDisabled ? "readonly-phase" : ""}`;
@@ -55,26 +55,56 @@ class LupusMasterUI {
         btnTitle = player.isAlive ? "Segna come Eliminato nella notte" : "Riporta in Vita";
       }
 
-      const connBadge = player.online !== undefined
-        ? (player.online
-            ? `<span class="conn-pill online" style="margin-left: 6px; font-size: 0.68rem;" title="Giocatore Connesso">🟢 Connesso</span>`
-            : `<span class="conn-pill offline" style="margin-left: 6px; font-size: 0.68rem;" title="Giocatore Disconnesso (il gioco continua)">⚪ Disconnesso</span>`)
-        : '';
+      const infoDiv = document.createElement("div");
+      infoDiv.className = "roster-chip-info";
 
-      chip.innerHTML = `
-        <div class="roster-chip-info">
-          <span class="roster-chip-icon">${player.role.icon}</span>
-          <div>
-            <div class="roster-chip-name">${player.name}${connBadge}${player.isLover ? ' <span style="font-size: 0.75rem;" title="Innamorato">❤️</span>' : ''}</div>
-            <div class="roster-chip-role">${player.role.name}</div>
-          </div>
-        </div>
-        <button type="button" class="btn-roster-status ${isStatusDisabled ? 'readonly-status' : ''}" ${isStatusDisabled ? 'disabled aria-disabled="true"' : ''} title="${btnTitle}">
-          ${player.isAlive ? "🟢 Vivo" : "🔴 Morto"}
-        </button>
-      `;
+      const iconSpan = document.createElement("span");
+      iconSpan.className = "roster-chip-icon";
+      iconSpan.textContent = player.role.icon;
 
-      const statusBtn = chip.querySelector(".btn-roster-status");
+      const detailsDiv = document.createElement("div");
+
+      const nameDiv = document.createElement("div");
+      nameDiv.className = "roster-chip-name";
+      nameDiv.textContent = player.name;
+
+      if (player.online !== undefined) {
+        const connSpan = document.createElement("span");
+        connSpan.className = `conn-pill ${player.online ? "online" : "offline"}`;
+        connSpan.style.marginLeft = "6px";
+        connSpan.style.fontSize = "0.68rem";
+        connSpan.title = player.online ? "Giocatore Connesso" : "Giocatore Disconnesso (il gioco continua)";
+        connSpan.textContent = player.online ? "🟢 Connesso" : "⚪ Disconnesso";
+        nameDiv.append(connSpan);
+      }
+
+      if (player.isLover) {
+        const heartSpan = document.createElement("span");
+        heartSpan.style.fontSize = "0.75rem";
+        heartSpan.title = "Innamorato";
+        heartSpan.textContent = " ❤️";
+        nameDiv.append(heartSpan);
+      }
+
+      const roleDiv = document.createElement("div");
+      roleDiv.className = "roster-chip-role";
+      roleDiv.textContent = player.role.name;
+
+      detailsDiv.append(nameDiv, roleDiv);
+      infoDiv.append(iconSpan, detailsDiv);
+
+      const statusBtn = document.createElement("button");
+      statusBtn.type = "button";
+      statusBtn.className = `btn-roster-status ${isStatusDisabled ? 'readonly-status' : ''}`;
+      if (isStatusDisabled) {
+        statusBtn.disabled = true;
+        statusBtn.setAttribute("aria-disabled", "true");
+      }
+      statusBtn.title = btnTitle;
+      statusBtn.textContent = player.isAlive ? "🟢 Vivo" : "🔴 Morto";
+
+      chip.append(infoDiv, statusBtn);
+
       if (!isStatusDisabled) {
         statusBtn.addEventListener("click", () => {
           try { Sound.playClick(); } catch (e) {}
@@ -273,7 +303,7 @@ class LupusMasterUI {
       stepTitle.textContent = curStep.title;
       stepTitle.style.color = "";
     }
-    if (stepDesc) stepDesc.innerHTML = curStep.instruction;
+    if (stepDesc) this.setSafeInstruction(stepDesc, curStep.instruction);
 
     if (prevBtn) prevBtn.disabled = game.masterStepIndex === 0;
 
@@ -476,26 +506,37 @@ class LupusMasterUI {
     if (confirmBtn) {
       confirmBtn.style.display = "block";
       confirmBtn.disabled = !game.selectedVotePlayerId;
+      confirmBtn.replaceChildren();
       if (game.selectedVotePlayerId === "NO_ROGO") {
-        confirmBtn.innerHTML = `⚖️ Conferma: <strong>Nessun Rogo / Parità</strong> (Nessun Eliminato)`;
+        const strong = document.createElement("strong");
+        strong.textContent = "Nessun Rogo / Parità";
+        confirmBtn.append("⚖️ Conferma: ", strong, " (Nessun Eliminato)");
       } else if (game.selectedVotePlayerId) {
         const selPlayer = game.assignments.find(p => p.id === game.selectedVotePlayerId);
-        confirmBtn.innerHTML = `🔥 Condanna al Rogo: <strong>${selPlayer ? selPlayer.name : ''}</strong>`;
+        const strong = document.createElement("strong");
+        strong.textContent = selPlayer ? selPlayer.name : "";
+        confirmBtn.append("🔥 Condanna al Rogo: ", strong);
       } else {
-        confirmBtn.innerHTML = "🔥 Seleziona un abitante o 'Nessun Rogo / Parità'";
+        confirmBtn.textContent = "🔥 Seleziona un abitante o 'Nessun Rogo / Parità'";
       }
     }
 
-    grid.innerHTML = "";
+    grid.replaceChildren();
 
     // Scheda speciale per Parità o Nessun Rogo
     const noRogoCard = document.createElement("div");
     const isNoRogoSelected = (game.selectedVotePlayerId === "NO_ROGO");
     noRogoCard.className = `vote-card vote-card-none ${isNoRogoSelected ? "selected" : ""}`;
-    noRogoCard.innerHTML = `
-      <div class="vote-avatar">⚖️</div>
-      <div class="vote-name">Nessun Rogo / Parità</div>
-    `;
+
+    const noRogoAvatar = document.createElement("div");
+    noRogoAvatar.className = "vote-avatar";
+    noRogoAvatar.textContent = "⚖️";
+
+    const noRogoName = document.createElement("div");
+    noRogoName.className = "vote-name";
+    noRogoName.textContent = "Nessun Rogo / Parità";
+
+    noRogoCard.append(noRogoAvatar, noRogoName);
     noRogoCard.addEventListener("click", () => {
       try { Sound.playClick(); } catch (e) {}
       game.selectedVotePlayerId = "NO_ROGO";
@@ -509,10 +550,16 @@ class LupusMasterUI {
       const card = document.createElement("div");
       const isSelected = game.selectedVotePlayerId === player.id;
       card.className = `vote-card ${isSelected ? "selected" : ""}`;
-      card.innerHTML = `
-        <div class="vote-avatar">${player.role.icon}</div>
-        <div class="vote-name">${player.name}</div>
-      `;
+
+      const avatar = document.createElement("div");
+      avatar.className = "vote-avatar";
+      avatar.textContent = player.role.icon;
+
+      const name = document.createElement("div");
+      name.className = "vote-name";
+      name.textContent = player.name;
+
+      card.append(avatar, name);
 
       card.addEventListener("click", () => {
         try { Sound.playClick(); } catch (e) {}
@@ -677,18 +724,31 @@ class LupusMasterUI {
         stepTitle.textContent = `⚖️ Nessun abitante è stato arso sul rogo!`;
       }
       if (stepDesc) {
-        stepDesc.innerHTML = `
-          Il Narratore annuncia ad alta voce: <em class="narrator-speech">'Il villaggio non ha raggiunto una condanna: parità di voti o clemenza! Nessun abitante viene bruciato oggi.'</em><br>
-          Restano <strong>${aliveCount}</strong> abitanti vivi (${aliveWolves} lup${aliveWolves === 1 ? 'o' : 'i'}).
-        `;
+        stepDesc.replaceChildren();
+        const speech = document.createElement("em");
+        speech.className = "narrator-speech";
+        speech.textContent = "'Il villaggio non ha raggiunto una condanna: parità di voti o clemenza! Nessun abitante viene bruciato oggi.'";
+
+        const strongAlive = document.createElement("strong");
+        strongAlive.textContent = String(aliveCount);
+
+        stepDesc.append(
+          "Il Narratore annuncia ad alta voce: ", speech, document.createElement("br"),
+          "Restano ", strongAlive, ` abitanti vivi (${aliveWolves} lup${aliveWolves === 1 ? 'o' : 'i'}).`
+        );
       }
       if (resultText) {
-        resultText.innerHTML = `
-          ⚖️ <strong>Nessun giocatore è stato eliminato al rogo.</strong><br>
-          <span style="font-size: 0.88rem; color: #94a3b8; font-weight: 500;">
-            Tutti gli abitanti chiudono gli occhi. È ora di iniziare il prossimo round notturno.
-          </span>
-        `;
+        resultText.replaceChildren();
+        const strongNone = document.createElement("strong");
+        strongNone.textContent = "Nessun giocatore è stato eliminato al rogo.";
+
+        const subSpan = document.createElement("span");
+        subSpan.style.fontSize = "0.88rem";
+        subSpan.style.color = "#94a3b8";
+        subSpan.style.fontWeight = "500";
+        subSpan.textContent = "Tutti gli abitanti chiudono gli occhi. È ora di iniziare il prossimo round notturno.";
+
+        resultText.append("⚖️ ", strongNone, document.createElement("br"), subSpan);
       }
     } else {
       const sfx = condemned.name.endsWith("a") ? "a" : "o";
@@ -704,29 +764,66 @@ class LupusMasterUI {
         stepTitle.textContent = `🔥 ${condemned.name} è stat${sfx} arso sul rogo!`;
       }
       if (stepDesc) {
-        let loverHtml = "";
+        stepDesc.replaceChildren();
+        const speech = document.createElement("em");
+        speech.className = "narrator-speech";
+        speech.textContent = `'La sentenza del villaggio è compiuta! ${condemned.name} è stat${sfx} condannat${sfx} al rogo!'`;
+
+        const strongName = document.createElement("strong");
+        strongName.textContent = condemned.name;
+
+        const strongRole = document.createElement("strong");
+        strongRole.textContent = condemned.role.name;
+
+        const strongAlive = document.createElement("strong");
+        strongAlive.textContent = String(aliveCount);
+
+        stepDesc.append(
+          "Il Narratore annuncia ad alta voce: ", speech, " L'identità di ",
+          strongName, " è svelata: era un ", strongRole, ` (${condemned.role.factionLabel}).`,
+          document.createElement("br")
+        );
+
         if (partnerLover) {
-          loverHtml = `
-            <div style="margin-top: 10px; color: #f43f5e; font-weight: 700; background: rgba(244, 63, 94, 0.15); border: 1px solid rgba(244, 63, 94, 0.35); padding: 8px 12px; border-radius: var(--radius-sm);">
-              💔 <strong>${partnerLover.name}</strong> (${partnerLover.role.name}) muore all'istante di crepacuore per la perdita dell'innamorato!
-            </div>
-          `;
+          const loverDiv = document.createElement("div");
+          loverDiv.style.marginTop = "10px";
+          loverDiv.style.color = "#f43f5e";
+          loverDiv.style.fontWeight = "700";
+          loverDiv.style.background = "rgba(244, 63, 94, 0.15)";
+          loverDiv.style.border = "1px solid rgba(244, 63, 94, 0.35)";
+          loverDiv.style.padding = "8px 12px";
+          loverDiv.style.borderRadius = "var(--radius-sm)";
+          const strongLover = document.createElement("strong");
+          strongLover.textContent = partnerLover.name;
+          loverDiv.append("💔 ", strongLover, ` (${partnerLover.role.name}) muore all'istante di crepacuore per la perdita dell'innamorato!`);
+          stepDesc.append(loverDiv);
         }
-        stepDesc.innerHTML = `
-          Il Narratore annuncia ad alta voce: <em class="narrator-speech">'La sentenza del villaggio è compiuta! ${condemned.name} è stat${sfx} condannat${sfx} al rogo!'</em> L'identità di <strong>${condemned.name}</strong> è svelata: era un <strong>${condemned.role.name}</strong> (${condemned.role.factionLabel}).<br>
-          ${loverHtml}
-          Il villaggio non è ancora salvo! Restano <strong>${aliveCount}</strong> abitanti vivi (${aliveWolves} lup${aliveWolves === 1 ? 'o' : 'i'}).
-        `;
+
+        stepDesc.append(`Il villaggio non è ancora salvo! Restano `, strongAlive, ` abitanti vivi (${aliveWolves} lup${aliveWolves === 1 ? 'o' : 'i'}).`);
       }
 
       if (resultText) {
-        let loverNote = partnerLover ? `<br><span style="color: #f43f5e; font-weight: 700;">💔 Anche ${partnerLover.name} (${partnerLover.role.name}) muore di crepacuore!</span>` : "";
-        resultText.innerHTML = `
-          🔥 <strong>${condemned.name}</strong> (${condemned.role.name}) è fuori dal gioco.${loverNote}<br>
-          <span style="font-size: 0.88rem; color: #94a3b8; font-weight: 500;">
-            Tutti gli abitanti chiudono gli occhi. È ora di iniziare il prossimo round notturno.
-          </span>
-        `;
+        resultText.replaceChildren();
+        const strongCondemned = document.createElement("strong");
+        strongCondemned.textContent = condemned.name;
+        resultText.append("🔥 ", strongCondemned, ` (${condemned.role.name}) è fuori dal gioco.`);
+
+        if (partnerLover) {
+          resultText.append(document.createElement("br"));
+          const spanLover = document.createElement("span");
+          spanLover.style.color = "#f43f5e";
+          spanLover.style.fontWeight = "700";
+          spanLover.textContent = `💔 Anche ${partnerLover.name} (${partnerLover.role.name}) muore di crepacuore!`;
+          resultText.append(spanLover);
+        }
+
+        resultText.append(document.createElement("br"));
+        const subSpan = document.createElement("span");
+        subSpan.style.fontSize = "0.88rem";
+        subSpan.style.color = "#94a3b8";
+        subSpan.style.fontWeight = "500";
+        subSpan.textContent = "Tutti gli abitanti chiudono gli occhi. È ora di iniziare il prossimo round notturno.";
+        resultText.append(subSpan);
       }
     }
 
@@ -807,37 +904,7 @@ class LupusMasterUI {
 
     if (gameoverWidget && gameoverContent) {
       gameoverWidget.style.display = "block";
-
-      let playersHtml = "";
-      game.assignments.forEach(p => {
-        const isDead = !p.isAlive;
-        const statusClass = isDead ? "dead" : "alive";
-        const statusBadge = isDead ? "🔴 Morto" : "🟢 Sopravvissuto";
-        const badgeClass = isDead ? "dead-badge" : "alive-badge";
-        const factionColor = p.role.color || "#eab308";
-
-        let extraBadge = "";
-        if (isGiullareWin && p.roleKey === "giullare") {
-          extraBadge = `<span style="font-size: 0.72rem; color: #f59e0b; font-weight: 800; margin-left: 6px;">🃏 VINCITORE SOLITARIO!</span>`;
-        } else if (isLupoBiancoWin && p.roleKey === "lupo_bianco") {
-          extraBadge = `<span style="font-size: 0.72rem; color: #38bdf8; font-weight: 800; margin-left: 6px;">🐺❄️ VINCITORE SOLITARIO!</span>`;
-        } else if (isWolvesWin && p.roleKey === "infiltrato") {
-          extraBadge = `<span style="font-size: 0.72rem; color: #ef4444; font-weight: 800; margin-left: 6px;">${p.isTransformed ? '🐺 Lupo Mannaro Trasformato!' : '🐺🌕 Vince con i Lupi!'}</span>`;
-        }
-
-        playersHtml += `
-          <div class="lupus-gameover-player ${statusClass}">
-            <div class="gameover-player-info">
-              <span style="font-size: 1.35rem; flex-shrink: 0; line-height: 1;">${p.role.icon}</span>
-              <div class="gameover-player-texts">
-                <div class="gameover-player-name">${p.name} ${extraBadge}</div>
-                <div class="gameover-player-role" style="color: ${factionColor};">${p.role.name} (${p.role.factionLabel})</div>
-              </div>
-            </div>
-            <span class="role-badge ${badgeClass}">${statusBadge}</span>
-          </div>
-        `;
-      });
+      gameoverContent.replaceChildren();
 
       let headline = "TRIONFO DEL VILLAGGIO";
       let headlineColor = "#10b981";
@@ -871,55 +938,158 @@ class LupusMasterUI {
         victoryDesc = "I Lupi Mannari eguagliano o superano i cittadini rimasti in vita. Il villaggio è caduto per sempre nelle loro fauci!";
       }
 
-      gameoverContent.innerHTML = `
-        <div class="lupus-gameover-box ${boxThemeClass}">
-          <div class="gameover-emoji">${victoryEmoji}</div>
-          <div class="gameover-headline" style="color: ${headlineColor};">${headline}</div>
-          <p class="gameover-desc">${victoryDesc}</p>
-          
-          <div style="font-size: 0.88rem; font-weight: 800; color: #cbd5e1; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px;">
-            Identità e Ruoli di Tutti i Giocatori:
-          </div>
-          <div class="lupus-gameover-players-list">
-            ${playersHtml}
-          </div>
+      const box = document.createElement("div");
+      box.className = `lupus-gameover-box ${boxThemeClass}`;
 
-          <div style="display: flex; gap: 10px; margin-top: 20px;">
-            <button type="button" class="btn btn-primary" id="lupus-endgame-restart-btn" style="flex: 1.2; font-weight: 800;">
-              🔄 Nuova Partita
-            </button>
-            <button type="button" class="btn btn-secondary btn-back-to-hub" style="flex: 1;">
-              ⬅️ Hub Giochi
-            </button>
-          </div>
+      const emojiDiv = document.createElement("div");
+      emojiDiv.className = "gameover-emoji";
+      emojiDiv.textContent = victoryEmoji;
 
-          <button type="button" class="btn btn-secondary" id="lupus-btn-open-chronicle" style="width: 100%; margin-top: 12px; font-weight: 800; background: rgba(56, 189, 248, 0.14); border: 1.5px solid #38bdf8; color: #e0f2fe; padding: 11px; border-radius: var(--radius-md); font-size: 0.92rem; cursor: pointer; transition: all 0.2s ease;">
-            📜 Visualizza Registro Completo delle Azioni (Cronistoria Segreta)
-          </button>
-        </div>
-      `;
+      const headDiv = document.createElement("div");
+      headDiv.className = "gameover-headline";
+      headDiv.style.color = headlineColor;
+      headDiv.textContent = headline;
 
-      const restartBtn = document.getElementById("lupus-endgame-restart-btn");
-      if (restartBtn) {
-        restartBtn.addEventListener("click", () => {
-          try { Sound.playClick(); } catch (e) {}
-          if (game.isP2PMode) {
-            if (window.LupusP2PGame) {
-              window.LupusP2PGame.hostPrepareRematch();
-            }
-            return;
+      const descP = document.createElement("p");
+      descP.className = "gameover-desc";
+      descP.textContent = victoryDesc;
+
+      const sectionTitle = document.createElement("div");
+      sectionTitle.style.fontSize = "0.88rem";
+      sectionTitle.style.fontWeight = "800";
+      sectionTitle.style.color = "#cbd5e1";
+      sectionTitle.style.marginBottom = "10px";
+      sectionTitle.style.textTransform = "uppercase";
+      sectionTitle.style.letterSpacing = "0.5px";
+      sectionTitle.textContent = "Identità e Ruoli di Tutti i Giocatori:";
+
+      const playersListContainer = document.createElement("div");
+      playersListContainer.className = "lupus-gameover-players-list";
+
+      game.assignments.forEach(p => {
+        const isDead = !p.isAlive;
+        const statusClass = isDead ? "dead" : "alive";
+        const statusBadge = isDead ? "🔴 Morto" : "🟢 Sopravvissuto";
+        const badgeClass = isDead ? "dead-badge" : "alive-badge";
+        const factionColor = p.role.color || "#eab308";
+
+        const row = document.createElement("div");
+        row.className = `lupus-gameover-player ${statusClass}`;
+
+        const info = document.createElement("div");
+        info.className = "gameover-player-info";
+
+        const iconSpan = document.createElement("span");
+        iconSpan.style.fontSize = "1.35rem";
+        iconSpan.style.flexShrink = "0";
+        iconSpan.style.lineHeight = "1";
+        iconSpan.textContent = p.role.icon;
+
+        const texts = document.createElement("div");
+        texts.className = "gameover-player-texts";
+
+        const nameDiv = document.createElement("div");
+        nameDiv.className = "gameover-player-name";
+        nameDiv.textContent = p.name;
+
+        if (isGiullareWin && p.roleKey === "giullare") {
+          const badge = document.createElement("span");
+          badge.style.fontSize = "0.72rem";
+          badge.style.color = "#f59e0b";
+          badge.style.fontWeight = "800";
+          badge.style.marginLeft = "6px";
+          badge.textContent = " 🃏 VINCITORE SOLITARIO!";
+          nameDiv.append(badge);
+        } else if (isLupoBiancoWin && p.roleKey === "lupo_bianco") {
+          const badge = document.createElement("span");
+          badge.style.fontSize = "0.72rem";
+          badge.style.color = "#38bdf8";
+          badge.style.fontWeight = "800";
+          badge.style.marginLeft = "6px";
+          badge.textContent = " 🐺❄️ VINCITORE SOLITARIO!";
+          nameDiv.append(badge);
+        } else if (isWolvesWin && p.roleKey === "infiltrato") {
+          const badge = document.createElement("span");
+          badge.style.fontSize = "0.72rem";
+          badge.style.color = "#ef4444";
+          badge.style.fontWeight = "800";
+          badge.style.marginLeft = "6px";
+          badge.textContent = p.isTransformed ? " 🐺 Lupo Mannaro Trasformato!" : " 🐺🌕 Vince con i Lupi!";
+          nameDiv.append(badge);
+        }
+
+        const roleDiv = document.createElement("div");
+        roleDiv.className = "gameover-player-role";
+        roleDiv.style.color = factionColor;
+        roleDiv.textContent = `${p.role.name} (${p.role.factionLabel})`;
+
+        texts.append(nameDiv, roleDiv);
+        info.append(iconSpan, texts);
+
+        const statusBadgeSpan = document.createElement("span");
+        statusBadgeSpan.className = `role-badge ${badgeClass}`;
+        statusBadgeSpan.textContent = statusBadge;
+
+        row.append(info, statusBadgeSpan);
+        playersListContainer.append(row);
+      });
+
+      const btnRow = document.createElement("div");
+      btnRow.style.display = "flex";
+      btnRow.style.gap = "10px";
+      btnRow.style.marginTop = "20px";
+
+      const restartBtn = document.createElement("button");
+      restartBtn.type = "button";
+      restartBtn.className = "btn btn-primary";
+      restartBtn.id = "lupus-endgame-restart-btn";
+      restartBtn.style.flex = "1.2";
+      restartBtn.style.fontWeight = "800";
+      restartBtn.textContent = "🔄 Nuova Partita";
+
+      const backHubBtn = document.createElement("button");
+      backHubBtn.type = "button";
+      backHubBtn.className = "btn btn-secondary btn-back-to-hub";
+      backHubBtn.style.flex = "1";
+      backHubBtn.textContent = "⬅️ Hub Giochi";
+
+      btnRow.append(restartBtn, backHubBtn);
+
+      const chronicleBtn = document.createElement("button");
+      chronicleBtn.type = "button";
+      chronicleBtn.className = "btn btn-secondary";
+      chronicleBtn.id = "lupus-btn-open-chronicle";
+      chronicleBtn.style.width = "100%";
+      chronicleBtn.style.marginTop = "12px";
+      chronicleBtn.style.fontWeight = "800";
+      chronicleBtn.style.background = "rgba(56, 189, 248, 0.14)";
+      chronicleBtn.style.border = "1.5px solid #38bdf8";
+      chronicleBtn.style.color = "#e0f2fe";
+      chronicleBtn.style.padding = "11px";
+      chronicleBtn.style.borderRadius = "var(--radius-md)";
+      chronicleBtn.style.fontSize = "0.92rem";
+      chronicleBtn.style.cursor = "pointer";
+      chronicleBtn.style.transition = "all 0.2s ease";
+      chronicleBtn.textContent = "📜 Visualizza Registro Completo delle Azioni (Cronistoria Segreta)";
+
+      restartBtn.addEventListener("click", () => {
+        try { Sound.playClick(); } catch (e) {}
+        if (game.isP2PMode) {
+          if (window.LupusP2PGame) {
+            window.LupusP2PGame.hostPrepareRematch();
           }
-          game.startGame();
-        });
-      }
+          return;
+        }
+        game.startGame();
+      });
 
-      const chronicleBtn = document.getElementById("lupus-btn-open-chronicle");
-      if (chronicleBtn) {
-        chronicleBtn.addEventListener("click", () => {
-          try { Sound.playClick(); } catch (e) {}
-          this.renderChronicleModal();
-        });
-      }
+      chronicleBtn.addEventListener("click", () => {
+        try { Sound.playClick(); } catch (e) {}
+        this.renderChronicleModal();
+      });
+
+      box.append(emojiDiv, headDiv, descP, sectionTitle, playersListContainer, btnRow, chronicleBtn);
+      gameoverContent.append(box);
 
       try {
         if (isVillageWin) {
@@ -950,122 +1120,220 @@ class LupusMasterUI {
       document.body.appendChild(modalEl);
     }
 
+    modalEl.replaceChildren();
+
+    const dialog = document.createElement("div");
+    dialog.className = "lupus-chronicle-dialog";
+
+    const header = document.createElement("div");
+    header.className = "lupus-chronicle-header";
+
+    const titlesDiv = document.createElement("div");
+    const mainTitle = document.createElement("div");
+    mainTitle.className = "chronicle-main-title";
+    mainTitle.textContent = "📜 Registro Completo delle Azioni (Cronistoria)";
+
+    const subTitle = document.createElement("div");
+    subTitle.className = "chronicle-sub-title";
+    subTitle.textContent = "Riepilogo segreto di tutte le notti, scelte dei personaggi, esiti all'Alba e votazioni al Rogo";
+
+    titlesDiv.append(mainTitle, subTitle);
+
+    const closeBtn = document.createElement("button");
+    closeBtn.type = "button";
+    closeBtn.className = "btn-chronicle-close";
+    closeBtn.id = "lupus-chronicle-close-btn";
+    closeBtn.setAttribute("aria-label", "Chiudi");
+    closeBtn.textContent = "✖️";
+
+    header.append(titlesDiv, closeBtn);
+
+    const body = document.createElement("div");
+    body.className = "lupus-chronicle-body";
+
     const log = game.matchLog || [];
-    let roundsHtml = "";
-
     if (log.length === 0) {
-      roundsHtml = `
-        <div style="text-align: center; padding: 30px; color: #94a3b8;">
-          Nessuna azione notturna registrata per questa partita.
-        </div>
-      `;
+      const emptyMsg = document.createElement("div");
+      emptyMsg.style.textAlign = "center";
+      emptyMsg.style.padding = "30px";
+      emptyMsg.style.color = "#94a3b8";
+      emptyMsg.textContent = "Nessuna azione notturna registrata per questa partita.";
+      body.append(emptyMsg);
     } else {
-      roundsHtml = log.map(round => {
-        const actionsHtml = round.actions.map(act => `
-          <div class="lupus-chronicle-action-item">
-            <span class="chronicle-action-icon">${act.icon}</span>
-            <div class="chronicle-action-text">
-              <div class="chronicle-action-title">${act.title}</div>
-              <div class="chronicle-action-detail">${act.detail}</div>
-            </div>
-          </div>
-        `).join("");
+      log.forEach(round => {
+        const roundCard = document.createElement("div");
+        roundCard.className = "lupus-chronicle-round-card";
 
-        const dawnEventsHtml = (round.dawnReport || []).map(ev => `
-          <div class="lupus-chronicle-dawn-item ${ev.type}">
-            <span style="font-size: 1.15rem; line-height: 1;">${ev.icon}</span>
-            <div>${ev.text}</div>
-          </div>
-        `).join("");
+        const roundHeader = document.createElement("div");
+        roundHeader.className = "lupus-chronicle-round-header";
+        const roundSpan = document.createElement("span");
+        roundSpan.textContent = `🌙 Round ${round.night} (Notte & Giorno)`;
+        roundHeader.append(roundSpan);
 
-        let rogoHtml = "";
+        // Actions section
+        const actionsBox = document.createElement("div");
+        actionsBox.className = "lupus-chronicle-section-box";
+        const actionsTitle = document.createElement("div");
+        actionsTitle.className = "chronicle-section-title";
+        actionsTitle.textContent = "🤫 Scelte & Azioni Notturne Segrete:";
+        const actionsList = document.createElement("div");
+        actionsList.className = "lupus-chronicle-actions-list";
+
+        if (round.actions && round.actions.length > 0) {
+          round.actions.forEach(act => {
+            const item = document.createElement("div");
+            item.className = "lupus-chronicle-action-item";
+
+            const iconSpan = document.createElement("span");
+            iconSpan.className = "chronicle-action-icon";
+            iconSpan.textContent = act.icon;
+
+            const textDiv = document.createElement("div");
+            textDiv.className = "chronicle-action-text";
+
+            const itemTitle = document.createElement("div");
+            itemTitle.className = "chronicle-action-title";
+            itemTitle.textContent = act.title;
+
+            const itemDetail = document.createElement("div");
+            itemDetail.className = "chronicle-action-detail";
+            itemDetail.textContent = act.detail;
+
+            textDiv.append(itemTitle, itemDetail);
+            item.append(iconSpan, textDiv);
+            actionsList.append(item);
+          });
+        } else {
+          const noAct = document.createElement("div");
+          noAct.style.color = "#94a3b8";
+          noAct.style.fontSize = "0.85rem";
+          noAct.textContent = "Nessuna azione notturna registrata.";
+          actionsList.append(noAct);
+        }
+        actionsBox.append(actionsTitle, actionsList);
+
+        // Dawn section
+        const dawnBox = document.createElement("div");
+        dawnBox.className = "lupus-chronicle-section-box dawn-box";
+        const dawnTitle = document.createElement("div");
+        dawnTitle.className = "chronicle-section-title";
+        dawnTitle.textContent = "🌅 Risoluzione all'Alba:";
+        const dawnList = document.createElement("div");
+        dawnList.className = "lupus-chronicle-dawn-list";
+
+        (round.dawnReport || []).forEach(ev => {
+          const evItem = document.createElement("div");
+          evItem.className = `lupus-chronicle-dawn-item ${ev.type}`;
+
+          const evIcon = document.createElement("span");
+          evIcon.style.fontSize = "1.15rem";
+          evIcon.style.lineHeight = "1";
+          evIcon.textContent = ev.icon;
+
+          const evText = document.createElement("div");
+          evText.textContent = ev.text;
+
+          evItem.append(evIcon, evText);
+          dawnList.append(evItem);
+        });
+        dawnBox.append(dawnTitle, dawnList);
+
+        roundCard.append(roundHeader, actionsBox, dawnBox);
+
+        // Rogo section
         if (round.rogo) {
+          const rogoBox = document.createElement("div");
+          rogoBox.className = "lupus-chronicle-section-box rogo-box";
+
           const condemned = round.rogo.condemned;
           const partner = round.rogo.partnerLover;
+
           if (condemned) {
+            const rogoTitle = document.createElement("div");
+            rogoTitle.className = "chronicle-section-title";
+            rogoTitle.textContent = `🔥 Sentenza del Rogo (Giorno ${round.night}):`;
+
+            const rogoItem = document.createElement("div");
+            rogoItem.className = "lupus-chronicle-rogo-item";
+
+            const fireIcon = document.createElement("span");
+            fireIcon.style.fontSize = "1.3rem";
+            fireIcon.textContent = "🔥";
+
+            const rogoTextDiv = document.createElement("div");
             const sfx = condemned.name.endsWith('a') ? 'a' : 'o';
-            rogoHtml = `
-              <div class="lupus-chronicle-section-box rogo-box">
-                <div class="chronicle-section-title">🔥 Sentenza del Rogo (Giorno ${round.night}):</div>
-                <div class="lupus-chronicle-rogo-item">
-                  <span style="font-size: 1.3rem;">🔥</span>
-                  <div>
-                    <strong>${condemned.name}</strong> è stat${sfx} condannat${sfx} al rogo dal villaggio!
-                    <div style="color: #cbd5e1; font-size: 0.82rem; margin-top: 2px;">Ruolo Svelato: <strong>${condemned.roleName}</strong> (${condemned.factionLabel})</div>
-                  </div>
-                </div>
-                ${partner ? `
-                  <div class="lupus-chronicle-rogo-item lover-death">
-                    <span style="font-size: 1.3rem;">💔</span>
-                    <div>
-                      <strong>${partner.name}</strong> (${partner.roleName}) muore all'istante di crepacuore per la perdita dell'innamorato!
-                    </div>
-                  </div>
-                ` : ""}
-              </div>
-            `;
+            const strongName = document.createElement("strong");
+            strongName.textContent = condemned.name;
+
+            const roleSubDiv = document.createElement("div");
+            roleSubDiv.style.color = "#cbd5e1";
+            roleSubDiv.style.fontSize = "0.82rem";
+            roleSubDiv.style.marginTop = "2px";
+            const strongRole = document.createElement("strong");
+            strongRole.textContent = condemned.roleName;
+            roleSubDiv.append("Ruolo Svelato: ", strongRole, ` (${condemned.factionLabel})`);
+
+            rogoTextDiv.append(strongName, ` è stat${sfx} condannat${sfx} al rogo dal villaggio!`, roleSubDiv);
+            rogoItem.append(fireIcon, rogoTextDiv);
+            rogoBox.append(rogoTitle, rogoItem);
+
+            if (partner) {
+              const loverItem = document.createElement("div");
+              loverItem.className = "lupus-chronicle-rogo-item lover-death";
+
+              const heartIcon = document.createElement("span");
+              heartIcon.style.fontSize = "1.3rem";
+              heartIcon.textContent = "💔";
+
+              const loverTextDiv = document.createElement("div");
+              const strongPartner = document.createElement("strong");
+              strongPartner.textContent = partner.name;
+              loverTextDiv.append(strongPartner, ` (${partner.roleName}) muore all'istante di crepacuore per la perdita dell'innamorato!`);
+
+              loverItem.append(heartIcon, loverTextDiv);
+              rogoBox.append(loverItem);
+            }
           } else {
-            rogoHtml = `
-              <div class="lupus-chronicle-section-box rogo-box">
-                <div class="chronicle-section-title">⚖️ Delibera del Giorno ${round.night}:</div>
-                <div class="lupus-chronicle-rogo-item">
-                  <span style="font-size: 1.3rem;">⚖️</span>
-                  <div>
-                    <strong>Nessun abitante arso sul rogo</strong> (Parità di voti o clemenza del villaggio).
-                  </div>
-                </div>
-              </div>
-            `;
+            const rogoTitle = document.createElement("div");
+            rogoTitle.className = "chronicle-section-title";
+            rogoTitle.textContent = `⚖️ Delibera del Giorno ${round.night}:`;
+
+            const rogoItem = document.createElement("div");
+            rogoItem.className = "lupus-chronicle-rogo-item";
+
+            const scaleIcon = document.createElement("span");
+            scaleIcon.style.fontSize = "1.3rem";
+            scaleIcon.textContent = "⚖️";
+
+            const rogoTextDiv = document.createElement("div");
+            const strongNo = document.createElement("strong");
+            strongNo.textContent = "Nessun abitante arso sul rogo";
+            rogoTextDiv.append(strongNo, " (Parità di voti o clemenza del villaggio).");
+
+            rogoItem.append(scaleIcon, rogoTextDiv);
+            rogoBox.append(rogoTitle, rogoItem);
           }
+          roundCard.append(rogoBox);
         }
 
-        return `
-          <div class="lupus-chronicle-round-card">
-            <div class="lupus-chronicle-round-header">
-              <span>🌙 Round ${round.night} (Notte & Giorno)</span>
-            </div>
-            
-            <div class="lupus-chronicle-section-box">
-              <div class="chronicle-section-title">🤫 Scelte & Azioni Notturne Segrete:</div>
-              <div class="lupus-chronicle-actions-list">
-                ${actionsHtml || '<div style="color: #94a3b8; font-size: 0.85rem;">Nessuna azione notturna registrata.</div>'}
-              </div>
-            </div>
-
-            <div class="lupus-chronicle-section-box dawn-box">
-              <div class="chronicle-section-title">🌅 Risoluzione all'Alba:</div>
-              <div class="lupus-chronicle-dawn-list">
-                ${dawnEventsHtml}
-              </div>
-            </div>
-
-            ${rogoHtml}
-          </div>
-        `;
-      }).join("");
+        body.append(roundCard);
+      });
     }
 
-    modalEl.innerHTML = `
-      <div class="lupus-chronicle-dialog">
-        <div class="lupus-chronicle-header">
-          <div>
-            <div class="chronicle-main-title">📜 Registro Completo delle Azioni (Cronistoria)</div>
-            <div class="chronicle-sub-title">Riepilogo segreto di tutte le notti, scelte dei personaggi, esiti all'Alba e votazioni al Rogo</div>
-          </div>
-          <button type="button" class="btn-chronicle-close" id="lupus-chronicle-close-btn" aria-label="Chiudi">✖️</button>
-        </div>
-        
-        <div class="lupus-chronicle-body">
-          ${roundsHtml}
-        </div>
+    const footer = document.createElement("div");
+    footer.className = "lupus-chronicle-footer";
 
-        <div class="lupus-chronicle-footer">
-          <button type="button" class="btn btn-secondary" id="lupus-chronicle-bottom-close-btn" style="width: 100%; font-weight: 700;">
-            Chiudi Cronistoria ✖️
-          </button>
-        </div>
-      </div>
-    `;
+    const bottomCloseBtn = document.createElement("button");
+    bottomCloseBtn.type = "button";
+    bottomCloseBtn.className = "btn btn-secondary";
+    bottomCloseBtn.id = "lupus-chronicle-bottom-close-btn";
+    bottomCloseBtn.style.width = "100%";
+    bottomCloseBtn.style.fontWeight = "700";
+    bottomCloseBtn.textContent = "Chiudi Cronistoria ✖️";
+    footer.append(bottomCloseBtn);
+
+    dialog.append(header, body, footer);
+    modalEl.append(dialog);
 
     modalEl.style.display = "flex";
 
@@ -1074,12 +1342,8 @@ class LupusMasterUI {
       modalEl.style.display = "none";
     };
 
-    const closeBtn = modalEl.querySelector("#lupus-chronicle-close-btn");
-    if (closeBtn) closeBtn.addEventListener("click", closeHandler);
-
-    const bottomCloseBtn = modalEl.querySelector("#lupus-chronicle-bottom-close-btn");
-    if (bottomCloseBtn) bottomCloseBtn.addEventListener("click", closeHandler);
-
+    closeBtn.addEventListener("click", closeHandler);
+    bottomCloseBtn.addEventListener("click", closeHandler);
     modalEl.onclick = (e) => {
       if (e.target === modalEl) closeHandler();
     };
