@@ -9,6 +9,7 @@ const INFILTRATO_CONFIG = {
 };
 
 const LUPUS_IMG_DIR = (typeof window !== "undefined" && window.location.pathname.includes("/games/lupus/")) ? "img/" : "games/lupus/img/";
+const LUPUS_IMG_EXT = ".webp";
 
 const LUPUS_ROLES = {
   lupo: {
@@ -17,7 +18,7 @@ const LUPUS_ROLES = {
     faction: "lupi",
     factionLabel: "Branco dei Lupi 🐺",
     icon: "🐺",
-    image: LUPUS_IMG_DIR + "lupo.jpg",
+    image: LUPUS_IMG_DIR + "lupo" + LUPUS_IMG_EXT,
     color: "#ff2a5f",
     description: "Ogni notte ti svegli insieme agli altri Lupi per scegliere una vittima da sbranare. Di giorno, bluffa e confondi il villaggio per non farti mandare al rogo!",
     nightAction: "I Lupi aprono gli occhi insieme, si coordinano silenziosamente e indicano la vittima al Narratore."
@@ -28,7 +29,7 @@ const LUPUS_ROLES = {
     faction: "villaggio",
     factionLabel: "Villaggio 🔮",
     icon: "🔮",
-    image: LUPUS_IMG_DIR + "veggente.jpg",
+    image: LUPUS_IMG_DIR + "veggente" + LUPUS_IMG_EXT,
     color: "#a855f7",
     description: "Ogni notte puoi interrogare il Narratore su un giocatore per scoprire se appartiene al Branco dei Lupi o agli innocenti. Guida il villaggio senza esporti troppo!",
     nightAction: "Il Veggente apre gli occhi e indica un giocatore. Il Narratore annuisce (Lupo) o scuote la testa (Non Lupo)."
@@ -39,7 +40,7 @@ const LUPUS_ROLES = {
     faction: "villaggio",
     factionLabel: "Villaggio 🛡️",
     icon: "🛡️",
-    image: LUPUS_IMG_DIR + "guardia.jpg",
+    image: LUPUS_IMG_DIR + "guardia" + LUPUS_IMG_EXT,
     color: "#3b82f6",
     description: "Ogni notte indichi un giocatore (puoi scegliere anche te stesso) per proteggerlo con il suo scudo. Se i Lupi (incluso il Lupo Bianco) lo attaccano, sopravviverà!",
     nightAction: "La Guardia apre gli occhi e indica chi proteggere per la notte. Lo scudo difende da tutti gli attacchi dei lupi."
@@ -50,7 +51,7 @@ const LUPUS_ROLES = {
     faction: "villaggio",
     factionLabel: "Villaggio 🧙‍♀️",
     icon: "🧙‍♀️",
-    image: LUPUS_IMG_DIR + "strega.jpg",
+    image: LUPUS_IMG_DIR + "strega" + LUPUS_IMG_EXT,
     color: "#10b981",
     description: "Possiedi 2 potenti pozioni monouso per partita: la Pozione di Vita per salvare chiunque tu scelga, e la Pozione di Morte per avvelenare un sospettato. Puoi usare al massimo 1 sola pozione a notte!",
     nightAction: "La Strega decide se usare la Pozione di Vita oppure la Pozione di Morte (massimo 1 pozione a notte)."
@@ -61,7 +62,7 @@ const LUPUS_ROLES = {
     faction: "villaggio",
     factionLabel: "Villaggio 💘",
     icon: "💘",
-    image: LUPUS_IMG_DIR + "cupido.jpg",
+    image: LUPUS_IMG_DIR + "cupido" + LUPUS_IMG_EXT,
     color: "#f43f5e",
     description: "Solo la Prima Notte, scagli le tue frecce su due giocatori legandoli nel destino. Se uno dei due muore in qualunque momento (notte o giorno), l'altro muore all'istante di crepacuore! Non esiste condizione di vittoria della coppia: muoiono semplicemente insieme.",
     nightAction: "Cupido apre gli occhi solo la prima notte e sceglie 2 giocatori da innamorare toccando loro la spalla."
@@ -72,7 +73,7 @@ const LUPUS_ROLES = {
     faction: "villaggio",
     factionLabel: "Villaggio 💃",
     icon: "💃",
-    image: LUPUS_IMG_DIR + "donna.jpg",
+    image: LUPUS_IMG_DIR + "donna" + LUPUS_IMG_EXT,
     color: "#ec4899",
     description: "Ogni notte scegli un abitante da visitare per rifugiarti a casa sua. Se visiti un Lupo muori sbranata! Se i lupi attaccano te sei salva (non eri a casa), ma se sbranano il tuo ospite morite entrambi!",
     nightAction: "La Donna apre gli occhi e indica con chi trascorrerà la notte."
@@ -83,7 +84,7 @@ const LUPUS_ROLES = {
     faction: "villaggio",
     factionLabel: "Villaggio 👨‍🌾",
     icon: "👨‍🌾",
-    image: LUPUS_IMG_DIR + "contadino.jpg",
+    image: LUPUS_IMG_DIR + "contadino" + LUPUS_IMG_EXT,
     color: "#eab308",
     description: "Non hai poteri notturni speciali. La tua forza risiede nella deduzione, nell'osservazione e nel voto diurno per mandare al rogo i Lupi Mannari!",
     nightAction: "I Contadini dormono sonni profondi durante tutta la notte."
@@ -94,7 +95,7 @@ const LUPUS_ROLES = {
     faction: "solitario",
     factionLabel: "Fazione Solitaria 🃏",
     icon: "🃏",
-    image: LUPUS_IMG_DIR + "giullare.jpg",
+    image: LUPUS_IMG_DIR + "giullare" + LUPUS_IMG_EXT,
     color: "#f59e0b",
     description: "Il generatore di caos per eccellenza! Non appartieni a nessuna fazione e vinci UNICAMENTE se riesci a farti condannare al rogo dal villaggio. Comportati in modo ambiguo, semina il dubbio e fatti bruciare!",
     nightAction: "Il Giullare dorme sonni tranquilli tutta la notte sognando il suo rogo trionfale."
@@ -105,7 +106,7 @@ const LUPUS_ROLES = {
     faction: "lupi",
     factionLabel: "Branco dei Lupi 🐺🌕",
     icon: "🐺🌕",
-    image: LUPUS_IMG_DIR + "lupo_mannaro.jpg",
+    image: LUPUS_IMG_DIR + "lupo_mannaro" + LUPUS_IMG_EXT,
     color: "#ef4444",
     description: "Umano affetto da licantropia latente! Dormi con gli umani: al Veggente appari Non Lupo e, se muori prima di trasformarti, anche al Beccamorto appari con copertura da Contadino! Ma ogni notte il dado della Luna Piena può trasformarti per sempre in un vero Lupo del branco.",
     nightAction: "Ogni notte viene lanciato il dado della Luna Piena: se si trasforma, diventa per sempre un Lupo a tutti gli effetti (non può più tornare umano)."
@@ -116,7 +117,7 @@ const LUPUS_ROLES = {
     faction: "solitario",
     factionLabel: "Fazione Solitaria 🐺❄️",
     icon: "🐺❄️",
-    image: LUPUS_IMG_DIR + "lupo_bianco.jpg",
+    image: LUPUS_IMG_DIR + "lupo_bianco" + LUPUS_IMG_EXT,
     color: "#38bdf8",
     description: "Ti svegli ogni notte con il branco e fingi alleanza. A notti alterne (notte 2, 4, 6...), però, ti svegli una seconda volta da solo e puoi sbranare uno degli altri lupi! Vinci SOLO se resti l'ultimo e unico sopravvissuto della partita.",
     nightAction: "Si sveglia con il branco per scegliere la vittima del villaggio. A notti alterne (pari) si sveglia da solo e può eliminare un compagno lupo."
@@ -127,7 +128,7 @@ const LUPUS_ROLES = {
     faction: "lupi",
     factionLabel: "Branco dei Lupi 🐺🔮",
     icon: "🐺🔮",
-    image: LUPUS_IMG_DIR + "lupo_stregone.jpg",
+    image: LUPUS_IMG_DIR + "lupo_stregone" + LUPUS_IMG_EXT,
     color: "#9333ea",
     description: "Ti svegli con il branco dei Lupi ogni notte. Subito dopo, ti svegli da solo e puoi scagliare la tua maledizione: indica un abitante al Narratore. Se quel giocatore ha un potere notturno attivo (Guardia, Veggente, Strega, Beccamorto, Necromante), il suo potere sarà bloccato per questa notte!",
     nightAction: "Si sveglia con i lupi. Subito dopo apre gli occhi da solo e indica un giocatore per bloccarne il potere notturno se attivo."
@@ -138,7 +139,7 @@ const LUPUS_ROLES = {
     faction: "villaggio",
     factionLabel: "Villaggio ⚰️",
     icon: "⚰️",
-    image: LUPUS_IMG_DIR + "beccamorto.jpg",
+    image: LUPUS_IMG_DIR + "beccamorto" + LUPUS_IMG_EXT,
     color: "#64748b",
     description: "I morti ti parlano nel silenzio del cimitero. Dalla Notte 2 in poi, ogni notte il Narratore ti sveglia e puoi scoprire l'identità di un solo morto alla volta. Vede il ruolo reale del caduto, tranne per l'Infiltrato non trasformato che mantiene la copertura da Contadino!",
     nightAction: "Dalla Notte 2 in poi, il Beccamorto apre gli occhi e indica un solo morto del cimitero. Il Narratore gli mostra la carta o mima il ruolo del prescelto (massimo 1 a notte)."
@@ -149,7 +150,7 @@ const LUPUS_ROLES = {
     faction: "villaggio",
     factionLabel: "Villaggio 🤡",
     icon: "🤡",
-    image: LUPUS_IMG_DIR + "idiota.jpg",
+    image: LUPUS_IMG_DIR + "idiota" + LUPUS_IMG_EXT,
     color: "#14b8a6",
     description: "Sei un membro innocente del Villaggio, ma i tuoi modi stralunati ingannano le visioni mistiche: se il Veggente ti scruta di notte, il Narratore gli risponderà falsamente che sei un LUPO! Difenditi dal rogo!",
     nightAction: "L'Idiota dorme sonni beati. Al Veggente risulterà falsamente come 'Lupo'."
@@ -160,7 +161,7 @@ const LUPUS_ROLES = {
     faction: "lupi",
     factionLabel: "Branco dei Lupi 🐕‍🦺",
     icon: "🐕‍🦺",
-    image: LUPUS_IMG_DIR + "cane_nero.jpg",
+    image: LUPUS_IMG_DIR + "cane_nero" + LUPUS_IMG_EXT,
     color: "#dc2626",
     description: "Sei un feroce Lupo Mannaro sotto le sembianze di un fedele segugio nero. Ti svegli ogni notte con il branco per scegliere la vittima. La tua abilità illusoria: al Veggente risulti insospettabile come 'NON Lupo'!",
     nightAction: "Si sveglia con il branco dei lupi ogni notte. Se il Veggente lo scruta, il Narratore risponde che è 'Non Lupo'."
@@ -171,14 +172,38 @@ const LUPUS_ROLES = {
     faction: "villaggio",
     factionLabel: "Villaggio 🕯️💀",
     icon: "🕯️💀",
-    image: LUPUS_IMG_DIR + "necromante.jpg",
+    image: LUPUS_IMG_DIR + "necromante" + LUPUS_IMG_EXT,
     color: "#8b5cf6",
     description: "Padrone dei misteri della morte, fedele al Villaggio. Una sola volta in tutta la partita, a partire dalla Notte 2, puoi richiamare dall'oltretomba un qualsiasi defunto del cimitero per farlo risorgere all'alba tra i vivi! Attento: se resusciti un Lupo per sbaglio, tornerà a sbranare col branco.",
     nightAction: "Dalla Notte 2 in poi, il Necromante apre gli occhi ed ha 1 sola opportunità per partita di indicare un defunto del cimitero e farlo resuscitare."
   }
 };
 
+/**
+ * Precarica tutte le carte ruolo in memoria/cache browser all'avvio.
+ * @returns {Promise<string[]>}
+ */
+function preloadLupusImages() {
+  if (typeof window === "undefined") return Promise.resolve([]);
+  const urls = Object.values(LUPUS_ROLES).map(r => r.image).filter(Boolean);
+  return Promise.all(urls.map(url => {
+    return new Promise(resolve => {
+      const img = new Image();
+      img.onload = img.onerror = () => resolve(url);
+      img.src = url;
+    });
+  }));
+}
+
 if (typeof window !== "undefined") {
   window.INFILTRATO_CONFIG = INFILTRATO_CONFIG;
   window.LUPUS_ROLES = LUPUS_ROLES;
+  window.preloadLupusImages = preloadLupusImages;
+
+  // Avvia precaricamento automatico in background non appena il DOM è pronto
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", preloadLupusImages);
+  } else {
+    preloadLupusImages();
+  }
 }

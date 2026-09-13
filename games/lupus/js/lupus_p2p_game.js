@@ -1031,7 +1031,7 @@ class LupusP2PController {
     if (roleDesc) roleDesc.textContent = role.description;
 
     if (roleImg) {
-      roleImg.src = role.image || `img/${data.roleKey}.jpg`;
+      roleImg.src = role.image || `img/${data.roleKey}.webp`;
       roleImg.alt = role.name;
     }
 
@@ -1100,7 +1100,7 @@ class LupusP2PController {
     const alliesBox = document.getElementById("lupus-p2p-review-allies-box");
     const alliesList = document.getElementById("lupus-p2p-review-allies-list");
 
-    if (img) img.src = role.image || `img/${data.roleKey}.jpg`;
+    if (img) img.src = role.image || `img/${data.roleKey}.webp`;
     if (faction) {
       faction.textContent = role.faction === "lupi"
         ? "Branco dei Lupi 🐺"
