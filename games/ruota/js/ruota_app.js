@@ -6,6 +6,9 @@
  * e l'esperienza immersiva per i concorrenti.
  */
 
+const RUOTA_VOWEL_COST = 500;
+const RUOTA_VOWELS = new Set(["A", "E", "I", "O", "U"]);
+
 class RuotaApp {
   constructor() {
     this.board = null;
@@ -201,6 +204,11 @@ class RuotaApp {
       } else {
         this.spinWheel();
       }
+    });
+
+    // Pulsante Compra Vocale (-500 pt)
+    document.getElementById("btn-buy-vowel")?.addEventListener("click", () => {
+      this.handleBuyVowelClick();
     });
 
     // Pulsante Dai la Soluzione
@@ -500,22 +508,90 @@ class RuotaApp {
   // CHIAMATA LETTERE & ILLUMINAZIONE TABELLONE TV
   // =========================================================================
 
-  handleKeyClick(letter) {
-    if (this.turnState !== "awaiting_letter") return;
+  handleBuyVowelClick() {
+    if (!this.roundActive) return;
+    const isMyTurn = this.isLocal || (this.p2p.room && this.p2p.isMyTurn()) || (this.isHost && this.players.length === 1);
+    if (!isMyTurn) return;
 
-    // Se P2P client e non è il mio turno, ignora
-    if (!this.isLocal && !this.p2p.isMyTurn()) return;
+    const active = this.getActivePlayer();
+    if (!active || (active.roundScore || 0) < RUOTA_VOWEL_COST) {
+      if (window.RuotaSound) window.RuotaSound.playBuzzer();
+      this.setStatusMessage(`Non hai abbastanza punti per comprare una vocale! Costo: ${RUOTA_VOWEL_COST} pt. Punti attuali: ${active ? (active.roundScore || 0) : 0} pt.`);
+      return;
+    }
+
+    this.turnState = "awaiting_vowel";
+    this.updateControlsForTurn();
+    this.setStatusMessage(`🛒 Scegli quale vocale comprare (A, E, I, O, U) al costo di ${RUOTA_VOWEL_COST} pt. Ricorda: la vocale costa e non fa guadagnare punti!`);
+  }
+
+  handleKeyClick(letter) {
+    const isMyTurn = this.isLocal || (this.p2p.room && this.p2p.isMyTurn()) || (this.isHost && this.players.length === 1);
+    if (!isMyTurn || !this.roundActive) return;
+
+    const upper = letter.toUpperCase();
+    const isVowel = RUOTA_VOWELS.has(upper);
+    const active = this.getActivePlayer();
+
+    if (isVowel) {
+      // Le vocali non si possono chiamare dopo lo spin (dopo lo spin si chiama una consonante)
+      if (this.turnState === "awaiting_letter") {
+        if (window.RuotaSound) window.RuotaSound.playBuzzer();
+        this.setStatusMessage(`Hai girato la ruota: devi chiamare una CONSONANTE! Le vocali si comprano a parte.`);
+        return;
+      }
+
+      if (this.turnState !== "awaiting_spin" && this.turnState !== "awaiting_vowel") {
+        return;
+      }
+
+      // Controllo disponibilità punti
+      if (!active || (active.roundScore || 0) < RUOTA_VOWEL_COST) {
+        if (window.RuotaSound) window.RuotaSound.playBuzzer();
+        this.setStatusMessage(`Punti insufficienti per comprare la vocale "${upper}"! Costo: ${RUOTA_VOWEL_COST} pt. Punti attuali: ${active ? (active.roundScore || 0) : 0} pt.`);
+        return;
+      }
+
+      if (this.p2p.room && !this.p2p.isHost) {
+        this.p2p.sendCallLetter(upper);
+      } else {
+        this.callLetter(upper);
+      }
+      return;
+    }
+
+    // Se è consonante:
+    if (this.turnState === "awaiting_vowel") {
+      this.setStatusMessage(`Sei in modalità acquisto vocale! Seleziona A, E, I, O oppure U.`);
+      return;
+    }
+
+    if (this.turnState !== "awaiting_letter") {
+      this.setStatusMessage(`Gira prima la ruota per chiamare una consonante!`);
+      return;
+    }
 
     if (this.p2p.room && !this.p2p.isHost) {
-      this.p2p.sendCallLetter(letter);
+      this.p2p.sendCallLetter(upper);
     } else {
-      this.callLetter(letter);
+      this.callLetter(upper);
     }
   }
 
   callLetter(letter) {
     const upper = letter.toUpperCase();
     if (this.usedLetters[upper]) return;
+
+    const isVowel = RUOTA_VOWELS.has(upper);
+    const active = this.getActivePlayer();
+
+    // Se è vocale: ADDEBITA IL COSTO (la vocale costa, non fa guadagnare!)
+    if (isVowel) {
+      if (active) {
+        active.roundScore = Math.max(0, (active.roundScore || 0) - RUOTA_VOWEL_COST);
+      }
+      this.updateScoreboardUI();
+    }
 
     this.turnState = "revealing";
     this.updateControlsForTurn();
@@ -533,22 +609,30 @@ class RuotaApp {
       }
 
       if (result.found > 0) {
-        // Punti assegnati
-        const pointsPerLetter = this.currentWedge ? this.currentWedge.value : 100;
-        const totalEarned = pointsPerLetter * result.found;
-        const active = this.getActivePlayer();
-        if (active) {
-          active.roundScore = (active.roundScore || 0) + totalEarned;
+        if (isVowel) {
+          // LA VOCALE NON FA GUADAGNARE PUNTI!
+          this.setStatusMessage(`🛒 ${this.getActivePlayerName()} ha comprato la vocale "${upper}" (-${RUOTA_VOWEL_COST} pt)! Ci sono ${result.found} lettere sul tabellone. Può girare, comprare un'altra vocale o dare la soluzione!`);
+        } else {
+          // CONSONANTE: Punti guadagnati = spicchio × occorrenze
+          const pointsPerLetter = this.currentWedge ? this.currentWedge.value : 100;
+          const totalEarned = pointsPerLetter * result.found;
+          if (active) {
+            active.roundScore = (active.roundScore || 0) + totalEarned;
+          }
+          this.updateScoreboardUI();
+          this.setStatusMessage(`Splendido! Ci sono ${result.found} lettere "${upper}" (+${totalEarned} pt)! ${this.getActivePlayerName()} può girare ancora, comprare una vocale o dare la soluzione!`);
         }
-        this.updateScoreboardUI();
 
-        this.setStatusMessage(`Splendido! Ci sono ${result.found} lettere "${upper}" (+${totalEarned} pt)! ${this.getActivePlayerName()} può girare ancora o dare la soluzione!`);
         this.turnState = "awaiting_spin";
         this.updateControlsForTurn();
       } else {
         // Nessuna lettera presente
-        this.setStatusMessage(`Nessuna lettera "${upper}" presente sul tabellone! Turno perso.`);
-        setTimeout(() => this.passTurn(), 1600);
+        if (isVowel) {
+          this.setStatusMessage(`La vocale "${upper}" non è presente sul tabellone! -${RUOTA_VOWEL_COST} pt spesi e turno perso.`);
+        } else {
+          this.setStatusMessage(`Nessuna lettera "${upper}" presente sul tabellone! Turno perso.`);
+        }
+        setTimeout(() => this.passTurn(), 1800);
       }
 
       if (this.p2p.isHost) {
@@ -785,20 +869,47 @@ class RuotaApp {
   updateControlsForTurn() {
     const isMyTurn = this.isLocal || (this.p2p.room && this.p2p.isMyTurn()) || (this.isHost && this.players.length === 1);
     const spinBtn = document.getElementById("btn-spin-wheel");
+    const vowelBtn = document.getElementById("btn-buy-vowel");
     const solveBtn = document.getElementById("btn-open-solve-modal");
 
+    const active = this.getActivePlayer();
+    const currentPoints = active ? (active.roundScore || 0) : 0;
+    const hasEnoughForVowel = currentPoints >= RUOTA_VOWEL_COST;
+
     const canSpin = isMyTurn && this.roundActive && (this.turnState === "awaiting_spin");
-    const canSolve = isMyTurn && this.roundActive && (this.turnState === "awaiting_spin" || this.turnState === "awaiting_letter");
+    const canBuyVowel = isMyTurn && this.roundActive && (this.turnState === "awaiting_spin" || this.turnState === "awaiting_vowel") && hasEnoughForVowel;
+    const canSolve = isMyTurn && this.roundActive && (this.turnState === "awaiting_spin" || this.turnState === "awaiting_letter" || this.turnState === "awaiting_vowel");
 
     if (spinBtn) spinBtn.disabled = !canSpin;
+    if (vowelBtn) {
+      vowelBtn.disabled = !canBuyVowel;
+      vowelBtn.textContent = hasEnoughForVowel ? `🛒 Compra Vocale (-${RUOTA_VOWEL_COST} pt)` : `🛒 Compra Vocale (${RUOTA_VOWEL_COST} pt)`;
+    }
     if (solveBtn) solveBtn.disabled = !canSolve;
 
-    // Aggiorna tastiera
-    const isAwaitingLetter = isMyTurn && this.roundActive && (this.turnState === "awaiting_letter");
+    // Aggiorna tastiera con la distinzione vocali vs consonanti
     document.querySelectorAll(".key-btn").forEach(btn => {
       const letter = btn.dataset.letter;
       const isUsed = !!this.usedLetters[letter];
-      btn.disabled = isUsed || !isAwaitingLetter;
+      const isVowel = RUOTA_VOWELS.has(letter);
+
+      if (isUsed || !isMyTurn || !this.roundActive) {
+        btn.disabled = true;
+        return;
+      }
+
+      if (this.turnState === "awaiting_letter") {
+        // Dopo lo spin: SOLO consonanti! (Le vocali sono disabilitate)
+        btn.disabled = isVowel;
+      } else if (this.turnState === "awaiting_vowel") {
+        // Modalità acquisto vocale: SOLO vocali abilitate!
+        btn.disabled = !isVowel;
+      } else if (this.turnState === "awaiting_spin") {
+        // In attesa di girare: le vocali sono abilitate direttamente se il giocatore ha abbastanza punti
+        btn.disabled = !(isVowel && hasEnoughForVowel);
+      } else {
+        btn.disabled = true;
+      }
     });
   }
 
