@@ -8,6 +8,38 @@ class LupusMasterUI {
     this.game = game;
   }
 
+  setSafeInstruction(container, htmlString) {
+    container.replaceChildren();
+    if (!htmlString) return;
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(htmlString, "text/html");
+    const walk = (node) => {
+      if (node.nodeType === Node.TEXT_NODE) {
+        return document.createTextNode(node.textContent);
+      }
+      if (node.nodeType === Node.ELEMENT_NODE) {
+        const tag = node.tagName.toLowerCase();
+        const allowed = ["em", "strong", "span", "b", "i", "u", "br", "small", "p", "div"];
+        if (allowed.includes(tag)) {
+          const el = document.createElement(tag);
+          if (node.className) el.className = node.className;
+          if (node.hasAttribute("style")) el.setAttribute("style", node.getAttribute("style"));
+          for (const child of node.childNodes) {
+            const walked = walk(child);
+            if (walked) el.appendChild(walked);
+          }
+          return el;
+        }
+        return document.createTextNode(node.textContent);
+      }
+      return null;
+    };
+    for (const child of doc.body.childNodes) {
+      const walked = walk(child);
+      if (walked) container.appendChild(walked);
+    }
+  }
+
   renderMasterRoster() {
     const game = this.game;
     const grid = document.getElementById("lupus-master-roster");
